@@ -1,0 +1,13 @@
+node_modules
+.node_modules_old
+.turbo
+dist
+.vercel
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+.idea
+.vscode
+coverage

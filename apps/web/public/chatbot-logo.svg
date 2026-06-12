@@ -1,0 +1,14 @@
+<svg viewBox="0 0 200 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chatbot logo">
+  <!-- floating orange dot -->
+  <circle cx="100" cy="33" r="11" fill="#ffa61e"/>
+
+  <!-- bordered circle with a small point at the bottom -->
+  <path d="M 118 154 A 52 52 0 1 0 82 154 L 100 172 Z"
+        fill="#ffffff" stroke="#36a8e6" stroke-width="9" stroke-linejoin="round"/>
+
+  <!-- happy closed eyes -->
+  <g fill="none" stroke="#2c3a47" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 67 110 Q 80 95 93 110"/>
+    <path d="M 107 110 Q 120 95 133 110"/>
+  </g>
+</svg>

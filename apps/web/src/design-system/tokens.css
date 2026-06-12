@@ -1,0 +1,171 @@
+/*
+ * Kapruka Shopping Agent — design tokens.
+ *
+ * Direction: Editorial Sri Lanka. Warm parchment background, ink-black primary,
+ * deep ocean teal CTA, saffron yellow accent (from the Kapruka brand mark).
+ * Generous spacing, single accent color, calm surfaces.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
+
+:root {
+  /* -------------------------------------------------------------------------
+   * Lóvi-inspired soft palette. Off-white surface with a faint pink wash at
+   * the top, lavender chat bubbles with deep-indigo text, vibrant indigo CTA.
+   * Mascot accents (orange + cyan) come from chatbot-logo.svg.
+   * ----------------------------------------------------------------------- */
+
+  /* Foundation */
+  --color-background: #faf7f5;       /* warm off-white shell */
+  --color-background-wash: #f3e8ec;  /* soft pink wash at top of shell */
+  --color-surface: #ffffff;          /* pure white cards (history, chat) */
+  --color-surface-warm: #f5f3fb;     /* faint lavender wash (composer) */
+  --color-surface-sunken: #ebe9f5;   /* lavender sunken (skeletons) */
+
+  /* Ink */
+  --color-primary: #161624;          /* near-black slate */
+  --color-secondary: #2d2d3d;
+  --color-text: #161624;
+  --color-text-muted: #6b6b80;
+  --color-text-soft: #9a9aae;
+
+  /* Borders — almost invisible, just for separation. */
+  --color-border: #ece9f1;
+  --color-border-strong: #d8d4e3;
+
+  /* CTA: rich violet — the brand spine for the new direction. */
+  --color-cta: #4A2E82;               /* primary violet */
+  --color-cta-hover: #3B2367;
+  --color-cta-soft: #ece6f7;
+  --color-cta-deep: #2c1b52;
+  --color-violet:        #4A2E82;
+  --color-violet-light:  #6B4BA0;     /* secondary violet, used for gradient */
+  --color-violet-tint:   #ece6f7;     /* very light violet (composer / soft) */
+
+  /* Lavender — the suggestion / assistant bubble fill (violet-tinted). */
+  --color-lavender:        #ece6f7;
+  --color-lavender-strong: #d9cdf0;
+  --color-lavender-ink:    #4A2E82;   /* violet for text on lavender */
+
+  /* Accent: warm yellow — used on secondary highlights, badges, glow. */
+  --color-accent:      #F9B233;
+  --color-accent-dark: #d99318;
+  --color-accent-soft: #fef0d4;
+
+  /* Cyan — kept as the mascot's secondary tone, not used as a brand color. */
+  --color-cyan: #36a8e6;
+  --color-cyan-soft: #d8edfa;
+
+  /* Semantic */
+  --color-warn: #d97706;
+  --color-warn-bg: #fef3c7;
+  --color-stock-low: #b91c1c;
+  --color-success: #16a34a;
+  --color-success-bg: #dcfce7;
+  --color-error: #dc2626;
+  --color-error-bg: #fee2e2;
+
+  /* Glass — used very sparingly on top bar. */
+  --glass-tint: rgba(255, 255, 255, 0.72);
+  --glass-tint-strong: rgba(255, 255, 255, 0.88);
+  --glass-border: rgba(220, 215, 235, 0.7);
+
+  /* Gradients */
+  --gradient-cta:     linear-gradient(135deg, #6B4BA0 0%, #4A2E82 60%, #3B2367 100%);
+  --gradient-accent:  linear-gradient(135deg, #ffc663 0%, #F9B233 100%);
+  --gradient-display: linear-gradient(180deg, #161624 0%, #4A2E82 100%);
+  --gradient-shell:   linear-gradient(180deg, #f3e8ec 0%, #faf7f5 32%, #faf7f5 100%);
+  /* Floating header — violet primary→secondary, with a yellow radial glow
+     anchored in the right corner. */
+  --gradient-header: linear-gradient(120deg, #4A2E82 0%, #6B4BA0 80%);
+
+  /* Typography */
+  --font-display: "Bricolage Grotesque", "Noto Sans Sinhala", "Noto Sans Tamil",
+                  ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body:    "Inter", "Noto Sans Sinhala", "Noto Sans Tamil",
+                  ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif:   "Bricolage Grotesque", "Georgia", serif;
+  --font-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type scale — generous, with massive display for the hero */
+  --text-2xs: 0.6875rem;
+  --text-xs:  0.75rem;
+  --text-sm:  0.875rem;
+  --text-base: 1rem;
+  --text-md:  1.0625rem;
+  --text-lg:  clamp(1.125rem, 0.95rem + 0.5vw, 1.25rem);
+  --text-xl:  clamp(1.375rem, 1.15rem + 0.8vw, 1.625rem);
+  --text-2xl: clamp(1.75rem, 1.35rem + 1.4vw, 2.375rem);
+  --text-3xl: clamp(2.25rem, 1.55rem + 2.2vw, 3.25rem);
+  --text-display: clamp(2.75rem, 1.6rem + 4.2vw, 5.5rem);
+  --text-mega: clamp(3.5rem, 2rem + 5.5vw, 7rem);
+
+  --leading-tight: 1;
+  --leading-snug: 1.1;
+  --leading-display: 0.95;
+  --leading-body: 1.55;
+  --leading-bubble: 1.5;
+  --tracking-display: -0.025em;
+  --tracking-mega: -0.04em;
+
+  /* Spacing — editorial, generous */
+  --space-px: 1px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --space-4xl: 64px;
+  --space-5xl: 96px;
+  --space-6xl: 128px;
+
+  /* Radius — slightly less rounded for editorial feel */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+  --radius-bubble: 18px;
+  --radius-full: 9999px;
+
+  /* Shadows — soft modern Lóvi-style elevation */
+  --shadow-sm: 0 1px 2px rgba(22, 22, 36, 0.04);
+  --shadow-md: 0 6px 16px -6px rgba(22, 22, 36, 0.10);
+  --shadow-lg: 0 20px 40px -16px rgba(22, 22, 36, 0.14);
+  --shadow-xl: 0 30px 60px -22px rgba(22, 22, 36, 0.18);
+  --shadow-cta: 0 14px 32px -10px rgba(74, 46, 130, 0.45);
+  --shadow-cta-strong: 0 18px 40px -12px rgba(74, 46, 130, 0.55);
+  --shadow-accent: 0 12px 28px -12px rgba(249, 178, 51, 0.50);
+  --shadow-bubble: 0 4px 14px -6px rgba(74, 46, 130, 0.18);
+  --shadow-header: 0 18px 40px -12px rgba(44, 27, 82, 0.35);
+
+  /* Motion */
+  --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-instant: 100ms var(--easing-standard);
+  --motion-fast: 180ms var(--easing-standard);
+  --motion-base: 260ms var(--easing-standard);
+  --motion-soft: 380ms var(--easing-emphasized);
+  --motion-surface: 520ms var(--easing-emphasized);
+  --motion-celebrate: 720ms var(--easing-spring);
+
+  /* Layout */
+  --layout-conversation-max: 760px;
+  --layout-action-surface: 420px;
+  --layout-topbar: 72px;
+  --layout-shell-gap: 24px;
+  --layout-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --layout-page-x: clamp(16px, 4vw, 48px);
+
+  /* z-index */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 20;
+  --z-overlay: 30;
+  --z-toast: 40;
+  --z-modal: 50;
+}

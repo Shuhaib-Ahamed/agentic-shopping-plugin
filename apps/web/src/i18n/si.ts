@@ -1,0 +1,99 @@
+import type { Strings } from "./en";
+
+// Sinhala strings. Highest-value bonus per the brief; these power the UI when locale = "si".
+// The runtime agent prompt drives the agent's own Sinhala voice; this file only covers UI chrome.
+export const si: Strings = {
+  app: {
+    title: "ජූනෝ",
+    tagline: "ඔබේ කපරුකා සාප්පු සහායක",
+  },
+  hero: {
+    greeting: "ආයුබෝවන්! මම",
+    question: "අද අපි මොකක්ද ගන්නේ?",
+    headline: "ආයුබෝවන්! මම ජූනෝ. අද අපි මොකක්ද ගන්නේ?",
+    sub: "තෑග්ගක්, අවස්ථාවක්, හෝ නමක් කියන්න. මම හොඳ දේවල් පෙන්වන්නම්, බෙදීම සැලසුම් කරන්නම්, සහ මෙතනින්ම ගෙවීමට ගෙන යන්නම්.",
+    suggestions: {
+      birthday: "රු. 5,000 ට අඩු උපන්දින තෑග්ගක්",
+      cake: "සෙනසුරාදා කොළඹට කේක් එකක්",
+      flowers: "මල් පොකුරක්, පුදුමයක් විදිහට",
+      sinhala: "අම්මාට තෑග්ගක්",
+      tamil: "எங்க அம்மாக்கு பிறந்தநாள் பரிசு",
+      tanglish: "Ammage birthday ekata lassana combo ekak",
+    },
+    categoriesTitle: "හෝ වර්ගයක් බලන්න",
+  },
+  composer: {
+    placeholder: "ජූනෝගෙන් ඕනෑම දෙයක් අහන්න",
+    send: "යවන්න",
+    languageEN: "EN",
+    languageSI: "සි",
+    languageTA: "தமி",
+    sending: "යවමින්",
+  },
+  status: {
+    thinking: "හිතමින්",
+    working: "කරමින්",
+    idle: "",
+  },
+  products: {
+    seeAll: "සියල්ල බලන්න",
+    addedToCart: "කරත්තයට එකතු විය",
+    soldOut: "අවසන්",
+    inStock: "තිබේ",
+    openOnKapruka: "කපරුකා වෙබ් අඩවියේ බලන්න",
+  },
+  cart: {
+    title: "ඔබේ කරත්තය",
+    subtotal: "උප එකතුව",
+    delivery: "බෙදීම",
+    total: "මුළු එකතුව",
+    empty: "කරත්තය හිස්ය.",
+    proceed: "ගෙවීමට යන්න",
+    remove: "ඉවත් කරන්න",
+  },
+  delivery: {
+    title: "බෙදීමේ විස්තර",
+    name: "ලබන්නාගේ නම",
+    phone: "ලබන්නාගේ දුරකථන අංකය",
+    line1: "ලිපිනය පේළිය 1",
+    line2: "ලිපිනය පේළිය 2 (අවශ්‍ය නැත)",
+    city: "නගරය",
+    cityHelp: "සිංහල, දෙමළ, හෝ ඉංග්‍රීසි අකුරුවලින් ලියන්න.",
+    postal: "තැපැල් කේතය (අවශ්‍ය නැත)",
+    date: "බෙදීමේ දිනය",
+    submit: "ඉදිරියට",
+    perishableWarning:
+      "මෙය ඉක්මනින් නරක් වන දෙයකි. දිනය ස්ථිර කරන්න.",
+  },
+  gift: {
+    toggle: "තෑගි පණිවිඩයක් එක් කරන්න",
+    placeholder: "ආදරයෙන්, මාගෙන් ඔබට.",
+    help: "අපි මෙය කාඩ් එකේ මුද්‍රණය කරන්නෙමු.",
+    save: "පණිවිඩය සුරකින්න",
+    charsLeft: (n: number) => `තවත් අකුරු ${n}`,
+  },
+  checkout: {
+    title: "ඇණවුම් සාරාංශය",
+    orderId: "ඇණවුම",
+    payNow: "කපරුකා මත ආරක්ෂිතව ගෙවන්න",
+    pricesLocked: "ගෙවීමේ සබැඳිය මිනිත්තු 60 කින් අවසන් වේ. මිල අගුළු දමා ඇත.",
+    waiting: "ගෙවීම සඳහා රැඳී සිටී",
+    iPaid: "මම ගෙව්වා",
+    expired: "ගෙවීමේ සබැඳිය අවසන්.",
+    expiredCta: "අලුත් ඇණවුමක් සාදන්න",
+    failed: "ගෙවීම සම්පූර්ණ වූයේ නැත.",
+    failedCta: "නැවත උත්සාහ කරන්න",
+    edit: "සංස්කරණය",
+  },
+  success: {
+    title: "ඇණවුම තැබුවා",
+    tracking: "ඇණවුම සොයන්න",
+    shopAgain: "නැවත සාප්පු යන්න",
+  },
+  error: {
+    generic: "මොකක්හරි වැරදුණා. නැවත උත්සාහ කරන්නද?",
+    rateLimited: "මොහොතක්, සාප්පුව හසුවෙමින්. ඉක්මනින් නැවත.",
+    retry: "නැවත",
+    dismiss: "ඉවත් කරන්න",
+  },
+};
