@@ -13,7 +13,8 @@ export type LogLevel = "debug" | "info" | "warn" | "error";
 const MAX_STRING_LEN = 2000;
 const MAX_ARRAY_LEN = 50;
 const REDACT_KEY_RE = /\b(api[_-]?key|secret|token|password|authorization|cookie|set-cookie)\b/i;
-const PII_KEY_RE = /\b(phone|email|recipient|pay[_-]?url|address|line1|line2|postal|gift[_-]?message)\b/i;
+const PII_KEY_RE =
+  /\b(phone|email|recipient|pay[_-]?url|address|line1|line2|postal|gift[_-]?message)\b/i;
 
 function redactString(s: string): string {
   return s

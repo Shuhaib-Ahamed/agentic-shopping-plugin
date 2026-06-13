@@ -1,0 +1,8 @@
+**/node_modules/**
+**/dist/**
+**/.turbo/**
+**/.vercel/**
+**/.node_modules_old/**
+**/coverage/**
+apps/web/src/components/ui/**
+pnpm-lock.yaml

@@ -1,12 +1,8 @@
 // Mongo client singleton for the admin console store. Lazy connect, cached
 // across function invocations in Fluid Compute. Reads MONGODB_URI from env.
 // If absent, downstream callers fall back to the in-memory seed (see store.ts).
+import type { ClientTelemetryEvent, SessionRecord, TurnRecord } from "@kapruka/protocol";
 import { MongoClient, type Db, type Collection } from "mongodb";
-import type {
-  ClientTelemetryEvent,
-  SessionRecord,
-  TurnRecord,
-} from "@kapruka/protocol";
 
 let clientPromise: Promise<MongoClient> | null = null;
 

@@ -1,17 +1,9 @@
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { KpiCard } from "@/components/atoms/console";
 import { ChartCard, FilterBar, LegendChip, MetricGrid } from "@/components/molecules/console";
 import { adminApi } from "../api";
-import { useAsync } from "../hooks";
 import { chartTickStyle, chartTooltipStyle, formatMs, formatNumber } from "../format";
+import { useAsync } from "../hooks";
 
 export function LatencyPage() {
   const { data, loading, error, reload } = useAsync(() => adminApi.latency());
@@ -48,10 +40,17 @@ export function LatencyPage() {
           {data && (
             <ResponsiveContainer>
               <BarChart data={data.byStage}>
-                <CartesianGrid stroke="var(--color-console-grid)" strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid
+                  stroke="var(--color-console-grid)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
                 <XAxis dataKey="stage" tick={chartTickStyle} />
                 <YAxis tick={chartTickStyle} />
-                <Tooltip contentStyle={chartTooltipStyle} formatter={(v) => `${Math.round(Number(v ?? 0))} ms`} />
+                <Tooltip
+                  contentStyle={chartTooltipStyle}
+                  formatter={(v) => `${Math.round(Number(v ?? 0))} ms`}
+                />
                 <Bar dataKey="p50" fill="var(--color-series-1)" radius={[6, 6, 0, 0]} />
                 <Bar dataKey="p95" fill="var(--color-series-2)" radius={[6, 6, 0, 0]} />
                 <Bar dataKey="p99" fill="var(--color-series-3)" radius={[6, 6, 0, 0]} />
@@ -76,10 +75,22 @@ export function LatencyPage() {
           {data && (
             <ResponsiveContainer>
               <BarChart data={data.byTool} layout="vertical">
-                <CartesianGrid stroke="var(--color-console-grid)" strokeDasharray="3 3" horizontal={false} />
+                <CartesianGrid
+                  stroke="var(--color-console-grid)"
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                />
                 <XAxis type="number" tick={chartTickStyle} />
-                <YAxis type="category" dataKey="name" tick={{ ...chartTickStyle, fontSize: 10 }} width={140} />
-                <Tooltip contentStyle={chartTooltipStyle} formatter={(v) => `${Math.round(Number(v ?? 0))} ms`} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ ...chartTickStyle, fontSize: 10 }}
+                  width={140}
+                />
+                <Tooltip
+                  contentStyle={chartTooltipStyle}
+                  formatter={(v) => `${Math.round(Number(v ?? 0))} ms`}
+                />
                 <Bar dataKey="p50" fill="var(--color-series-1)" />
                 <Bar dataKey="p95" fill="var(--color-series-2)" />
                 <Bar dataKey="p99" fill="var(--color-series-3)" />

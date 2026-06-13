@@ -11,7 +11,7 @@ export const POST = withAdmin(async (req, identity) => {
   const parts = url.pathname.split("/");
   // .../turns/:id/label
   const idx = parts.findIndex((p) => p === "turns");
-  const id = idx >= 0 ? parts[idx + 1] ?? "" : "";
+  const id = idx >= 0 ? (parts[idx + 1] ?? "") : "";
   if (!id) return jsonResponse({ error: "missing_id" }, 400);
   const existing = await getTurn(id);
   if (!existing) return jsonResponse({ error: "not_found" }, 404);

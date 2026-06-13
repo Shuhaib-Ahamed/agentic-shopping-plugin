@@ -1,14 +1,17 @@
-import { useState } from "react";
-import { Download, Sparkles } from "lucide-react";
 import type { AdminDatasetCreateBody } from "@kapruka/protocol";
-import { FilterBar } from "@/components/molecules/console";
+import { Download, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
+import { FilterBar } from "@/components/molecules/console";
 import { adminApi } from "../api";
-import { useAsync } from "../hooks";
 import { formatDateTime, formatNumber } from "../format";
+import { useAsync } from "../hooks";
 
-const RATINGS: Array<{ value: NonNullable<AdminDatasetCreateBody["filter"]["rating"]>; label: string }> = [
+const RATINGS: Array<{
+  value: NonNullable<AdminDatasetCreateBody["filter"]["rating"]>;
+  label: string;
+}> = [
   { value: "any", label: "Any rating" },
   { value: "good", label: "Good only" },
   { value: "bad", label: "Bad only" },
@@ -52,7 +55,9 @@ export function DatasetsPage() {
     <div className="space-y-5">
       <header>
         <h1 className="font-display font-bold text-[28px] tracking-[-0.02em]">Datasets</h1>
-        <p className="text-[13px] text-muted">Build PII-redacted fine-tuning and evaluation sets.</p>
+        <p className="text-[13px] text-muted">
+          Build PII-redacted fine-tuning and evaluation sets.
+        </p>
       </header>
       <FilterBar range="Last 24 hours" />
 
@@ -92,7 +97,9 @@ export function DatasetsPage() {
 
       <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] overflow-hidden">
         <header className="px-5 py-3 border-b border-[color:var(--color-border)] flex items-center justify-between">
-          <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em]">Saved datasets</h3>
+          <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em]">
+            Saved datasets
+          </h3>
           <span className="text-[12px] text-muted">{data?.items.length ?? 0} sets</span>
         </header>
         {!data || data.items.length === 0 ? (
@@ -106,7 +113,8 @@ export function DatasetsPage() {
                 <div className="min-w-0">
                   <p className="text-[14px] font-semibold text-text">{d.name}</p>
                   <p className="text-[11px] text-muted">
-                    {formatNumber(d.count)} turns · {d.format} · {d.redactionProfile} · {formatDateTime(d.createdAt)}
+                    {formatNumber(d.count)} turns · {d.format} · {d.redactionProfile} ·{" "}
+                    {formatDateTime(d.createdAt)}
                   </p>
                 </div>
                 <a

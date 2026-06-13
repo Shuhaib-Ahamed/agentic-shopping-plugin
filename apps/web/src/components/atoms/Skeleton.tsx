@@ -19,11 +19,7 @@ export function Skeleton({ className, rounded = "md" }: SkeletonProps) {
   return (
     <div
       aria-hidden="true"
-      className={cn(
-        "relative overflow-hidden",
-        r,
-        className,
-      )}
+      className={cn("relative overflow-hidden", r, className)}
       style={{
         background:
           "linear-gradient(90deg, var(--color-surface-sunken) 0%, var(--color-surface-warm) 50%, var(--color-surface-sunken) 100%)",

@@ -1,7 +1,7 @@
 // GET /api/admin/pricing  -> current pricing table.
 // PUT /api/admin/pricing  -> replace with a new table (admin only).
-import { z } from "zod";
 import { AdminPricingRowSchema } from "@kapruka/protocol";
+import { z } from "zod";
 import { jsonResponse, withAdmin } from "../_lib/console/auth";
 import { getPricing, setPricing } from "../_lib/console/store";
 

@@ -1,6 +1,6 @@
+import type { TurnRecord } from "@kapruka/protocol";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import type { TurnRecord } from "@kapruka/protocol";
 import { CurrencyCell, LangPill, ModelPill, StatusDot } from "@/components/atoms/console";
 import { FilterBar, FilterButton } from "@/components/molecules/console";
 import { ConsoleApiError, adminApi } from "../api";
@@ -32,11 +32,14 @@ export function CurationPage() {
       } catch (err) {
         if (cancelled) return;
         const msg =
-          err instanceof ConsoleApiError ? err.message : err instanceof Error ? err.message : "load_failed";
+          err instanceof ConsoleApiError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : "load_failed";
         setError(msg);
       } finally {
-        if (cancelled) return;
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => {
@@ -74,20 +77,39 @@ export function CurationPage() {
           <table className="w-full text-[13px]">
             <thead className="bg-[color:var(--color-console-sunken)] text-muted">
               <tr className="text-left">
-                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">When</th>
-                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">Locale</th>
-                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">Model</th>
-                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">Outcome</th>
-                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">Input</th>
-                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">Rating</th>
-                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px] text-right">Cost</th>
+                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                  When
+                </th>
+                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                  Locale
+                </th>
+                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                  Model
+                </th>
+                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                  Outcome
+                </th>
+                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                  Input
+                </th>
+                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                  Rating
+                </th>
+                <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px] text-right">
+                  Cost
+                </th>
                 <th className="px-4 py-2.5"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((t) => (
-                <tr key={t.turnId} className="border-t border-[color:var(--color-border)] hover:bg-[color:var(--color-console-sunken)]/50">
-                  <td className="px-4 py-3 tabular text-muted whitespace-nowrap">{formatDateTime(t.createdAt)}</td>
+                <tr
+                  key={t.turnId}
+                  className="border-t border-[color:var(--color-border)] hover:bg-[color:var(--color-console-sunken)]/50"
+                >
+                  <td className="px-4 py-3 tabular text-muted whitespace-nowrap">
+                    {formatDateTime(t.createdAt)}
+                  </td>
                   <td className="px-4 py-3">
                     <LangPill code={(t.locale as "en" | "si" | "ta") ?? "en"} />
                   </td>

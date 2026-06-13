@@ -1,5 +1,5 @@
-import { Children, Fragment, isValidElement, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Children, Fragment, isValidElement, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export interface ComposerStackProps {
@@ -44,24 +44,13 @@ const ENTRY = {
 // rest of the stack reflows smoothly via framer-motion's shared `layout`. The
 // composer itself stays anchored: it animates its position (via `layout`) but
 // never enters or exits.
-export function ComposerStack({
-  tray,
-  banner,
-  options,
-  composer,
-  className,
-}: ComposerStackProps) {
+export function ComposerStack({ tray, banner, options, composer, className }: ComposerStackProps) {
   const hasTray = isMeaningful(tray);
   const hasBanner = isMeaningful(banner);
   const hasOptions = isMeaningful(options);
 
   return (
-    <div
-      className={cn(
-        "relative w-full max-w-[1200px] mx-auto px-3 md:px-6 pb-2",
-        className,
-      )}
-    >
+    <div className={cn("relative w-full max-w-[1200px] mx-auto px-3 md:px-6 pb-2", className)}>
       <motion.div layout="position" className="flex flex-col gap-2">
         <AnimatePresence initial={false} mode="popLayout">
           {hasTray && (
@@ -119,9 +108,7 @@ function isMeaningful(node: ReactNode): boolean {
   if (node === null || node === undefined || node === false) return false;
   if (Array.isArray(node) && node.length === 0) return false;
   if (isValidElement(node) && node.type === Fragment) {
-    const kids = Children.toArray(
-      (node.props as { children?: ReactNode })?.children ?? null,
-    );
+    const kids = Children.toArray((node.props as { children?: ReactNode })?.children ?? null);
     if (kids.length === 0) return false;
   }
   return true;

@@ -15,12 +15,7 @@ const COLOR: Record<NonNullable<LatencyBarProps["kind"]>, string> = {
 };
 
 // Tiny horizontal bar; width is fraction of scaleMs, max 100%.
-export function LatencyBar({
-  durationMs,
-  scaleMs,
-  kind = "model",
-  className,
-}: LatencyBarProps) {
+export function LatencyBar({ durationMs, scaleMs, kind = "model", className }: LatencyBarProps) {
   const pct = Math.max(2, Math.min(100, (durationMs / Math.max(1, scaleMs)) * 100));
   return (
     <span

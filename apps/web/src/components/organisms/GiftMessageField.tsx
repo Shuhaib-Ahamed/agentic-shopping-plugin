@@ -1,9 +1,9 @@
-import { useState } from "react";
 import * as Switch from "@radix-ui/react-switch";
 import { Gift } from "lucide-react";
+import { useState } from "react";
 import { Button, Textarea } from "@/components/atoms";
-import { useAppStore } from "@/store";
 import { pickStrings } from "@/i18n";
+import { useAppStore } from "@/store";
 
 export interface GiftMessageFieldProps {
   defaultValue?: string;
@@ -11,7 +11,11 @@ export interface GiftMessageFieldProps {
   maxLength?: number;
 }
 
-export function GiftMessageField({ defaultValue = "", onSave, maxLength = 200 }: GiftMessageFieldProps) {
+export function GiftMessageField({
+  defaultValue = "",
+  onSave,
+  maxLength = 200,
+}: GiftMessageFieldProps) {
   const locale = useAppStore((s) => s.locale);
   const t = pickStrings(locale);
   const [open, setOpen] = useState(defaultValue.length > 0);

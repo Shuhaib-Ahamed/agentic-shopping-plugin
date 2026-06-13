@@ -1,9 +1,9 @@
-import { useRef } from "react";
-import { Plus } from "lucide-react";
 import type { Product } from "@kapruka/protocol";
+import { Plus } from "lucide-react";
+import { useRef } from "react";
+import { useFlyToCart } from "@/components/organisms/FlyToCart";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
-import { useFlyToCart } from "@/components/organisms/FlyToCart";
 
 export interface SingleProductCardProps {
   product: Product;
@@ -13,7 +13,7 @@ export interface SingleProductCardProps {
 }
 
 // Horizontal full-width product card. Used when a `present_products` event
-// returns a single item — a slider would feel silly with one slide, so the
+// returns a single item - a slider would feel silly with one slide, so the
 // card stretches to the chat column and the image sits beside the details
 // instead of stacking on top of them.
 export function SingleProductCard({ product, onOpen, onAdd, className }: SingleProductCardProps) {
@@ -158,9 +158,7 @@ export function SingleProductCard({ product, onOpen, onAdd, className }: SingleP
 
 function derivePromo(product: Product): string | null {
   if (product.compareAtPrice && product.compareAtPrice.amount > product.price.amount) {
-    const pct = Math.round(
-      (1 - product.price.amount / product.compareAtPrice.amount) * 100,
-    );
+    const pct = Math.round((1 - product.price.amount / product.compareAtPrice.amount) * 100);
     if (pct > 0) return `${pct}% OFF`;
   }
   return product.badge ?? null;

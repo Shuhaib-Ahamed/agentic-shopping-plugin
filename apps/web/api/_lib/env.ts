@@ -6,9 +6,11 @@ const EnvSchema = z
     /** Model provider: "openai" (default) or "gemini". */
     MODEL_PROVIDER: z.enum(["openai", "gemini"]).default("openai"),
 
-    // OpenAI (default). Strongest mini for tool-calling agents: gpt-5.4-mini.
+    // OpenAI (default). Cheapest tool-calling model in the lineup is gpt-5-nano
+    // (roughly $0.05 / $0.40 per M tokens). Override per-stage via the *_MODEL
+    // envs below if you want to bump up just the response stage.
     OPENAI_API_KEY: z.string().optional(),
-    OPENAI_MODEL: z.string().default("gpt-5.4-mini"),
+    OPENAI_MODEL: z.string().default("gpt-5-nano"),
 
     // Gemini (alternative). Set MODEL_PROVIDER=gemini to use.
     GOOGLE_API_KEY: z.string().optional(),

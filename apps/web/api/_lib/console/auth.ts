@@ -2,16 +2,15 @@
 // Single-admin mode by default (ADMIN_EMAIL + ADMIN_PASSWORD_HASH env).
 // Falls back to a demo identity so the console works out of the box.
 // Production must set SESSION_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD_HASH.
-import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
+import { SignJWT, jwtVerify } from "jose";
 
 // Demo defaults. PRODUCTION MUST OVERRIDE. The password for the demo hash
 // below is "kapruka-demo" (bcrypt round 10). The session secret is a constant
 // only used when running unconfigured. Both should be rotated for prod.
 const DEMO_EMAIL = "admin@kapruka.local";
 // bcrypt of "kapruka-demo" (round 10). Rotate via ADMIN_PASSWORD_HASH.
-const DEMO_PASSWORD_HASH =
-  "$2b$10$B42wDvkX1Rd/6q1Jjn77teUd66noQIc6cUR2QGhQTXxUxrOq8g6bC";
+const DEMO_PASSWORD_HASH = "$2b$10$B42wDvkX1Rd/6q1Jjn77teUd66noQIc6cUR2QGhQTXxUxrOq8g6bC";
 const DEMO_SECRET = "kapruka-console-demo-secret-please-rotate-in-prod";
 
 export const COOKIE_NAME = "kpk_console_session";
@@ -27,12 +26,15 @@ export interface AdminIdentity {
   role: "admin";
 }
 
-export async function verifyPassword(email: string, password: string): Promise<AdminIdentity | null> {
+export async function verifyPassword(
+  email: string,
+  password: string,
+): Promise<AdminIdentity | null> {
   const expectedEmail = process.env.ADMIN_EMAIL ?? DEMO_EMAIL;
   const expectedHash = process.env.ADMIN_PASSWORD_HASH ?? DEMO_PASSWORD_HASH;
   // Constant time email check by always hashing the password.
   const emailOk = email.trim().toLowerCase() === expectedEmail.trim().toLowerCase();
-  let passwordOk = false;
+  let passwordOk: boolean;
   try {
     passwordOk = await bcrypt.compare(password, expectedHash);
   } catch {
@@ -52,7 +54,10 @@ export async function signSession(identity: AdminIdentity): Promise<string> {
 
 export async function readSession(req: Request): Promise<AdminIdentity | null> {
   const cookie = req.headers.get("cookie") ?? "";
-  const match = cookie.split(";").map((p) => p.trim()).find((p) => p.startsWith(`${COOKIE_NAME}=`));
+  const match = cookie
+    .split(";")
+    .map((p) => p.trim())
+    .find((p) => p.startsWith(`${COOKIE_NAME}=`));
   if (!match) return null;
   const token = match.slice(COOKIE_NAME.length + 1);
   if (!token) return null;
@@ -96,7 +101,11 @@ export function withAdmin(
   };
 }
 
-export function jsonResponse(body: unknown, status = 200, extraHeaders: Record<string, string> = {}): Response {
+export function jsonResponse(
+  body: unknown,
+  status = 200,
+  extraHeaders: Record<string, string> = {},
+): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "Content-Type": "application/json", ...extraHeaders },

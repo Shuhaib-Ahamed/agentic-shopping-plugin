@@ -9,7 +9,7 @@ export const GET = withAdmin(async (req) => {
   const url = new URL(req.url);
   const parts = url.pathname.split("/");
   const idx = parts.findIndex((p) => p === "datasets");
-  const id = idx >= 0 ? parts[idx + 1] ?? "" : "";
+  const id = idx >= 0 ? (parts[idx + 1] ?? "") : "";
   if (!id) return jsonResponse({ error: "missing_id" }, 400);
   const out = await exportDataset(id);
   if (!out) return jsonResponse({ error: "not_found" }, 404);

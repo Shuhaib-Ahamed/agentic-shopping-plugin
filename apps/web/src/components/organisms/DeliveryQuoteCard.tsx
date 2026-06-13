@@ -1,8 +1,8 @@
-import { Truck, AlertTriangle, Calendar, MapPin } from "lucide-react";
 import type { DeliveryQuoteEvent } from "@kapruka/protocol";
+import { Truck, AlertTriangle, Calendar, MapPin } from "lucide-react";
 import { Price } from "@/components/atoms";
-import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/format";
 
 export interface DeliveryQuoteCardProps {
   quote: DeliveryQuoteEvent;

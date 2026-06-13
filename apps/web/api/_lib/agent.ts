@@ -23,14 +23,14 @@
 
 import type { ChatRequest } from "@kapruka/protocol";
 import { env } from "./env";
+import { makeLogger, newTraceId, type Logger } from "./log";
 import { modelProvider } from "./openai";
 import { getOrCreateSession } from "./sessionState";
+import type { SseWriter } from "./sse";
+import { runResponse } from "./stages/response";
 import { routeTurn } from "./stages/router";
 import { runToolLoop, type ToolBundle } from "./stages/toolLoop";
-import { runResponse } from "./stages/response";
 import { pickStatusLabel } from "./statusPool";
-import type { SseWriter } from "./sse";
-import { makeLogger, newTraceId, type Logger } from "./log";
 
 const baseLog = makeLogger({ ctx: "agent" });
 

@@ -58,9 +58,7 @@ export function TypingIndicator({ label, className }: TypingIndicatorProps) {
           />
         </span>
         {label && (
-          <span className="text-[var(--text-sm)] font-medium leading-snug ml-1">
-            {label}
-          </span>
+          <span className="text-[var(--text-sm)] font-medium leading-snug ml-1">{label}</span>
         )}
       </div>
     </div>

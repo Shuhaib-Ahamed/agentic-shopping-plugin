@@ -1,6 +1,6 @@
+import type { OptionsEvent } from "@kapruka/protocol";
 import { motion } from "framer-motion";
 import { X, Sparkles } from "lucide-react";
-import type { OptionsEvent } from "@kapruka/protocol";
 import * as Icons from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import { cn } from "@/lib/cn";

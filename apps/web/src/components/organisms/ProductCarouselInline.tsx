@@ -53,16 +53,13 @@ export function ProductCarouselInline({
     );
   }
 
-  // Tighter minimum for the explicit "grid" layout — the AI uses this when
+  // Tighter minimum for the explicit "grid" layout - the AI uses this when
   // it expects many small thumbnails.
   const minCol = layout === "grid" ? "180px" : "240px";
 
   return (
     <section
-      className={cn(
-        "w-full animate-[surface-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]",
-        className,
-      )}
+      className={cn("w-full animate-[surface-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]", className)}
       aria-label={title ?? "Products"}
     >
       {title && (

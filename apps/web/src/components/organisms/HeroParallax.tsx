@@ -6,7 +6,7 @@ export interface HeroParallaxProps {
   className?: string;
 }
 
-// Storefront parallax — markup ported verbatim from
+// Storefront parallax - markup ported verbatim from
 // /Users/shuhaib/Downloads/Juno Welcome.html and now rendered as real JSX
 // via the <StorefrontScene /> component (no dangerouslySetInnerHTML).
 //
@@ -23,13 +23,10 @@ export const HeroParallax = memo(function HeroParallax({ className }: HeroParall
   return (
     <div
       aria-hidden
-      className={cn(
-        "absolute inset-0 overflow-hidden pointer-events-none select-none",
-        className,
-      )}
+      className={cn("absolute inset-0 overflow-hidden pointer-events-none select-none", className)}
     >
       {/* Soft pastel wash behind the storefront so the colored layers register
-          on the (otherwise warm) hero background — lifted from the source. */}
+          on the (otherwise warm) hero background - lifted from the source. */}
       <div
         className="absolute inset-0"
         style={{

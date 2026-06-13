@@ -28,7 +28,7 @@ export function ToolCallRow({ tc }: { tc: ToolCallRecord }) {
         <p className="text-[11px] text-muted truncate">{tc.argsSummary}</p>
       </div>
       <p className="text-[12px] text-muted">
-        {tc.resultSummary ?? (tc.error ? tc.error.message : "—")}
+        {tc.resultSummary ?? (tc.error ? tc.error.message : "-")}
       </p>
       <span className="text-[12px] tabular text-muted text-right">
         {tc.latencyMs.toFixed(0)} ms

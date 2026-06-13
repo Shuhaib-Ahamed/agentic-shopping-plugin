@@ -1,10 +1,10 @@
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { JunoMark } from "@/components/atoms/JunoMark";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
-import { useConsoleAuth } from "../AuthContext";
+import { JunoMark } from "@/components/atoms/JunoMark";
 import { ConsoleApiError } from "../api";
+import { useConsoleAuth } from "../AuthContext";
 
 export function LoginPage() {
   const auth = useConsoleAuth();

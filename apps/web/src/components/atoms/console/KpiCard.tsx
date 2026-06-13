@@ -23,9 +23,7 @@ export function KpiCard({ label, value, delta, hint, sparkline, className }: Kpi
         <p className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">{label}</p>
         {delta}
       </div>
-      <p
-        className="mt-2 font-display font-bold text-[34px] leading-[1.05] tracking-[-0.025em] tabular text-text"
-      >
+      <p className="mt-2 font-display font-bold text-[34px] leading-[1.05] tracking-[-0.025em] tabular text-text">
         {value}
       </p>
       {hint ? <p className="mt-1 text-[12px] text-muted">{hint}</p> : null}

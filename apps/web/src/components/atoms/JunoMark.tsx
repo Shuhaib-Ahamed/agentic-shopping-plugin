@@ -13,7 +13,7 @@ export interface JunoMarkProps {
   fluid?: boolean;
 }
 
-// Juno's mascot — a friendly chat bubble with a happy face and an orange
+// Juno's mascot - a friendly chat bubble with a happy face and an orange
 // status dot floating above. Renders an inline SVG so it can be themed and
 // sized fluidly. Pairs with the chat-card UI direction (soft, light, playful).
 export function JunoMark({ size = 40, className, status = "idle", bare, fluid }: JunoMarkProps) {
@@ -30,7 +30,7 @@ export function JunoMark({ size = 40, className, status = "idle", bare, fluid }:
         xmlns="http://www.w3.org/2000/svg"
         className="block overflow-visible"
       >
-        {/* Floating yellow dot — pulses as the live status indicator. */}
+        {/* Floating yellow dot - pulses as the live status indicator. */}
         <circle
           cx="100"
           cy="33"
@@ -39,7 +39,7 @@ export function JunoMark({ size = 40, className, status = "idle", bare, fluid }:
           className={pulse ? "animate-pulse" : undefined}
         />
 
-        {/* Bordered chat bubble with a subtle tail — violet outline matching brand. */}
+        {/* Bordered chat bubble with a subtle tail - violet outline matching brand. */}
         <path
           d="M 112 156 A 52 52 0 1 0 88 156 L 100 165 Z"
           fill="#ffffff"
@@ -60,7 +60,7 @@ export function JunoMark({ size = 40, className, status = "idle", bare, fluid }:
           <path d="M 107 110 Q 120 95 133 110" />
         </g>
       </svg>
-      {/* The standalone status dot — only shown when not pulsing, since the
+      {/* The standalone status dot - only shown when not pulsing, since the
           orange dot above already pulses for activity. */}
       {!bare && !pulse && (
         <span

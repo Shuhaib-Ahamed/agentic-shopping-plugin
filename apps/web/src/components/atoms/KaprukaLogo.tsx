@@ -6,7 +6,7 @@ export interface KaprukaLogoProps {
   className?: string;
 }
 
-// Official Kapruka brand wordmark — PNG asset at /public/kapruka-logo.png.
+// Official Kapruka brand wordmark - PNG asset at /public/kapruka-logo.png.
 export function KaprukaLogo({ height = 26, className }: KaprukaLogoProps) {
   return (
     <img

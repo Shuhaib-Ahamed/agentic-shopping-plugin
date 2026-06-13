@@ -26,7 +26,8 @@ export function Avatar({ name, image, size = 32, className, ring }: AvatarProps)
         "inline-flex items-center justify-center rounded-full overflow-hidden",
         "bg-[var(--color-surface-warm)] text-[var(--color-text)]",
         "border border-[var(--color-border)]",
-        ring && "ring-2 ring-[color:var(--color-cta)] ring-offset-2 ring-offset-[var(--color-background)]",
+        ring &&
+          "ring-2 ring-[color:var(--color-cta)] ring-offset-2 ring-offset-[var(--color-background)]",
         className,
       )}
       style={dim}
@@ -43,10 +44,7 @@ export function Avatar({ name, image, size = 32, className, ring }: AvatarProps)
           className="block w-full h-full object-cover"
         />
       ) : (
-        <span
-          className="font-semibold"
-          style={{ fontSize: Math.round(size * 0.4) }}
-        >
+        <span className="font-semibold" style={{ fontSize: Math.round(size * 0.4) }}>
           {initials(name)}
         </span>
       )}

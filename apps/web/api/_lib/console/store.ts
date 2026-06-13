@@ -55,9 +55,7 @@ export async function getSessionList(q: SessionListQuery): Promise<AdminSessionL
     const needle = q.search.toLowerCase();
     filtered = filtered.filter((s) => s.sessionId.toLowerCase().includes(needle));
   }
-  filtered = filtered
-    .slice()
-    .sort((a, b) => (a.startedAt > b.startedAt ? -1 : 1));
+  filtered = filtered.slice().sort((a, b) => (a.startedAt > b.startedAt ? -1 : 1));
   const total = filtered.length;
   const start = q.page * q.pageSize;
   const page = filtered.slice(start, start + q.pageSize);
@@ -123,9 +121,7 @@ export async function getOverview(): Promise<AdminOverview> {
   const { sessions, turns } = await loadAll();
   const range = {
     from: sessions[0]?.startedAt ?? new Date().toISOString(),
-    to:
-      sessions[sessions.length - 1]?.lastSeenAt ??
-      new Date().toISOString(),
+    to: sessions[sessions.length - 1]?.lastSeenAt ?? new Date().toISOString(),
   };
 
   const totalTokens = turns.reduce((a, t) => a + t.totals.usage.total, 0);
@@ -203,10 +199,7 @@ export async function getOverview(): Promise<AdminOverview> {
   // Language mix hourly. Currency tg = tanglish; we approximate by tagging
   // english turns whose text contains sinhala chars as "tg" later. For seed
   // we just route by locale.
-  const langByHour = new Map<
-    string,
-    { en: number; si: number; ta: number; tg: number }
-  >();
+  const langByHour = new Map<string, { en: number; si: number; ta: number; tg: number }>();
   for (const t of turns) {
     const key = hourBucket(t.createdAt);
     const cur = langByHour.get(key) ?? { en: 0, si: 0, ta: 0, tg: 0 };
@@ -302,8 +295,7 @@ export async function getCost(): Promise<AdminCost> {
   >();
   for (const t of turns) {
     const key = hourBucket(t.createdAt);
-    const cur =
-      byHour.get(key) ?? { input: 0, cachedInput: 0, output: 0, reasoning: 0 };
+    const cur = byHour.get(key) ?? { input: 0, cachedInput: 0, output: 0, reasoning: 0 };
     cur.input += t.totals.cost.input;
     cur.cachedInput += t.totals.cost.cachedInput;
     cur.output += t.totals.cost.output;
@@ -317,9 +309,11 @@ export async function getCost(): Promise<AdminCost> {
   const bucketEdges = [0, 0.001, 0.002, 0.004, 0.008, 0.016, 0.032, 0.064];
   const costPerTurn = bucketEdges.map((edge, i) => {
     const next = bucketEdges[i + 1] ?? Number.POSITIVE_INFINITY;
-    const count = turns.filter((t) => t.totals.cost.total >= edge && t.totals.cost.total < next)
-      .length;
-    const label = next === Number.POSITIVE_INFINITY ? `≥ $${edge.toFixed(3)}` : `< $${next.toFixed(3)}`;
+    const count = turns.filter(
+      (t) => t.totals.cost.total >= edge && t.totals.cost.total < next,
+    ).length;
+    const label =
+      next === Number.POSITIVE_INFINITY ? `≥ $${edge.toFixed(3)}` : `< $${next.toFixed(3)}`;
     return { bucket: label, count };
   });
 
@@ -342,8 +336,7 @@ export async function getCost(): Promise<AdminCost> {
   for (const t of turns) {
     for (const s of t.steps) {
       for (const tc of s.toolCalls) {
-        const cur =
-          toolMap.get(tc.name) ?? { kind: tc.kind, calls: 0, latencySumMs: 0, errors: 0 };
+        const cur = toolMap.get(tc.name) ?? { kind: tc.kind, calls: 0, latencySumMs: 0, errors: 0 };
         cur.calls += 1;
         cur.latencySumMs += tc.latencyMs;
         if (tc.error) cur.errors += 1;
@@ -536,11 +529,7 @@ export async function getPipeline(): Promise<AdminPipeline> {
     costUSD: number;
   };
   const nodes = new Map<string, NodeAgg>();
-  const ensureNode = (
-    id: string,
-    label: string,
-    kind: NodeAgg["kind"],
-  ): NodeAgg => {
+  const ensureNode = (id: string, label: string, kind: NodeAgg["kind"]): NodeAgg => {
     const cur = nodes.get(id);
     if (cur) return cur;
     const next: NodeAgg = {
@@ -626,7 +615,11 @@ export async function getFunnel(): Promise<AdminFunnel> {
     checkout: sessions.filter((s) => s.funnel.startedCheckout).length,
     paid: sessions.filter((s) => s.funnel.paid).length,
   };
-  const ordered: Array<{ key: AdminFunnel["stages"][number]["key"]; label: string; count: number }> = [
+  const ordered: Array<{
+    key: AdminFunnel["stages"][number]["key"];
+    label: string;
+    count: number;
+  }> = [
     { key: "opened", label: "Opened", count: counts.opened },
     { key: "searched", label: "Searched", count: counts.searched },
     { key: "viewed", label: "Viewed product", count: counts.viewed },
@@ -721,10 +714,7 @@ export async function listDatasets(): Promise<AdminDataset[]> {
   return DATASET_MEMO.slice().sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1));
 }
 
-function matchesFilter(
-  turn: TurnRecord,
-  filter: AdminDatasetCreateBody["filter"],
-): boolean {
+function matchesFilter(turn: TurnRecord, filter: AdminDatasetCreateBody["filter"]): boolean {
   if (filter.rating && filter.rating !== "any") {
     if ((turn.label?.rating ?? "unrated") !== filter.rating) return false;
   }
@@ -759,7 +749,9 @@ export async function createDataset(body: AdminDatasetCreateBody): Promise<Admin
   return dataset;
 }
 
-export async function exportDataset(id: string): Promise<{ filename: string; body: string } | null> {
+export async function exportDataset(
+  id: string,
+): Promise<{ filename: string; body: string } | null> {
   const dataset = DATASET_MEMO.find((d) => d.id === id);
   if (!dataset) return null;
   const { turns } = await loadAll();

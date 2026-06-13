@@ -1,5 +1,5 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Spinner } from "./Spinner";
 
@@ -36,8 +36,7 @@ const iconButtonVariants = cva(
 );
 
 export interface IconButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof iconButtonVariants> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof iconButtonVariants> {
   /** Required for accessibility, even though the button shows only an icon. */
   "aria-label": string;
   icon: ReactNode;

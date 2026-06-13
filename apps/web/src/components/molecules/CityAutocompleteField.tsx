@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
 import { Check, MapPin } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Input, Spinner } from "@/components/atoms";
 import { cn } from "@/lib/cn";
 

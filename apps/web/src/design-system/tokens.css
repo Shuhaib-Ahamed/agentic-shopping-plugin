@@ -1,12 +1,12 @@
 /*
- * Kapruka Shopping Agent — design tokens.
+ * Kapruka Shopping Agent - design tokens.
  *
  * Direction: Editorial Sri Lanka. Warm parchment background, ink-black primary,
  * deep ocean teal CTA, saffron yellow accent (from the Kapruka brand mark).
  * Generous spacing, single accent color, calm surfaces.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap");
 
 :root {
   /* -------------------------------------------------------------------------
@@ -16,43 +16,43 @@
    * ----------------------------------------------------------------------- */
 
   /* Foundation */
-  --color-background: #faf7f5;       /* warm off-white shell */
-  --color-background-wash: #f3e8ec;  /* soft pink wash at top of shell */
-  --color-surface: #ffffff;          /* pure white cards (history, chat) */
-  --color-surface-warm: #f5f3fb;     /* faint lavender wash (composer) */
-  --color-surface-sunken: #ebe9f5;   /* lavender sunken (skeletons) */
+  --color-background: #faf7f5; /* warm off-white shell */
+  --color-background-wash: #f3e8ec; /* soft pink wash at top of shell */
+  --color-surface: #ffffff; /* pure white cards (history, chat) */
+  --color-surface-warm: #f5f3fb; /* faint lavender wash (composer) */
+  --color-surface-sunken: #ebe9f5; /* lavender sunken (skeletons) */
 
   /* Ink */
-  --color-primary: #161624;          /* near-black slate */
+  --color-primary: #161624; /* near-black slate */
   --color-secondary: #2d2d3d;
   --color-text: #161624;
   --color-text-muted: #6b6b80;
   --color-text-soft: #9a9aae;
 
-  /* Borders — almost invisible, just for separation. */
+  /* Borders - almost invisible, just for separation. */
   --color-border: #ece9f1;
   --color-border-strong: #d8d4e3;
 
-  /* CTA: rich violet — the brand spine for the new direction. */
-  --color-cta: #4A2E82;               /* primary violet */
-  --color-cta-hover: #3B2367;
+  /* CTA: rich violet - the brand spine for the new direction. */
+  --color-cta: #4a2e82; /* primary violet */
+  --color-cta-hover: #3b2367;
   --color-cta-soft: #ece6f7;
   --color-cta-deep: #2c1b52;
-  --color-violet:        #4A2E82;
-  --color-violet-light:  #6B4BA0;     /* secondary violet, used for gradient */
-  --color-violet-tint:   #ece6f7;     /* very light violet (composer / soft) */
+  --color-violet: #4a2e82;
+  --color-violet-light: #6b4ba0; /* secondary violet, used for gradient */
+  --color-violet-tint: #ece6f7; /* very light violet (composer / soft) */
 
-  /* Lavender — the suggestion / assistant bubble fill (violet-tinted). */
-  --color-lavender:        #ece6f7;
+  /* Lavender - the suggestion / assistant bubble fill (violet-tinted). */
+  --color-lavender: #ece6f7;
   --color-lavender-strong: #d9cdf0;
-  --color-lavender-ink:    #4A2E82;   /* violet for text on lavender */
+  --color-lavender-ink: #4a2e82; /* violet for text on lavender */
 
-  /* Accent: warm yellow — used on secondary highlights, badges, glow. */
-  --color-accent:      #F9B233;
+  /* Accent: warm yellow - used on secondary highlights, badges, glow. */
+  --color-accent: #f9b233;
   --color-accent-dark: #d99318;
   --color-accent-soft: #fef0d4;
 
-  /* Cyan — kept as the mascot's secondary tone, not used as a brand color. */
+  /* Cyan - kept as the mascot's secondary tone, not used as a brand color. */
   --color-cyan: #36a8e6;
   --color-cyan-soft: #d8edfa;
 
@@ -65,36 +65,38 @@
   --color-error: #dc2626;
   --color-error-bg: #fee2e2;
 
-  /* Glass — used very sparingly on top bar. */
+  /* Glass - used very sparingly on top bar. */
   --glass-tint: rgba(255, 255, 255, 0.72);
   --glass-tint-strong: rgba(255, 255, 255, 0.88);
   --glass-border: rgba(220, 215, 235, 0.7);
 
   /* Gradients */
-  --gradient-cta:     linear-gradient(135deg, #6B4BA0 0%, #4A2E82 60%, #3B2367 100%);
-  --gradient-accent:  linear-gradient(135deg, #ffc663 0%, #F9B233 100%);
-  --gradient-display: linear-gradient(180deg, #161624 0%, #4A2E82 100%);
-  --gradient-shell:   linear-gradient(180deg, #f3e8ec 0%, #faf7f5 32%, #faf7f5 100%);
-  /* Floating header — violet primary→secondary, with a yellow radial glow
+  --gradient-cta: linear-gradient(135deg, #6b4ba0 0%, #4a2e82 60%, #3b2367 100%);
+  --gradient-accent: linear-gradient(135deg, #ffc663 0%, #f9b233 100%);
+  --gradient-display: linear-gradient(180deg, #161624 0%, #4a2e82 100%);
+  --gradient-shell: linear-gradient(180deg, #f3e8ec 0%, #faf7f5 32%, #faf7f5 100%);
+  /* Floating header - violet primary→secondary, with a yellow radial glow
      anchored in the right corner. */
-  --gradient-header: linear-gradient(120deg, #4A2E82 0%, #6B4BA0 80%);
+  --gradient-header: linear-gradient(120deg, #4a2e82 0%, #6b4ba0 80%);
 
   /* Typography */
-  --font-display: "Bricolage Grotesque", "Noto Sans Sinhala", "Noto Sans Tamil",
-                  ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-body:    "Inter", "Noto Sans Sinhala", "Noto Sans Tamil",
-                  ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-serif:   "Bricolage Grotesque", "Georgia", serif;
-  --font-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-display:
+    "Bricolage Grotesque", "Noto Sans Sinhala", "Noto Sans Tamil", ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body:
+    "Inter", "Noto Sans Sinhala", "Noto Sans Tamil", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Bricolage Grotesque", "Georgia", serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
-  /* Type scale — generous, with massive display for the hero */
+  /* Type scale - generous, with massive display for the hero */
   --text-2xs: 0.6875rem;
-  --text-xs:  0.75rem;
-  --text-sm:  0.875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
   --text-base: 1rem;
-  --text-md:  1.0625rem;
-  --text-lg:  clamp(1.125rem, 0.95rem + 0.5vw, 1.25rem);
-  --text-xl:  clamp(1.375rem, 1.15rem + 0.8vw, 1.625rem);
+  --text-md: 1.0625rem;
+  --text-lg: clamp(1.125rem, 0.95rem + 0.5vw, 1.25rem);
+  --text-xl: clamp(1.375rem, 1.15rem + 0.8vw, 1.625rem);
   --text-2xl: clamp(1.75rem, 1.35rem + 1.4vw, 2.375rem);
   --text-3xl: clamp(2.25rem, 1.55rem + 2.2vw, 3.25rem);
   --text-display: clamp(2.75rem, 1.6rem + 4.2vw, 5.5rem);
@@ -108,7 +110,7 @@
   --tracking-display: -0.025em;
   --tracking-mega: -0.04em;
 
-  /* Spacing — editorial, generous */
+  /* Spacing - editorial, generous */
   --space-px: 1px;
   --space-xs: 4px;
   --space-sm: 8px;
@@ -121,7 +123,7 @@
   --space-5xl: 96px;
   --space-6xl: 128px;
 
-  /* Radius — slightly less rounded for editorial feel */
+  /* Radius - slightly less rounded for editorial feel */
   --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -131,14 +133,14 @@
   --radius-bubble: 18px;
   --radius-full: 9999px;
 
-  /* Shadows — soft modern Lóvi-style elevation */
+  /* Shadows - soft modern Lóvi-style elevation */
   --shadow-sm: 0 1px 2px rgba(22, 22, 36, 0.04);
-  --shadow-md: 0 6px 16px -6px rgba(22, 22, 36, 0.10);
+  --shadow-md: 0 6px 16px -6px rgba(22, 22, 36, 0.1);
   --shadow-lg: 0 20px 40px -16px rgba(22, 22, 36, 0.14);
   --shadow-xl: 0 30px 60px -22px rgba(22, 22, 36, 0.18);
   --shadow-cta: 0 14px 32px -10px rgba(74, 46, 130, 0.45);
   --shadow-cta-strong: 0 18px 40px -12px rgba(74, 46, 130, 0.55);
-  --shadow-accent: 0 12px 28px -12px rgba(249, 178, 51, 0.50);
+  --shadow-accent: 0 12px 28px -12px rgba(249, 178, 51, 0.5);
   --shadow-bubble: 0 4px 14px -6px rgba(74, 46, 130, 0.18);
   --shadow-header: 0 18px 40px -12px rgba(44, 27, 82, 0.35);
 
@@ -176,35 +178,35 @@
    * differentiable warm complements. WCAG AA on console-canvas, deuteranopia
    * safe. See Console design spec section 1.1.
    * ------------------------------------------------------------------------- */
-  --console-canvas:        #f7f5f1;
-  --console-card:          #ffffff;
-  --console-card-sunken:   #f3f0ea;
-  --console-grid-line:     #ece9e1;
-  --console-text-faint:    #b8b3a8;
+  --console-canvas: #f7f5f1;
+  --console-card: #ffffff;
+  --console-card-sunken: #f3f0ea;
+  --console-grid-line: #ece9e1;
+  --console-text-faint: #b8b3a8;
 
   /* Chart series, anchored by brand violet. */
-  --series-1: #4A2E82;
-  --series-2: #F9B233;
-  --series-3: #2F8F8C;
-  --series-4: #C7456E;
-  --series-5: #6B7280;
-  --series-6: #A98AE0;
+  --series-1: #4a2e82;
+  --series-2: #f9b233;
+  --series-3: #2f8f8c;
+  --series-4: #c7456e;
+  --series-5: #6b7280;
+  --series-6: #a98ae0;
 
   /* Token cost segmentation (input / cached / output / reasoning). */
-  --token-input:  #4A2E82;
-  --token-cached: #A98AE0;
-  --token-output: #2F8F8C;
-  --token-reason: #F9B233;
+  --token-input: #4a2e82;
+  --token-cached: #a98ae0;
+  --token-output: #2f8f8c;
+  --token-reason: #f9b233;
 
   /* Trace span colors. */
-  --span-model: #4A2E82;
-  --span-mcp:   #2F8F8C;
-  --span-ui:    #F9B233;
+  --span-model: #4a2e82;
+  --span-mcp: #2f8f8c;
+  --span-ui: #f9b233;
   --span-error: #dc2626;
 
   /* Status. */
-  --status-ok:   #16a34a;
+  --status-ok: #16a34a;
   --status-warn: #d97706;
-  --status-err:  #dc2626;
+  --status-err: #dc2626;
   --status-mute: #9a9aae;
 }

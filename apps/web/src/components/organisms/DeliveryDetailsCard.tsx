@@ -8,7 +8,7 @@ export interface DeliveryDetailsCardProps {
 
 // Right-aligned summary card rendered in place of the raw "key=value; ..."
 // user bubble that the delivery form used to send. The wire payload still
-// goes to the AI verbatim (silent send) — this is purely a UI swap.
+// goes to the AI verbatim (silent send) - this is purely a UI swap.
 export function DeliveryDetailsCard({ values, className }: DeliveryDetailsCardProps) {
   const rows = orderRows(values);
   if (rows.length === 0) return null;
@@ -39,9 +39,7 @@ export function DeliveryDetailsCard({ values, className }: DeliveryDetailsCardPr
           >
             <Check size={12} strokeWidth={3} />
           </span>
-          <span
-            className="text-[var(--text-xs)] font-semibold tracking-[0.02em] text-[color:var(--color-text-muted)]"
-          >
+          <span className="text-[var(--text-xs)] font-semibold tracking-[0.02em] text-[color:var(--color-text-muted)]">
             delivery details
           </span>
         </header>
@@ -101,7 +99,7 @@ const FIELD_MAP: Record<string, { Icon: LucideIcon; label: string }> = {
   date: { Icon: CalendarDays, label: "delivery date" },
 };
 
-// Display order — known keys first in a sensible order, unknown keys last
+// Display order - known keys first in a sensible order, unknown keys last
 // in submission order.
 const ORDER: string[] = [
   "recipient_name",
@@ -164,7 +162,7 @@ function formatValue(key: string, raw: string): string {
 }
 
 // "2026-06-18" → "Thu, 18 Jun 2026". Falls back to the raw value if it
-// doesn't parse as a date — the AI may send a free-form phrase.
+// doesn't parse as a date - the AI may send a free-form phrase.
 function formatDate(raw: string): string {
   const isoMatch = /^\d{4}-\d{2}-\d{2}$/.test(raw);
   if (!isoMatch) return raw;

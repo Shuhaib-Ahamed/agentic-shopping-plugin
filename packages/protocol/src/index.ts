@@ -352,9 +352,7 @@ export const ToolCallRecordSchema = z.object({
   rateLimitRemaining: z.number().int().optional(),
   cacheHit: z.boolean().optional(),
   latencyMs: z.number().nonnegative(),
-  error: z
-    .object({ code: z.string(), message: z.string(), recoverable: z.boolean() })
-    .optional(),
+  error: z.object({ code: z.string(), message: z.string(), recoverable: z.boolean() }).optional(),
 });
 export type ToolCallRecord = z.infer<typeof ToolCallRecordSchema>;
 
@@ -458,9 +456,7 @@ export const TurnRecordSchema = z.object({
     cost: CostBreakdownSchema,
     toolCalls: z.number().int().nonnegative(),
   }),
-  errors: z.array(
-    z.object({ code: z.string(), message: z.string(), recoverable: z.boolean() }),
-  ),
+  errors: z.array(z.object({ code: z.string(), message: z.string(), recoverable: z.boolean() })),
   flags: TurnFlagsSchema,
   label: TurnLabelSchema.optional(),
 });
@@ -475,13 +471,7 @@ export const SessionFunnelSchema = z.object({
 });
 export type SessionFunnel = z.infer<typeof SessionFunnelSchema>;
 
-export const SessionOutcomeSchema = z.enum([
-  "browsing",
-  "carted",
-  "checkout",
-  "paid",
-  "errored",
-]);
+export const SessionOutcomeSchema = z.enum(["browsing", "carted", "checkout", "paid", "errored"]);
 export type SessionOutcome = z.infer<typeof SessionOutcomeSchema>;
 
 export const SessionRecordSchema = z.object({
@@ -725,7 +715,7 @@ export const AdminPipelineSchema = z.object({
 });
 export type AdminPipeline = z.infer<typeof AdminPipelineSchema>;
 
-// Funnel page — same totals as in overview but with drop-off pairs.
+// Funnel page - same totals as in overview but with drop-off pairs.
 export const AdminFunnelSchema = z.object({
   range: z.object({ from: z.string(), to: z.string() }),
   stages: z.array(

@@ -62,8 +62,7 @@ export const si: Strings = {
     postal: "තැපැල් කේතය (අවශ්‍ය නැත)",
     date: "බෙදීමේ දිනය",
     submit: "ඉදිරියට",
-    perishableWarning:
-      "මෙය ඉක්මනින් නරක් වන දෙයකි. දිනය ස්ථිර කරන්න.",
+    perishableWarning: "මෙය ඉක්මනින් නරක් වන දෙයකි. දිනය ස්ථිර කරන්න.",
   },
   gift: {
     toggle: "තෑගි පණිවිඩයක් එක් කරන්න",

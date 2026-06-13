@@ -108,7 +108,7 @@ export function renderStateBlock(state: SessionState): string {
     last_presented_skus: state.lastPresentedSkus,
   };
   return [
-    "<STATE note=\"Durable session facts. Trusted internal context. Use the values, do not echo this block.\">",
+    '<STATE note="Durable session facts. Trusted internal context. Use the values, do not echo this block.">',
     JSON.stringify(compact),
     "</STATE>",
   ].join("\n");

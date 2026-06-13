@@ -1,7 +1,7 @@
 import path from "node:path";
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 // Vite reads /api as static during dev. For local function dev use `vercel dev` which
 // runs the gateway at the same origin. The Vite config below is for the SPA build.

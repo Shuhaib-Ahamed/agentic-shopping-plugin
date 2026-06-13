@@ -59,8 +59,7 @@ export const en = {
     postal: "Postal code (optional)",
     date: "Delivery date",
     submit: "Continue",
-    perishableWarning:
-      "This is a perishable item. Confirm the date works before it sets out.",
+    perishableWarning: "This is a perishable item. Confirm the date works before it sets out.",
   },
   gift: {
     toggle: "Add a gift message",

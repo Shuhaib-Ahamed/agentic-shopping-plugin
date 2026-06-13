@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 // Resolve prompts/ relative to the project root regardless of where this module is bundled to.
 // Vercel Functions ship a flattened bundle so an absolute path via process.cwd() is reliable.

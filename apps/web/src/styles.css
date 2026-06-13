@@ -1,4 +1,4 @@
-/* Kapruka Shopping Agent — single Tailwind v4 entry. */
+/* Kapruka Shopping Agent - single Tailwind v4 entry. */
 
 @import "./design-system/tokens.css";
 @import "tailwindcss";
@@ -94,7 +94,7 @@
 }
 
 /* -----------------------------------------------------------------------------
- * Lóvi-inspired shell — soft off-white with a gentle pink wash at the top.
+ * Lóvi-inspired shell - soft off-white with a gentle pink wash at the top.
  * Calm, friendly, consumer-facing. No glass, no dark satin.
  * --------------------------------------------------------------------------- */
 .app-shell {
@@ -103,25 +103,27 @@
   isolation: isolate;
 }
 
-/* Decorative top wash — the pink fade behind the hero, as in Lóvi. */
+/* Decorative top wash - the pink fade behind the hero, as in Lóvi. */
 .aurora-shell {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background:
-    radial-gradient(
-      90% 36% at 50% 0%,
-      var(--color-background-wash) 0%,
-      rgba(243, 232, 236, 0.4) 30%,
-      transparent 60%
-    );
+  background: radial-gradient(
+    90% 36% at 50% 0%,
+    var(--color-background-wash) 0%,
+    rgba(243, 232, 236, 0.4) 30%,
+    transparent 60%
+  );
 }
-.aurora-orb, .aurora-grain { display: none; }
+.aurora-orb,
+.aurora-grain {
+  display: none;
+}
 
 /* -----------------------------------------------------------------------------
- * Glass — used sparingly. TopBar and floating sheets only.
+ * Glass - used sparingly. TopBar and floating sheets only.
  * --------------------------------------------------------------------------- */
 @layer utilities {
   .glass-bar {
@@ -137,7 +139,7 @@
     -webkit-backdrop-filter: blur(20px) saturate(150%);
   }
 
-  /* Display headline gradient — subtle, near-black with a slight indigo lift. */
+  /* Display headline gradient - subtle, near-black with a slight indigo lift. */
   .gradient-text {
     background-image: var(--gradient-display);
     -webkit-background-clip: text;
@@ -146,7 +148,7 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Chat container — the soft surface that holds the conversation. No card
+   * Chat container - the soft surface that holds the conversation. No card
    * border, just sits flush on the shell. Matches the Lóvi reference.
    * ----------------------------------------------------------------------- */
   .chat-card {
@@ -155,7 +157,7 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Suggestion bubble — lavender chat-bubble shape with an indigo arrow.
+   * Suggestion bubble - lavender chat-bubble shape with an indigo arrow.
    * The hero's "Start a chat" chips and assistant message bubbles share this.
    * ----------------------------------------------------------------------- */
   .suggestion-bubble {
@@ -165,9 +167,10 @@
     border-bottom-left-radius: 6px;
     padding: 14px 18px;
     box-shadow: var(--shadow-bubble);
-    transition: transform 200ms var(--easing-emphasized),
-                background-color 180ms var(--easing-standard),
-                box-shadow 220ms var(--easing-emphasized);
+    transition:
+      transform 200ms var(--easing-emphasized),
+      background-color 180ms var(--easing-standard),
+      box-shadow 220ms var(--easing-emphasized);
     text-align: left;
     line-height: 1.35;
     font-weight: 600;
@@ -175,7 +178,7 @@
   .suggestion-bubble:hover {
     background: var(--color-lavender-strong);
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px -6px rgba(91, 107, 240, 0.30);
+    box-shadow: 0 8px 20px -6px rgba(91, 107, 240, 0.3);
   }
   /* Tail variant for right-side alignment. */
   .suggestion-bubble.tail-right {
@@ -184,7 +187,7 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Floating header — violet gradient pill with a soft yellow radial glow
+   * Floating header - violet gradient pill with a soft yellow radial glow
    * tucked in the right corner. Sits with breathing room from the viewport.
    * ----------------------------------------------------------------------- */
   .floating-header {
@@ -195,10 +198,10 @@
     color: #ffffff;
     border-radius: 9999px;
     box-shadow: var(--shadow-header);
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     isolation: isolate;
   }
-  /* Faint inner highlight — gives the pill a little dimensionality. */
+  /* Faint inner highlight - gives the pill a little dimensionality. */
   .floating-header::before {
     content: "";
     position: absolute;
@@ -208,64 +211,75 @@
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 32%);
     z-index: 0;
   }
-  .floating-header > * { position: relative; z-index: 1; }
+  .floating-header > * {
+    position: relative;
+    z-index: 1;
+  }
 
-  /* History card — white pill listing past chats. */
+  /* History card - white pill listing past chats. */
   .history-card {
     background: var(--color-surface);
     border-radius: 18px;
     padding: 16px 18px;
     box-shadow: var(--shadow-md);
-    transition: transform 180ms var(--easing-emphasized),
-                box-shadow 200ms var(--easing-emphasized);
+    transition:
+      transform 180ms var(--easing-emphasized),
+      box-shadow 200ms var(--easing-emphasized);
   }
   .history-card:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
   }
 
-  /* Violet primary CTA — used sparingly (e.g. structural surfaces). */
+  /* Violet primary CTA - used sparingly (e.g. structural surfaces). */
   .btn-cta {
     background: var(--color-cta);
     color: white;
     box-shadow: var(--shadow-cta);
-    transition: transform 200ms var(--easing-emphasized),
-                background-color 180ms var(--easing-standard),
-                box-shadow 220ms var(--easing-emphasized);
+    transition:
+      transform 200ms var(--easing-emphasized),
+      background-color 180ms var(--easing-standard),
+      box-shadow 220ms var(--easing-emphasized);
   }
   .btn-cta:hover:not(:disabled) {
     background: var(--color-cta-hover);
     box-shadow: var(--shadow-cta-strong);
     transform: translateY(-1px);
   }
-  .btn-cta:active:not(:disabled) { transform: translateY(0); }
+  .btn-cta:active:not(:disabled) {
+    transform: translateY(0);
+  }
 
-  /* Primary CTA gradient — the shared `<Button variant="primary">` token.
+  /* Primary CTA gradient - the shared `<Button variant="primary">` token.
      Contract: yellow is the primary, with ink-black text. Violet is reserved
      for structural surfaces (header, user bubble) where text is always white. */
   .btn-cta-gradient {
     background-image: var(--gradient-accent);
     color: var(--color-text);
     box-shadow: var(--shadow-accent);
-    transition: transform 200ms var(--easing-emphasized),
-                background-color 180ms var(--easing-standard),
-                box-shadow 220ms var(--easing-emphasized),
-                filter 180ms var(--easing-standard);
+    transition:
+      transform 200ms var(--easing-emphasized),
+      background-color 180ms var(--easing-standard),
+      box-shadow 220ms var(--easing-emphasized),
+      filter 180ms var(--easing-standard);
   }
   .btn-cta-gradient:hover:not(:disabled) {
     filter: brightness(1.04);
     transform: translateY(-1px);
     box-shadow: 0 18px 38px -12px rgba(249, 178, 51, 0.55);
   }
-  .btn-cta-gradient:active:not(:disabled) { transform: translateY(0); }
+  .btn-cta-gradient:active:not(:disabled) {
+    transform: translateY(0);
+  }
 
-  /* Accent CTA — same yellow surface without the gradient sheen. */
+  /* Accent CTA - same yellow surface without the gradient sheen. */
   .btn-accent {
     background: var(--color-accent);
     color: var(--color-text);
     box-shadow: var(--shadow-accent);
-    transition: transform 200ms var(--easing-emphasized),
-                background-color 180ms var(--easing-standard);
+    transition:
+      transform 200ms var(--easing-emphasized),
+      background-color 180ms var(--easing-standard);
   }
   .btn-accent:hover:not(:disabled) {
     background: var(--color-accent-dark);
@@ -288,25 +302,45 @@
     border-radius: inherit;
     z-index: 1;
   }
-  .card-sheen:hover::after { opacity: 1; }
+  .card-sheen:hover::after {
+    opacity: 1;
+  }
 
   /* Tabular numerals for prices/counts */
-  .tabular { font-variant-numeric: tabular-nums; }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 
   /* Text wrap helpers */
-  .text-balance { text-wrap: balance; }
-  .text-pretty  { text-wrap: pretty; }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
 
   /* Safe area bottom */
-  .safe-bottom { padding-bottom: max(var(--space-md), var(--layout-safe-bottom)); }
+  .safe-bottom {
+    padding-bottom: max(var(--space-md), var(--layout-safe-bottom));
+  }
 
   /* No-scrollbar utility */
-  .no-scrollbar { scrollbar-width: none; }
-  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 
   /* Quiet scrollbar */
-  .scroll-quiet { scrollbar-width: thin; scrollbar-color: var(--color-border) transparent; }
-  .scroll-quiet::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scroll-quiet {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .scroll-quiet::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
   .scroll-quiet::-webkit-scrollbar-thumb {
     background: var(--color-border);
     border-radius: var(--radius-full);
@@ -317,114 +351,225 @@
  * Keyframes
  * --------------------------------------------------------------------------- */
 @keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 @keyframes pulse-bg {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 @keyframes message-in {
-  0%   { transform: translateY(6px); opacity: 0; }
-  100% { transform: translateY(0);   opacity: 1; }
+  0% {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 @keyframes surface-in {
-  0%   { transform: translateY(10px); opacity: 0; }
-  100% { transform: translateY(0);    opacity: 1; }
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 @keyframes fade-in {
-  0%   { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 @keyframes scale-in {
-  0%   { transform: scale(0.96); opacity: 0; }
-  100% { transform: scale(1);    opacity: 1; }
+  0% {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 @keyframes gradient-pan {
-  0%, 100% { background-position: 0% 50%; }
-  50%      { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 @keyframes float-soft {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 /* Bouncing dot used by <TypingIndicator>. Each dot offsets its delay so the
    three dots cycle through a wave. */
 @keyframes typing-dot {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
-  30%           { transform: translateY(-4px); opacity: 1; }
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
 }
 
 /* ---------------------------------------------------------------------------
- * Parallax background — vector layers that float, drift, and twinkle behind
+ * Parallax background - vector layers that float, drift, and twinkle behind
  * the hero. Compositor-only (transform + opacity) and disabled cleanly by the
  * prefers-reduced-motion rule below.
  * ------------------------------------------------------------------------- */
 @keyframes hero-flo-a {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50%      { transform: translate3d(0, -22px, 0); }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -22px, 0);
+  }
 }
 @keyframes hero-flo-b {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50%      { transform: translate3d(0, 18px, 0); }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, 18px, 0);
+  }
 }
 @keyframes hero-flo-c {
-  0%, 100% { transform: translate3d(0, -10px, 0); }
-  50%      { transform: translate3d(0, 14px, 0); }
+  0%,
+  100% {
+    transform: translate3d(0, -10px, 0);
+  }
+  50% {
+    transform: translate3d(0, 14px, 0);
+  }
 }
 @keyframes hero-drift-a {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50%      { transform: translate3d(4%, -3%, 0) scale(1.08); }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, -3%, 0) scale(1.08);
+  }
 }
 @keyframes hero-drift-b {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50%      { transform: translate3d(-4%, 4%, 0) scale(1.1); }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-4%, 4%, 0) scale(1.1);
+  }
 }
 @keyframes hero-sway {
-  0%, 100% { transform: translateY(0) rotate(-4deg); }
-  50%      { transform: translateY(-12px) rotate(4deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(4deg);
+  }
 }
 @keyframes hero-twinkle {
-  0%, 100% { opacity: 0.18; transform: scale(0.78); }
-  50%      { opacity: 0.6;  transform: scale(1.12); }
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: scale(0.78);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.12);
+  }
 }
-/* Chat background gift-wrap motifs — drift + slow rotation. Used by the
+/* Chat background gift-wrap motifs - drift + slow rotation. Used by the
    ChatBackground organism that lives behind the message stream once the
    shopper has left the hero state. Smaller amplitudes than the hero
    `hero-flo-*` keyframes so the chat surface stays calm. */
 @keyframes chat-bg-floA {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-16px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
 }
 @keyframes chat-bg-floB {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(14px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(14px);
+  }
 }
 @keyframes chat-bg-floC {
-  0%, 100% { transform: translateY(-8px); }
-  50%      { transform: translateY(12px); }
+  0%,
+  100% {
+    transform: translateY(-8px);
+  }
+  50% {
+    transform: translateY(12px);
+  }
 }
 @keyframes chat-bg-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 /* Drives the looped horizontal march of the storefront parallax layers
    (bunting + back + mid + front). Each layer is 4320px wide; translating it
    -1440px exactly equals one tile, so the loop is seamless. */
 @keyframes marchLeft {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-1440px, 0, 0); }
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-1440px, 0, 0);
+  }
 }
-/* Marquee — Magic UI pattern. Each row is rendered N times in a flex
+/* Marquee - Magic UI pattern. Each row is rendered N times in a flex
    container; this keyframe slides the row left by exactly its own width plus
    the gap, so when N tiles are stacked the next tile slips in perfectly and
    the loop is seamless. */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(calc(-100% - var(--marquee-gap, 1rem))); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--marquee-gap, 1rem)));
+  }
 }
 
 /* ---------------------------------------------------------------------------
- * Glassmorphism — suggestion chips inside the Hero. Tinted translucent
+ * Glassmorphism - suggestion chips inside the Hero. Tinted translucent
  * surface with backdrop-blur + saturate, an inner top highlight stroke, and a
  * soft tinted drop shadow so the card lifts above the parallax background.
  * ------------------------------------------------------------------------- */
@@ -433,11 +578,7 @@
      the backdrop-filter blur has visible material to work with. The pair of
      inset highlights and the violet edge keep the chip reading as glass even
      when the backdrop behind it is calm. */
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.28) 0%,
-    rgba(231, 224, 250, 0.18) 100%
-  );
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(231, 224, 250, 0.18) 100%);
   border: 1px solid rgba(154, 134, 192, 0.5);
   /* Top + left inner highlight = etched glass edges. Tinted violet lift. */
   box-shadow:
@@ -450,12 +591,8 @@
   -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
 .suggestion-glass:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.42) 0%,
-    rgba(231, 224, 250, 0.3) 100%
-  );
-  /* Violet accent border on hover — the "the brand's reaching for you" cue. */
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.42) 0%, rgba(231, 224, 250, 0.3) 100%);
+  /* Violet accent border on hover - the "the brand's reaching for you" cue. */
   border-color: rgba(74, 46, 130, 0.65);
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.85),
@@ -479,13 +616,15 @@
   border-color: rgba(74, 46, 130, 0.7);
 }
 
-/* The little arrow icon at the trailing edge — sits on the glass as part of
+/* The little arrow icon at the trailing edge - sits on the glass as part of
    the same surface (no opaque circle), tinted violet, slides + brightens on
    hover so the chip still has a visible "click me" cue. */
 .suggestion-glass .glass-arrow {
   color: var(--color-cta-deep);
   opacity: 0.75;
-  transition: transform 200ms var(--easing-emphasized), opacity 200ms var(--easing-emphasized);
+  transition:
+    transform 200ms var(--easing-emphasized),
+    opacity 200ms var(--easing-emphasized);
 }
 .suggestion-glass:hover .glass-arrow {
   transform: translate(2px, -2px);
@@ -518,7 +657,12 @@ body {
   line-height: var(--leading-body);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-display);
@@ -526,11 +670,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Looser line height for Sinhala/Tamil */
-[lang="si"], [lang="ta"] {
+[lang="si"],
+[lang="ta"] {
   line-height: 1.7;
 }
 
-/* Focus ring — wrapped in :where() for zero specificity so any element can
+/* Focus ring - wrapped in :where() for zero specificity so any element can
    opt out with a single utility (e.g. `focus-visible:outline-none`). */
 :where(:focus-visible) {
   outline: 2px solid var(--color-cta);
@@ -540,7 +685,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
@@ -549,10 +696,22 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Resets */
-html, body, #root { height: 100%; }
-body { margin: 0; }
-button { font: inherit; color: inherit; }
-img, svg { display: block; }
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+img,
+svg {
+  display: block;
+}
 
 /* Selection */
 ::selection {

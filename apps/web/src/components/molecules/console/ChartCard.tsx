@@ -1,7 +1,7 @@
-import { type ReactNode } from "react";
 import { Loader2, RefreshCw, AlertTriangle } from "lucide-react";
-import { JunoMark } from "@/components/atoms/JunoMark";
+import { type ReactNode } from "react";
 import { Button } from "@/components/atoms/Button";
+import { JunoMark } from "@/components/atoms/JunoMark";
 import { cn } from "@/lib/cn";
 
 export type ChartState = "loading" | "ready" | "empty" | "error";
@@ -40,8 +40,12 @@ export function ChartCard({
     >
       <header className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em] text-text">{title}</h3>
-          <p className="mt-0.5 text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">{unit}</p>
+          <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em] text-text">
+            {title}
+          </h3>
+          <p className="mt-0.5 text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">
+            {unit}
+          </p>
         </div>
         {legend ? <div className="flex items-center gap-2 flex-wrap">{legend}</div> : null}
       </header>
@@ -119,7 +123,12 @@ function ErrorState({ onRetry }: { onRetry?: () => void }) {
         <AlertTriangle size={24} className="text-[color:var(--color-status-err)]" aria-hidden />
         <p className="text-[13px] text-text">Could not load this chart.</p>
         {onRetry ? (
-          <Button variant="secondary" size="sm" onClick={onRetry} iconLeft={<RefreshCw size={14} />}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onRetry}
+            iconLeft={<RefreshCw size={14} />}
+          >
             Retry
           </Button>
         ) : null}

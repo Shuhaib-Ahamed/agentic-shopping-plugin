@@ -1,10 +1,10 @@
 import { Sparkles } from "lucide-react";
-import { useAppStore } from "@/store";
-import { pickStrings } from "@/i18n";
 import { JunoMark } from "@/components/atoms";
 import { Marquee } from "@/components/molecules";
 import { DiaTextReveal } from "@/components/ui/dia-text-reveal";
+import { pickStrings } from "@/i18n";
 import { cn } from "@/lib/cn";
+import { useAppStore } from "@/store";
 
 export interface HeroProps {
   onSuggestion: (text: string) => void;
@@ -17,7 +17,7 @@ function detectLang(s: string): "si" | "ta" | "en" {
 }
 
 // -----------------------------------------------------------------------------
-// HeroIntro — mascot + display headline. Renders above the composer.
+// HeroIntro - mascot + display headline. Renders above the composer.
 // -----------------------------------------------------------------------------
 
 export function HeroIntro() {
@@ -41,7 +41,7 @@ export function HeroIntro() {
           fluid
           bare
           className={cn(
-            // Responsive square mark — scales with the breakpoint instead of
+            // Responsive square mark - scales with the breakpoint instead of
             // a single fixed pixel size. Aspect kept square so the SVG never
             // distorts. Values picked to balance the headline size at each
             // step (xs phones → 32" desktops).
@@ -52,11 +52,7 @@ export function HeroIntro() {
           )}
         />
 
-        <h1
-          id="hero-headline"
-          className="min-w-0"
-          lang={locale}
-        >
+        <h1 id="hero-headline" className="min-w-0" lang={locale}>
           <span
             className="flex flex-col gap-0.5 sm:gap-1 text-balance"
             style={{
@@ -66,7 +62,7 @@ export function HeroIntro() {
               lineHeight: 1.05,
             }}
           >
-            {/* Hero line — bigger, anchors the headline. */}
+            {/* Hero line - bigger, anchors the headline. */}
             <DiaTextReveal
               text={`Hi! I'm ${brand},`}
               colors={sweepColors}
@@ -75,7 +71,7 @@ export function HeroIntro() {
               repeat={false}
               className="block text-[clamp(2.25rem,1.5rem+3vw,4rem)]"
             />
-            {/* Subhead — smaller, sits as a tagline. */}
+            {/* Subhead - smaller, sits as a tagline. */}
             <DiaTextReveal
               text="your shopping guru"
               colors={sweepColors}
@@ -93,7 +89,7 @@ export function HeroIntro() {
 }
 
 // -----------------------------------------------------------------------------
-// HeroPrompts — horizontal marquee of starter prompts, sized to match the
+// HeroPrompts - horizontal marquee of starter prompts, sized to match the
 // composer column and edge-faded on the left + right. Renders directly under
 // the composer on the empty hero state (no hover, no slide-down).
 // -----------------------------------------------------------------------------
@@ -123,13 +119,7 @@ export function HeroPrompts({ onSuggestion }: HeroProps) {
       )}
       aria-label="Starter prompts"
     >
-      <Marquee
-        duration="48s"
-        gap="0.6rem"
-        repeat={3}
-        pauseOnHover
-        className="py-2"
-      >
+      <Marquee duration="48s" gap="0.6rem" repeat={3} pauseOnHover className="py-2">
         {items.map((text) => {
           const lang = detectLang(text);
           return (
@@ -165,7 +155,7 @@ export function HeroPrompts({ onSuggestion }: HeroProps) {
 }
 
 // -----------------------------------------------------------------------------
-// Hero — backwards-compatible composite (intro + prompts, no composer slot).
+// Hero - backwards-compatible composite (intro + prompts, no composer slot).
 // -----------------------------------------------------------------------------
 
 export function Hero({ onSuggestion }: HeroProps) {

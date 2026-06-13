@@ -1,9 +1,9 @@
 import { ChatRequestSchema } from "@kapruka/protocol";
 import { runAgent } from "./_lib/agent";
-import { createSseWriter } from "./_lib/sse";
-import { makeLogger, newTraceId } from "./_lib/log";
-import { startTurnTrace } from "./_lib/console/tracer";
 import { runWithTracer } from "./_lib/console/traceContext";
+import { startTurnTrace } from "./_lib/console/tracer";
+import { makeLogger, newTraceId } from "./_lib/log";
+import { createSseWriter } from "./_lib/sse";
 
 const log = makeLogger({ ctx: "chat" });
 
@@ -96,7 +96,7 @@ async function handler(req: Request): Promise<Response> {
     headers: {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
-      "Connection": "keep-alive",
+      Connection: "keep-alive",
       "X-Accel-Buffering": "no",
     },
   });

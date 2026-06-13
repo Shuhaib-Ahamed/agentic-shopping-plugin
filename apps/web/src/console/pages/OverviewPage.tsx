@@ -18,10 +18,17 @@ import {
 import { DeltaChip, KpiCard } from "@/components/atoms/console";
 import { ChartCard, FilterBar, MetricGrid, LegendChip } from "@/components/molecules/console";
 import { adminApi } from "../api";
-import { useAsync } from "../hooks";
 import { formatHour, formatMs, formatNumber, formatPct, formatUSD } from "../format";
+import { useAsync } from "../hooks";
 
-const SERIES = ["var(--color-series-1)", "var(--color-series-2)", "var(--color-series-3)", "var(--color-series-4)", "var(--color-series-5)", "var(--color-series-6)"];
+const SERIES = [
+  "var(--color-series-1)",
+  "var(--color-series-2)",
+  "var(--color-series-3)",
+  "var(--color-series-4)",
+  "var(--color-series-5)",
+  "var(--color-series-6)",
+];
 
 export function OverviewPage() {
   const { data, loading, error, reload } = useAsync(() => adminApi.overview());
@@ -32,7 +39,9 @@ export function OverviewPage() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-[28px] tracking-[-0.02em]">Overview</h1>
-          <p className="text-[13px] text-muted">A glance at the agent's behavior, cost, and quality.</p>
+          <p className="text-[13px] text-muted">
+            A glance at the agent's behavior, cost, and quality.
+          </p>
         </div>
       </header>
 
@@ -96,13 +105,38 @@ export function OverviewPage() {
           {data && (
             <ResponsiveContainer>
               <LineChart data={data.series.turnsOverTime}>
-                <CartesianGrid stroke="var(--color-console-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="t" tickFormatter={formatHour} tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+                <CartesianGrid
+                  stroke="var(--color-console-grid)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="t"
+                  tickFormatter={formatHour}
+                  tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                />
                 <YAxis yAxisId="left" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={formatHour} />
-                <Line yAxisId="left" dataKey="turns" stroke="var(--color-series-1)" strokeWidth={2} dot={false} />
-                <Line yAxisId="right" dataKey="costUSD" stroke="var(--color-series-2)" strokeWidth={2} strokeDasharray="4 4" dot={false} />
+                <Line
+                  yAxisId="left"
+                  dataKey="turns"
+                  stroke="var(--color-series-1)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+                <Line
+                  yAxisId="right"
+                  dataKey="costUSD"
+                  stroke="var(--color-series-2)"
+                  strokeWidth={2}
+                  strokeDasharray="4 4"
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -125,14 +159,46 @@ export function OverviewPage() {
           {data && (
             <ResponsiveContainer>
               <AreaChart data={data.series.tokenMix}>
-                <CartesianGrid stroke="var(--color-console-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="t" tickFormatter={formatHour} tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+                <CartesianGrid
+                  stroke="var(--color-console-grid)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="t"
+                  tickFormatter={formatHour}
+                  tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                />
                 <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={formatHour} />
-                <Area dataKey="input" stackId="t" stroke="var(--color-token-input)" fill="var(--color-token-input)" fillOpacity={0.75} />
-                <Area dataKey="cached" stackId="t" stroke="var(--color-token-cached)" fill="var(--color-token-cached)" fillOpacity={0.75} />
-                <Area dataKey="output" stackId="t" stroke="var(--color-token-output)" fill="var(--color-token-output)" fillOpacity={0.75} />
-                <Area dataKey="reasoning" stackId="t" stroke="var(--color-token-reason)" fill="var(--color-token-reason)" fillOpacity={0.75} />
+                <Area
+                  dataKey="input"
+                  stackId="t"
+                  stroke="var(--color-token-input)"
+                  fill="var(--color-token-input)"
+                  fillOpacity={0.75}
+                />
+                <Area
+                  dataKey="cached"
+                  stackId="t"
+                  stroke="var(--color-token-cached)"
+                  fill="var(--color-token-cached)"
+                  fillOpacity={0.75}
+                />
+                <Area
+                  dataKey="output"
+                  stackId="t"
+                  stroke="var(--color-token-output)"
+                  fill="var(--color-token-output)"
+                  fillOpacity={0.75}
+                />
+                <Area
+                  dataKey="reasoning"
+                  stackId="t"
+                  stroke="var(--color-token-reason)"
+                  fill="var(--color-token-reason)"
+                  fillOpacity={0.75}
+                />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -154,8 +220,16 @@ export function OverviewPage() {
           {data && (
             <ResponsiveContainer>
               <LineChart data={data.series.latencyPercentiles}>
-                <CartesianGrid stroke="var(--color-console-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="t" tickFormatter={formatHour} tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+                <CartesianGrid
+                  stroke="var(--color-console-grid)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="t"
+                  tickFormatter={formatHour}
+                  tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                />
                 <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={formatHour} />
                 <Line dataKey="p50" stroke="var(--color-series-1)" strokeWidth={2} dot={false} />
@@ -166,16 +240,18 @@ export function OverviewPage() {
           )}
         </ChartCard>
 
-        <ChartCard
-          title="Model split"
-          unit="Calls"
-          state={state}
-          onRetry={reload}
-        >
+        <ChartCard title="Model split" unit="Calls" state={state} onRetry={reload}>
           {data && (
             <ResponsiveContainer>
               <PieChart>
-                <Pie data={data.series.modelSplit} dataKey="calls" nameKey="model" innerRadius={60} outerRadius={90} paddingAngle={2}>
+                <Pie
+                  data={data.series.modelSplit}
+                  dataKey="calls"
+                  nameKey="model"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={2}
+                >
                   {data.series.modelSplit.map((_, i) => (
                     <Cell key={i} fill={SERIES[i % SERIES.length]} />
                   ))}
@@ -203,8 +279,16 @@ export function OverviewPage() {
           {data && (
             <ResponsiveContainer>
               <BarChart data={data.series.languageMix}>
-                <CartesianGrid stroke="var(--color-console-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="t" tickFormatter={formatHour} tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+                <CartesianGrid
+                  stroke="var(--color-console-grid)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="t"
+                  tickFormatter={formatHour}
+                  tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                />
                 <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={formatHour} />
                 <Bar dataKey="en" stackId="l" fill="var(--color-series-1)" />
@@ -235,9 +319,18 @@ export function OverviewPage() {
                 ]}
                 layout="vertical"
               >
-                <CartesianGrid stroke="var(--color-console-grid)" strokeDasharray="3 3" horizontal={false} />
+                <CartesianGrid
+                  stroke="var(--color-console-grid)"
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                />
                 <XAxis type="number" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
-                <YAxis type="category" dataKey="stage" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} width={80} />
+                <YAxis
+                  type="category"
+                  dataKey="stage"
+                  tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                  width={80}
+                />
                 <Tooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="count" fill="var(--color-series-1)" radius={[0, 8, 8, 0]} />
               </BarChart>
@@ -249,7 +342,9 @@ export function OverviewPage() {
       <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] p-5">
         <header className="mb-3">
           <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em]">Top queries</h3>
-          <p className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">First message per session</p>
+          <p className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">
+            First message per session
+          </p>
         </header>
         {data && data.series.topQueries.length === 0 ? (
           <p className="text-[12px] text-muted">No queries yet.</p>

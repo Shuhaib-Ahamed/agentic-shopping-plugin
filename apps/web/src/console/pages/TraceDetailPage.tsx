@@ -1,7 +1,8 @@
+import type { TurnRecord } from "@kapruka/protocol";
+import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Loader } from "lucide-react";
-import type { TurnRecord } from "@kapruka/protocol";
+import { Button } from "@/components/atoms/Button";
 import {
   CurrencyCell,
   JsonExpand,
@@ -10,17 +11,16 @@ import {
   StatusDot,
   TokenChip,
 } from "@/components/atoms/console";
+import { Input, Textarea } from "@/components/atoms/Input";
 import {
   DebugLogPanel,
   EventTimeline,
   ToolCallRow,
   TraceStepRow,
 } from "@/components/molecules/console";
-import { Button } from "@/components/atoms/Button";
-import { Input, Textarea } from "@/components/atoms/Input";
 import { adminApi } from "../api";
-import { useAsync } from "../hooks";
 import { formatDateTime, formatMs, formatNumber } from "../format";
+import { useAsync } from "../hooks";
 
 export function TraceDetailPage() {
   const { id = "" } = useParams();
@@ -63,7 +63,9 @@ export function TraceDetailPage() {
         <div className="flex items-center gap-3 text-[12px] text-muted">
           <LangPill code={(data.locale as "en" | "si" | "ta") ?? "en"} />
           <ModelPill model={data.model} />
-          <span>Outcome: <strong className="text-text">{data.outcome}</strong></span>
+          <span>
+            Outcome: <strong className="text-text">{data.outcome}</strong>
+          </span>
           <span>{formatMs(data.durationMs)}</span>
           <CurrencyCell usd={data.totals.cost.total} />
         </div>
@@ -77,7 +79,9 @@ export function TraceDetailPage() {
       </div>
 
       <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] p-5">
-        <h2 className="font-display font-semibold text-[15px] tracking-[-0.01em] mb-3">Step waterfall</h2>
+        <h2 className="font-display font-semibold text-[15px] tracking-[-0.01em] mb-3">
+          Step waterfall
+        </h2>
         <div className="space-y-2">
           {data.steps.map((step) => (
             <TraceStepRow key={step.index} step={step} scaleMs={scale}>
@@ -105,7 +109,9 @@ export function TraceDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] p-5">
-          <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em] mb-3">Emitted events</h3>
+          <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em] mb-3">
+            Emitted events
+          </h3>
           <EventTimeline events={data.emittedEvents} />
         </section>
         <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] p-5 space-y-3">
@@ -142,6 +148,10 @@ function CurationCard({ turn, onSaved }: { turn: TurnRecord; onSaved: () => void
     setReason(turn.label?.reason ?? "");
     setCorrectedResponse(turn.label?.correctedResponse ?? "");
     setSavedAt(turn.label?.at ?? null);
+    // Reset is keyed on the label timestamp + turn identity so an external
+    // change refreshes the form; reading every label sub-field would refetch
+    // mid-edit and stomp local input.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turn.label?.at, turn.turnId]);
 
   const onSave = async () => {
@@ -168,7 +178,9 @@ function CurationCard({ turn, onSaved }: { turn: TurnRecord; onSaved: () => void
   return (
     <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] p-5 space-y-3">
       <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em]">Curate</h3>
-      <p className="text-[12px] text-muted">Tag, rate, or write an ideal response. Saved labels feed datasets and eval.</p>
+      <p className="text-[12px] text-muted">
+        Tag, rate, or write an ideal response. Saved labels feed datasets and eval.
+      </p>
       <div className="flex gap-2">
         {(["good", "bad", "unrated"] as const).map((r) => (
           <button
@@ -217,9 +229,7 @@ function CurationCard({ turn, onSaved }: { turn: TurnRecord; onSaved: () => void
         <Button onClick={onSave} disabled={saving}>
           {saving ? "Saving..." : "Save label"}
         </Button>
-        {savedAt ? (
-          <p className="text-[11px] text-muted">Saved {formatDateTime(savedAt)}</p>
-        ) : null}
+        {savedAt ? <p className="text-[11px] text-muted">Saved {formatDateTime(savedAt)}</p> : null}
       </div>
     </section>
   );

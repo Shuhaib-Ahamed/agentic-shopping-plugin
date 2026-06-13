@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Copy, ExternalLink, AlertCircle, AlertTriangle } from "lucide-react";
 import type { CheckoutEvent } from "@kapruka/protocol";
+import { Copy, ExternalLink, AlertCircle, AlertTriangle } from "lucide-react";
+import { useState } from "react";
 import { Button, IconButton, Price, Spinner } from "@/components/atoms";
 import { CountdownPill } from "@/components/molecules";
-import { useAppStore } from "@/store";
 import { pickStrings } from "@/i18n";
+import { useAppStore } from "@/store";
 
 export interface CheckoutPanelProps {
   event: CheckoutEvent;
@@ -57,8 +57,12 @@ export function CheckoutPanel({
               {t.checkout.title}
             </h3>
             <div className="mt-1 flex items-center gap-1">
-              <span className="text-[var(--text-xs)] text-[var(--color-text-muted)]">{t.checkout.orderId}</span>
-              <code className="text-[var(--text-xs)] font-mono text-[var(--color-text)]">{event.orderId}</code>
+              <span className="text-[var(--text-xs)] text-[var(--color-text-muted)]">
+                {t.checkout.orderId}
+              </span>
+              <code className="text-[var(--text-xs)] font-mono text-[var(--color-text)]">
+                {event.orderId}
+              </code>
               <IconButton
                 aria-label="Copy order id"
                 size="sm"
@@ -86,7 +90,10 @@ export function CheckoutPanel({
 
         <ul className="mt-4 divide-y divide-[var(--color-border)]">
           {event.summary.lines.map((l) => (
-            <li key={l.productId + (l.variantId ?? "")} className="flex items-center justify-between py-2">
+            <li
+              key={l.productId + (l.variantId ?? "")}
+              className="flex items-center justify-between py-2"
+            >
               <div className="flex-1 min-w-0">
                 <p className="truncate text-[var(--text-sm)] font-medium">{l.title}</p>
                 <p className="text-[var(--text-xs)] text-[var(--color-text-muted)] tabular">

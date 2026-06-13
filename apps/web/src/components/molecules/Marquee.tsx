@@ -1,9 +1,4 @@
-import {
-  Children,
-  type ComponentPropsWithoutRef,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { Children, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export interface MarqueeProps extends ComponentPropsWithoutRef<"div"> {
@@ -43,8 +38,7 @@ export function Marquee({
   const safeChildren = Children.toArray(children);
   if (safeChildren.length === 0) return null;
 
-  const fadeMask =
-    "linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%)";
+  const fadeMask = "linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%)";
 
   const mergedStyle: CSSProperties = {
     ...style,

@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type {
   CartLine,
   ChatRequest,
@@ -7,7 +6,8 @@ import type {
   Product,
   Variant,
 } from "@kapruka/protocol";
-import { ChatLayout } from "@/components/templates/ChatLayout";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { ErrorBanner, ProductQuickView, type CityOption } from "@/components/molecules";
 import {
   CartPanel,
   CheckoutPanel,
@@ -23,11 +23,12 @@ import {
   OptionsBar,
   SuccessCard,
 } from "@/components/organisms";
-import { selectCart, selectStatus, selectSurface, useAppStore } from "@/store";
-import { pollOrderStatus, streamChat } from "@/transport";
-import { ErrorBanner, ProductQuickView, type CityOption } from "@/components/molecules";
+import { ChatLayout } from "@/components/templates/ChatLayout";
 import { pickStrings } from "@/i18n";
 import { emitTelemetry } from "@/lib/telemetry";
+import type { TextMessage } from "@/store";
+import { selectCart, selectStatus, selectSurface, useAppStore } from "@/store";
+import { pollOrderStatus, streamChat } from "@/transport";
 
 // Safety net: shown when the AI didn't emit `present_options` so the chips
 // bar above the composer is never empty. The system prompt mandates chips
@@ -62,7 +63,7 @@ export function App() {
   const resetSurface = useAppStore((s) => s.resetSurface);
 
   const [pending, setPending] = useState(false);
-  /* Quick-view modal — opens with the Product object the card already has,
+  /* Quick-view modal - opens with the Product object the card already has,
      no API roundtrip. */
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid" | "failed" | "expired">(
@@ -80,7 +81,7 @@ export function App() {
     (text: string): ChatRequest => {
       const next = [
         ...messages
-          .filter((m): m is import("@/store").TextMessage => m.kind === "text")
+          .filter((m): m is TextMessage => m.kind === "text")
           .map((m) => ({ role: m.role, content: m.text })),
         { role: "user" as const, content: text },
       ];
@@ -175,7 +176,7 @@ export function App() {
   }, []);
 
   // Opens the local quick-view modal using the Product object the card
-  // already has. No API roundtrip — the deep-dive (variants, full gallery,
+  // already has. No API roundtrip - the deep-dive (variants, full gallery,
   // description) lives behind the "View on Kapruka" link.
   const requestDetail = useCallback((p: Product) => {
     setQuickViewProduct(p);
@@ -213,7 +214,7 @@ export function App() {
   // Pull `clearError` once so the banner can dismiss.
   const clearError = useAppStore((s) => s.clearError);
 
-  // Most recent assistant text turn — keys the per-turn dismissal of default
+  // Most recent assistant text turn - keys the per-turn dismissal of default
   // chips so they reappear on every fresh reply.
   const lastAssistantTextId = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -233,7 +234,7 @@ export function App() {
   }, [quickOptions, surface.kind, status.state, lastAssistantTextId, defaultsDismissedFor]);
 
   // -----------------------------------------------------------------------
-  // Tray content — every contextual surface (cart, form, checkout, success)
+  // Tray content - every contextual surface (cart, form, checkout, success)
   // now slides up from above the composer instead of mounting in a side
   // panel. Computes both the title and the body in a single useMemo so the
   // open/close state stays in sync.
@@ -348,6 +349,7 @@ export function App() {
     setCartOpen,
     send,
     pushDeliveryDetails,
+    resetSurface,
   ]);
 
   const trayOpen = trayBody !== null;
@@ -415,7 +417,9 @@ export function App() {
         showHero={showHero}
         heroIntro={<HeroIntro />}
         heroPrompts={<HeroPrompts onSuggestion={send} />}
-        messages={<MessageList onOpenProduct={requestDetail} onAddProduct={addProduct} pending={pending} />}
+        messages={
+          <MessageList onOpenProduct={requestDetail} onAddProduct={addProduct} pending={pending} />
+        }
         composer={composerColumn}
       />
 

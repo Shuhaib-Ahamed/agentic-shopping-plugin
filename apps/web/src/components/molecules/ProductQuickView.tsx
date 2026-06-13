@@ -1,10 +1,10 @@
-import { useRef } from "react";
+import type { Product } from "@kapruka/protocol";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ExternalLink, Plus, Star, X } from "lucide-react";
-import type { Product } from "@kapruka/protocol";
+import { useRef } from "react";
+import { useFlyToCart } from "@/components/organisms/FlyToCart";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
-import { useFlyToCart } from "@/components/organisms/FlyToCart";
 
 export interface ProductQuickViewProps {
   product: Product | null;
@@ -14,14 +14,9 @@ export interface ProductQuickViewProps {
 }
 
 // Local quick-view modal. Uses the same Product object the card already has
-// — no API roundtrip. For the full product detail (variants, gallery,
+// - no API roundtrip. For the full product detail (variants, gallery,
 // description), shoppers tap "View on Kapruka" which opens the source page.
-export function ProductQuickView({
-  product,
-  open,
-  onOpenChange,
-  onAdd,
-}: ProductQuickViewProps) {
+export function ProductQuickView({ product, open, onOpenChange, onAdd }: ProductQuickViewProps) {
   const { flyToCart } = useFlyToCart();
   const imageRef = useRef<HTMLImageElement | null>(null);
 
@@ -55,7 +50,7 @@ export function ProductQuickView({
             "data-[state=open]:animate-[surface-in_300ms_cubic-bezier(0.16,1,0.3,1)_both]",
           )}
         >
-          {/* Close button — floats over the lavender pane. */}
+          {/* Close button - floats over the lavender pane. */}
           <Dialog.Close asChild>
             <button
               type="button"
@@ -71,7 +66,7 @@ export function ProductQuickView({
             </button>
           </Dialog.Close>
 
-          {/* Lavender image pane — mirrors the card so the transition reads as
+          {/* Lavender image pane - mirrors the card so the transition reads as
               an expansion of the card, not a wholly new surface. The image
               fills the whole pane (object-cover) so it always feels like a
               proper hero shot, not a thumbnail floating in space. */}
@@ -83,7 +78,7 @@ export function ProductQuickView({
             }}
           >
             <Dialog.Title asChild>
-              {/* Visually hidden — title is shown in the body below. */}
+              {/* Visually hidden - title is shown in the body below. */}
               <span className="sr-only">{product.title}</span>
             </Dialog.Title>
 
@@ -116,8 +111,7 @@ export function ProductQuickView({
               aria-hidden
               className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none"
               style={{
-                background:
-                  "linear-gradient(to top, rgba(15,15,24,0.32), rgba(15,15,24,0))",
+                background: "linear-gradient(to top, rgba(15,15,24,0.32), rgba(15,15,24,0))",
               }}
             />
 
@@ -204,7 +198,7 @@ export function ProductQuickView({
               </span>
             </div>
 
-            {/* Action row — Add to cart (primary) + View on Kapruka link. */}
+            {/* Action row - Add to cart (primary) + View on Kapruka link. */}
             <div className="flex items-center gap-3 mt-2">
               <button
                 type="button"
@@ -254,13 +248,8 @@ export function ProductQuickView({
 }
 
 function derivePromo(product: Product): string | null {
-  if (
-    product.compareAtPrice &&
-    product.compareAtPrice.amount > product.price.amount
-  ) {
-    const pct = Math.round(
-      (1 - product.price.amount / product.compareAtPrice.amount) * 100,
-    );
+  if (product.compareAtPrice && product.compareAtPrice.amount > product.price.amount) {
+    const pct = Math.round((1 - product.price.amount / product.compareAtPrice.amount) * 100);
     if (pct > 0) return `${pct}% OFF`;
   }
   return product.badge ?? null;

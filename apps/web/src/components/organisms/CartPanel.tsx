@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { ShoppingBag, Trash2 } from "lucide-react";
 import type { CartLine, Money } from "@kapruka/protocol";
+import { ShoppingBag, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { Button, Price } from "@/components/atoms";
 import { CartLineItem } from "@/components/molecules";
 import {
@@ -13,8 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAppStore } from "@/store";
 import { pickStrings } from "@/i18n";
+import { useAppStore } from "@/store";
 
 export interface CartPanelProps {
   lines: CartLine[];
@@ -77,7 +77,9 @@ export function CartPanel({ lines, subtotal, onProceed }: CartPanelProps) {
             ))}
           </ul>
           <div className="mt-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
-            <span className="text-[var(--text-sm)] text-[var(--color-text-muted)]">{t.cart.subtotal}</span>
+            <span className="text-[var(--text-sm)] text-[var(--color-text-muted)]">
+              {t.cart.subtotal}
+            </span>
             <Price money={subtotal} size="lg" />
           </div>
           <div className="mt-4">

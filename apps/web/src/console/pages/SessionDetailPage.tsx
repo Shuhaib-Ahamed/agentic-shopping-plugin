@@ -1,7 +1,7 @@
+import type { TurnRecord } from "@kapruka/protocol";
+import { ChevronDown, ChevronRight, Loader, User, Bot } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ChevronDown, ChevronRight, Loader, User, Bot } from "lucide-react";
-import type { TurnRecord } from "@kapruka/protocol";
 import {
   CurrencyCell,
   JsonExpand,
@@ -18,8 +18,8 @@ import {
 } from "@/components/molecules/console";
 import { cn } from "@/lib/cn";
 import { adminApi } from "../api";
-import { useAsync } from "../hooks";
 import { formatDateTime, formatMs, formatNumber } from "../format";
+import { useAsync } from "../hooks";
 
 export function SessionDetailPage() {
   const { id = "" } = useParams();
@@ -36,7 +36,10 @@ export function SessionDetailPage() {
     return (
       <div className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] p-6">
         <p className="text-[14px] text-text">Could not load this session.</p>
-        <Link to="/admin/sessions" className="text-[13px] text-[color:var(--color-cta-deep)] hover:underline">
+        <Link
+          to="/admin/sessions"
+          className="text-[13px] text-[color:var(--color-cta-deep)] hover:underline"
+        >
           Back to sessions
         </Link>
       </div>
@@ -57,14 +60,21 @@ export function SessionDetailPage() {
             <TokenChip value={session.sessionId} truncate={18} />
           </h1>
           <p className="text-[12px] text-muted">
-            Started {formatDateTime(session.startedAt)} · {session.device} · {session.country ?? "–"}
+            Started {formatDateTime(session.startedAt)} · {session.device} ·{" "}
+            {session.country ?? "–"}
           </p>
         </div>
         <div className="flex items-center gap-3 text-[12px] text-muted">
           <LangPill code={(session.locale as "en" | "si" | "ta") ?? "en"} />
-          <span>Outcome: <strong className="text-text">{session.outcome}</strong></span>
-          <span>Turns: <strong className="text-text tabular">{session.totals.turns}</strong></span>
-          <span>Cost: <CurrencyCell usd={session.totals.costUSD} /></span>
+          <span>
+            Outcome: <strong className="text-text">{session.outcome}</strong>
+          </span>
+          <span>
+            Turns: <strong className="text-text tabular">{session.totals.turns}</strong>
+          </span>
+          <span>
+            Cost: <CurrencyCell usd={session.totals.costUSD} />
+          </span>
         </div>
       </header>
 
@@ -89,7 +99,9 @@ function TurnReplayCard({ turn }: { turn: TurnRecord }) {
           <div className="flex items-start gap-2">
             <User size={14} className="mt-0.5 text-muted" aria-hidden />
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">Shopper</p>
+              <p className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">
+                Shopper
+              </p>
               <p className="text-[14px] text-text break-words">
                 {turn.input.kind === "text"
                   ? turn.input.text
@@ -102,9 +114,13 @@ function TurnReplayCard({ turn }: { turn: TurnRecord }) {
           <div className="flex items-start gap-2">
             <Bot size={14} className="mt-0.5 text-[color:var(--color-cta-deep)]" aria-hidden />
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">Juno</p>
+              <p className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">
+                Juno
+              </p>
               <p className="text-[14px] text-text break-words">
-                {turn.finalMessage ?? <span className="text-muted italic">No assistant message</span>}
+                {turn.finalMessage ?? (
+                  <span className="text-muted italic">No assistant message</span>
+                )}
               </p>
             </div>
           </div>
@@ -182,7 +198,9 @@ function TurnDetails({ turn }: { turn: TurnRecord }) {
           <EventTimeline events={turn.emittedEvents} />
         </section>
         <section className="rounded-xl border border-[color:var(--color-border)] p-3 bg-[color:var(--color-console-card)] space-y-2">
-          <h4 className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">Flags & errors</h4>
+          <h4 className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">
+            Flags & errors
+          </h4>
           <ul className="text-[12px] space-y-1">
             <FlagRow on={turn.flags.hallucinationSuspected} label="Hallucination suspected" />
             <FlagRow on={turn.flags.schemaValidationFailed} label="Schema validation failed" />

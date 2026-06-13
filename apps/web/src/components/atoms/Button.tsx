@@ -1,6 +1,6 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Spinner } from "./Spinner";
 
@@ -24,19 +24,9 @@ const buttonVariants = cva(
           "bg-white text-text border border-border",
           "hover:bg-surface-warm hover:-translate-y-[1px] hover:shadow-md",
         ],
-        ghost: [
-          "bg-transparent text-text",
-          "hover:bg-white/60",
-        ],
-        soft: [
-          "text-cta-hover",
-          "hover:-translate-y-[1px]",
-        ],
-        danger: [
-          "bg-error text-white",
-          "hover:opacity-90",
-          "focus-visible:outline-error",
-        ],
+        ghost: ["bg-transparent text-text", "hover:bg-white/60"],
+        soft: ["text-cta-hover", "hover:-translate-y-[1px]"],
+        danger: ["bg-error text-white", "hover:opacity-90", "focus-visible:outline-error"],
       },
       size: {
         sm: "h-9 px-4 text-[var(--text-sm)] min-w-[44px]",
@@ -56,8 +46,7 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   isPending?: boolean;
   iconLeft?: ReactNode;

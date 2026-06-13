@@ -1,8 +1,8 @@
-import { X } from "lucide-react";
 import type { CartLine } from "@kapruka/protocol";
+import { X } from "lucide-react";
 import { IconButton, Price } from "@/components/atoms";
-import { QuantityStepper } from "./QuantityStepper";
 import { cn } from "@/lib/cn";
+import { QuantityStepper } from "./QuantityStepper";
 
 export interface CartLineItemProps {
   line: CartLine;
@@ -36,16 +36,11 @@ export function CartLineItem({ line, onQtyChange, onRemove, className }: CartLin
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p
-          className="text-[var(--text-sm)] font-semibold leading-snug truncate"
-          title={line.title}
-        >
+        <p className="text-[var(--text-sm)] font-semibold leading-snug truncate" title={line.title}>
           {line.title}
         </p>
         {line.variantId && (
-          <p className="text-[var(--text-xs)] text-[var(--color-text-muted)]">
-            {line.variantId}
-          </p>
+          <p className="text-[var(--text-xs)] text-[var(--color-text-muted)]">{line.variantId}</p>
         )}
         <div className="mt-2 flex items-center gap-3">
           {onQtyChange ? (

@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
 import type { LogEntryRecord } from "@kapruka/protocol";
 import { ChevronRight, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 
 const LEVEL_COLOR: Record<LogEntryRecord["level"], string> = {
@@ -43,7 +43,9 @@ export function DebugLogPanel({ logs }: { logs: LogEntryRecord[] }) {
         <h4 className="text-[11px] uppercase tracking-[0.08em] font-semibold text-muted">
           Pipeline logs
         </h4>
-        <p className="mt-2 text-[12px] text-muted">No structured logs were captured for this turn.</p>
+        <p className="mt-2 text-[12px] text-muted">
+          No structured logs were captured for this turn.
+        </p>
       </section>
     );
   }
@@ -115,7 +117,9 @@ export function DebugLogPanel({ logs }: { logs: LogEntryRecord[] }) {
               <LogRow key={`${l.at}-${i}`} entry={l} />
             ))}
             {filtered.length === 0 ? (
-              <li className="px-3 py-6 text-center text-muted text-[12px]">No logs match the filter.</li>
+              <li className="px-3 py-6 text-center text-muted text-[12px]">
+                No logs match the filter.
+              </li>
             ) : null}
           </ul>
         </div>
@@ -140,7 +144,10 @@ function LogRow({ entry }: { entry: LogEntryRecord }) {
           className="inline-block w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
           style={{ background: tone }}
         />
-        <span className="font-semibold uppercase text-[10px] tracking-[0.08em]" style={{ color: tone }}>
+        <span
+          className="font-semibold uppercase text-[10px] tracking-[0.08em]"
+          style={{ color: tone }}
+        >
           {entry.level}
         </span>
         {entry.ctx ? (
@@ -177,7 +184,9 @@ function formatClock(iso: string): string {
 
 function previewFields(fields: Record<string, unknown> | undefined): string {
   if (!fields) return "";
-  const entries = Object.entries(fields).filter(([k]) => k !== "ctx" && k !== "ts" && k !== "msg" && k !== "level");
+  const entries = Object.entries(fields).filter(
+    ([k]) => k !== "ctx" && k !== "ts" && k !== "msg" && k !== "level",
+  );
   if (entries.length === 0) return "";
   return entries
     .slice(0, 4)

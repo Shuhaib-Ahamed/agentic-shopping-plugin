@@ -1,12 +1,12 @@
+import type { SessionOutcome } from "@kapruka/protocol";
+import { ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
 import { LangPill, StatusDot, type StatusTone } from "@/components/atoms/console";
 import { FilterBar, FilterButton } from "@/components/molecules/console";
 import { adminApi } from "../api";
-import { useAsync } from "../hooks";
 import { formatDateTime, formatUSD } from "../format";
-import type { SessionOutcome } from "@kapruka/protocol";
+import { useAsync } from "../hooks";
 
 const OUTCOMES: Array<{ value: SessionOutcome | "all"; label: string }> = [
   { value: "all", label: "All outcomes" },
@@ -126,13 +126,27 @@ export function SessionsPage() {
         <table className="w-full text-[13px]">
           <thead className="bg-[color:var(--color-console-sunken)] text-muted">
             <tr className="text-left">
-              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">Session</th>
-              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">Started</th>
-              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">Locale</th>
-              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px] text-right">Turns</th>
-              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px] text-right">Cost</th>
-              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">Outcome</th>
-              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px] text-right">Errors</th>
+              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Session
+              </th>
+              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Started
+              </th>
+              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Locale
+              </th>
+              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px] text-right">
+                Turns
+              </th>
+              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px] text-right">
+                Cost
+              </th>
+              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Outcome
+              </th>
+              <th className="px-4 py-2.5 font-semibold uppercase tracking-[0.06em] text-[11px] text-right">
+                Errors
+              </th>
               <th className="px-4 py-2.5"></th>
             </tr>
           </thead>

@@ -1,6 +1,7 @@
 {
   "name": "kapruka-agent",
   "private": true,
+  "type": "module",
   "version": "0.1.0",
   "description": "Kapruka Shopping Agent, Kapruka Agent Challenge 2026 entry.",
   "packageManager": "pnpm@9.12.0",
@@ -12,12 +13,47 @@
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
-    "lint": "turbo run lint",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "*.{js,mjs,cjs,json,md,css}": [
+      "prettier --write"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^63.0.2",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "prettier": "^3.8.4",
     "shadcn": "^4.11.0",
     "turbo": "^2.3.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.61.0"
   }
 }

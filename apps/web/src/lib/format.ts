@@ -1,5 +1,8 @@
 import type { Money } from "@kapruka/protocol";
 
+/** Non-breaking space. Source uses the escape so linters do not flag it. */
+const NBSP = " ";
+
 const formatters = new Map<string, Intl.NumberFormat>();
 
 /** LKR shown as "Rs 2,450" with a non-breaking space, no decimals.
@@ -33,12 +36,12 @@ export function formatMoney(money: Money, locale = "en-LK"): string {
     });
     formatters.set(key, f);
   }
-  return `Rs ${f.format(money.amount)}`;
+  return `Rs${NBSP}${f.format(money.amount)}`;
 }
 
 /** Format a count with a non-breaking space before the unit. */
 export function formatCount(count: number, singular: string, plural: string): string {
-  return `${count} ${count === 1 ? singular : plural}`;
+  return `${count}${NBSP}${count === 1 ? singular : plural}`;
 }
 
 /** Format a delivery date for display (locale-aware). */

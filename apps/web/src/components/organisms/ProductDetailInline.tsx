@@ -1,10 +1,10 @@
-import { useRef, useState } from "react";
-import { ExternalLink } from "lucide-react";
 import type { Product, ProductDetailEvent, Variant } from "@kapruka/protocol";
+import { ExternalLink } from "lucide-react";
+import { useRef, useState } from "react";
 import { Badge, Button, Price } from "@/components/atoms";
+import { pickStrings } from "@/i18n";
 import { cn } from "@/lib/cn";
 import { useAppStore } from "@/store";
-import { pickStrings } from "@/i18n";
 import { useFlyToCart } from "./FlyToCart";
 
 export interface ProductDetailInlineProps {
@@ -69,17 +69,10 @@ export function ProductDetailInline({ detail, onAdd }: ProductDetailInlineProps)
                   aria-label={`Show image ${idx + 1}`}
                   className={cn(
                     "shrink-0 w-12 h-12 rounded-[8px] overflow-hidden border-2 cursor-pointer transition-colors",
-                    idx === activeImage
-                      ? "border-[var(--color-cta)]"
-                      : "border-transparent",
+                    idx === activeImage ? "border-[var(--color-cta)]" : "border-transparent",
                   )}
                 >
-                  <img
-                    src={src}
-                    alt=""
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={src} alt="" loading="lazy" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

@@ -1,13 +1,13 @@
-import { useEffect, useRef } from "react";
+import type { Locale } from "@kapruka/protocol";
 import { motion, useAnimationControls } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
-import { useAppStore, selectCart } from "@/store";
+import { useEffect, useRef } from "react";
+import { KaprukaLogo } from "@/components/atoms";
 import { pickStrings } from "@/i18n";
 import { cn } from "@/lib/cn";
-import { KaprukaLogo } from "@/components/atoms";
-import { SessionMenu } from "./SessionMenu";
+import { useAppStore, selectCart } from "@/store";
 import { useFlyToCart } from "./FlyToCart";
-import type { Locale } from "@kapruka/protocol";
+import { SessionMenu } from "./SessionMenu";
 
 export interface TopBarProps {
   className?: string;
@@ -22,7 +22,7 @@ const LOCALES: Array<{ code: Locale; key: "languageEN" | "languageSI" | "languag
 // Floating violet header pill. Sits with breathing room from the viewport
 // edges (top + sides), so the soft pink wash shows around it. Violet
 // gradient base, soft yellow radial glow in the right corner. Yellow is
-// the secondary accent — used here for the cart badge and the active
+// the secondary accent - used here for the cart badge and the active
 // language indicator.
 export function TopBar({ className }: TopBarProps) {
   const locale = useAppStore((s) => s.locale);
@@ -36,7 +36,7 @@ export function TopBar({ className }: TopBarProps) {
   // Fly-to-cart wiring. The cart button registers itself as the anchor so
   // any product card on the page knows where to send its image. shakeKey
   // increments every time a flight lands, which we map to a quick wiggle
-  // on the cart icon — feels like the bag is reacting to the impact.
+  // on the cart icon - feels like the bag is reacting to the impact.
   const { setCartAnchor, shakeKey } = useFlyToCart();
   const cartButtonRef = useRef<HTMLButtonElement | null>(null);
   const wiggleControls = useAnimationControls();
@@ -63,15 +63,13 @@ export function TopBar({ className }: TopBarProps) {
         className,
       )}
     >
-      <div
-        className="floating-header flex items-center justify-between gap-3 pl-4 pr-2 md:pl-6 md:pr-3 h-16 md:h-[72px]"
-      >
+      <div className="floating-header flex items-center justify-between gap-3 pl-4 pr-2 md:pl-6 md:pr-3 h-16 md:h-[72px]">
         <a
           href="/"
           aria-label="Kapruka home"
           className="flex items-center ml-4 min-w-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
         >
-          {/* Bigger Kapruka wordmark — the PNG variant designed for dark
+          {/* Bigger Kapruka wordmark - the PNG variant designed for dark
               surfaces is the right read on the violet pill. */}
           <KaprukaLogo height={20} />
         </a>

@@ -1,6 +1,6 @@
-import { useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Product } from "@kapruka/protocol";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
 import { IconButton } from "@/components/atoms";
 import { ProductCard } from "@/components/molecules";
 
@@ -58,11 +58,7 @@ export function ProductCarousel({ title, items, onOpen, onAdd }: ProductCarousel
         style={{ scrollPaddingInline: 16 }}
       >
         {items.map((p, idx) => (
-          <div
-            key={p.id}
-            className="scroll-snap-start shrink-0"
-            style={{ width: 240 }}
-          >
+          <div key={p.id} className="scroll-snap-start shrink-0" style={{ width: 240 }}>
             <ProductCard product={p} onOpen={onOpen} onAdd={onAdd} emphasized={idx === 0} />
           </div>
         ))}

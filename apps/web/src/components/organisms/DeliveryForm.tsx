@@ -1,9 +1,9 @@
-import { useId, useState, type FormEvent } from "react";
 import type { Field, RequestInfoEvent } from "@kapruka/protocol";
+import { useId, useState, type FormEvent } from "react";
 import { Button, Input } from "@/components/atoms";
 import { CityAutocompleteField, DatePickerField, type CityOption } from "@/components/molecules";
-import { useAppStore } from "@/store";
 import { pickStrings } from "@/i18n";
+import { useAppStore } from "@/store";
 
 export interface DeliveryFormProps {
   event: RequestInfoEvent;
@@ -139,9 +139,7 @@ function FieldRender({
       <Input
         id={id}
         type={field.type === "tel" ? "tel" : field.type === "email" ? "email" : "text"}
-        inputMode={
-          field.type === "tel" ? "tel" : field.type === "email" ? "email" : "text"
-        }
+        inputMode={field.type === "tel" ? "tel" : field.type === "email" ? "email" : "text"}
         autoComplete={autoCompleteFor(field.name)}
         placeholder={field.placeholder}
         value={value}

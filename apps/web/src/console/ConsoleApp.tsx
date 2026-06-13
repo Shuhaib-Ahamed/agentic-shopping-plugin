@@ -1,19 +1,19 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ConsoleAuthProvider, useConsoleAuth } from "./AuthContext";
 import { ConsoleShell } from "./ConsoleShell";
-import { LoginPage } from "./pages/LoginPage";
-import { OverviewPage } from "./pages/OverviewPage";
-import { SessionsPage } from "./pages/SessionsPage";
-import { SessionDetailPage } from "./pages/SessionDetailPage";
-import { TraceDetailPage } from "./pages/TraceDetailPage";
 import { CostPage } from "./pages/CostPage";
-import { LatencyPage } from "./pages/LatencyPage";
-import { QualityPage } from "./pages/QualityPage";
-import { FunnelPage } from "./pages/FunnelPage";
-import { PipelinePage } from "./pages/PipelinePage";
 import { CurationPage } from "./pages/CurationPage";
 import { DatasetsPage } from "./pages/DatasetsPage";
+import { FunnelPage } from "./pages/FunnelPage";
+import { LatencyPage } from "./pages/LatencyPage";
+import { LoginPage } from "./pages/LoginPage";
+import { OverviewPage } from "./pages/OverviewPage";
+import { PipelinePage } from "./pages/PipelinePage";
 import { PricingPage } from "./pages/PricingPage";
+import { QualityPage } from "./pages/QualityPage";
+import { SessionDetailPage } from "./pages/SessionDetailPage";
+import { SessionsPage } from "./pages/SessionsPage";
+import { TraceDetailPage } from "./pages/TraceDetailPage";
 
 export function ConsoleApp() {
   return (

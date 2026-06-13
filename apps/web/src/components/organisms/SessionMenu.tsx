@@ -1,13 +1,5 @@
-import { useState } from "react";
 import { MoreVertical, RotateCcw, Eraser, ShoppingBag } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,8 +10,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { selectCart, useAppStore } from "@/store";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/cn";
+import { selectCart, useAppStore } from "@/store";
 
 type PendingAction = "reset" | "clear-messages" | "clear-cart" | null;
 
@@ -27,8 +27,8 @@ export interface SessionMenuProps {
   className?: string;
 }
 
-// Overflow menu in the top bar. Houses session-level destructive actions —
-// start fresh, clear the conversation, clear the cart — each gated behind a
+// Overflow menu in the top bar. Houses session-level destructive actions -
+// start fresh, clear the conversation, clear the cart - each gated behind a
 // confirmation dialog so accidental clicks never destroy the chat.
 export function SessionMenu({ className }: SessionMenuProps) {
   const resetSession = useAppStore((s) => s.resetSession);
@@ -49,7 +49,10 @@ export function SessionMenu({ className }: SessionMenuProps) {
     setPending(null);
   };
 
-  const dialogText: Record<Exclude<PendingAction, null>, { title: string; body: string; cta: string }> = {
+  const dialogText: Record<
+    Exclude<PendingAction, null>,
+    { title: string; body: string; cta: string }
+  > = {
     reset: {
       title: "Start a new session?",
       body: "This clears the conversation, empties the cart, and gives you a fresh session id. Your language and currency preferences stay.",
@@ -97,9 +100,7 @@ export function SessionMenu({ className }: SessionMenuProps) {
             <RotateCcw size={14} className="text-cta" />
             <div className="flex flex-col">
               <span className="font-semibold">Start a new session</span>
-              <span className="text-[var(--text-2xs)] text-muted">
-                Fresh chat, Empty cart
-              </span>
+              <span className="text-[var(--text-2xs)] text-muted">Fresh chat, Empty cart</span>
             </div>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -149,10 +150,7 @@ export function SessionMenu({ className }: SessionMenuProps) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={confirm}
-                  className="btn-cta-gradient"
-                >
+                <AlertDialogAction onClick={confirm} className="btn-cta-gradient">
                   {dialogText[pending].cta}
                 </AlertDialogAction>
               </AlertDialogFooter>

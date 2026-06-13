@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import {
   createContext,
   useCallback,
@@ -8,9 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
 
-// One in-flight clone — captured at the moment of click. We freeze the source
+// One in-flight clone - captured at the moment of click. We freeze the source
 // + cart rects in state so a re-layout during the 700ms flight (e.g. the
 // cart badge popping in) doesn't pull the trajectory mid-air.
 interface Flight {
@@ -25,7 +25,7 @@ interface FlyToCartContextValue {
    * Spawn an iOS-style minimize animation from the given source element to
    * the registered cart anchor. Pass the product image element (or any
    * element whose getBoundingClientRect represents the visual source). The
-   * imageUrl is rendered as the in-flight clone — falls back to the source's
+   * imageUrl is rendered as the in-flight clone - falls back to the source's
    * own <img src> when omitted.
    */
   flyToCart: (sourceEl: HTMLElement | null, imageUrl?: string | null) => void;
@@ -45,7 +45,7 @@ interface FlyToCartContextValue {
 const Ctx = createContext<FlyToCartContextValue | null>(null);
 
 // The flight trajectory's arc apex: how far above the linear midpoint the
-// clone rises. Negative because screen Y grows downward — the clone curves
+// clone rises. Negative because screen Y grows downward - the clone curves
 // up and over before settling into the cart. Tuned so it reads as "tossed"
 // rather than "slid."
 const ARC_RISE_PX = 88;
@@ -69,46 +69,43 @@ export function FlyToCartProvider({ children }: { children: ReactNode }) {
     cartAnchorRef.current = el;
   }, []);
 
-  const flyToCart = useCallback(
-    (sourceEl: HTMLElement | null, imageUrl?: string | null) => {
-      if (!sourceEl) return;
-      const anchor = cartAnchorRef.current;
-      if (!anchor) return;
+  const flyToCart = useCallback((sourceEl: HTMLElement | null, imageUrl?: string | null) => {
+    if (!sourceEl) return;
+    const anchor = cartAnchorRef.current;
+    if (!anchor) return;
 
-      // Resolve the image url. Prefer the explicit argument, then the source
-      // element itself (if it's an <img>), then any <img> inside it.
-      let resolvedUrl = imageUrl ?? null;
-      if (!resolvedUrl) {
-        if (sourceEl instanceof HTMLImageElement) {
-          resolvedUrl = sourceEl.currentSrc || sourceEl.src;
-        } else {
-          const img = sourceEl.querySelector("img");
-          if (img) resolvedUrl = img.currentSrc || img.src;
-        }
+    // Resolve the image url. Prefer the explicit argument, then the source
+    // element itself (if it's an <img>), then any <img> inside it.
+    let resolvedUrl = imageUrl ?? null;
+    if (!resolvedUrl) {
+      if (sourceEl instanceof HTMLImageElement) {
+        resolvedUrl = sourceEl.currentSrc || sourceEl.src;
+      } else {
+        const img = sourceEl.querySelector("img");
+        if (img) resolvedUrl = img.currentSrc || img.src;
       }
-      if (!resolvedUrl) return;
+    }
+    if (!resolvedUrl) return;
 
-      // Respect reduced motion — skip the flight, still wiggle the cart so
-      // the user gets feedback that the add succeeded.
-      if (
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ) {
-        setShakeKey((k) => k + 1);
-        return;
-      }
+    // Respect reduced motion - skip the flight, still wiggle the cart so
+    // the user gets feedback that the add succeeded.
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setShakeKey((k) => k + 1);
+      return;
+    }
 
-      const from = sourceEl.getBoundingClientRect();
-      const to = anchor.getBoundingClientRect();
-      const id =
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : Math.random().toString(36).slice(2);
+    const from = sourceEl.getBoundingClientRect();
+    const to = anchor.getBoundingClientRect();
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2);
 
-      setFlights((prev) => [...prev, { id, src: resolvedUrl!, from, to }]);
-    },
-    [],
-  );
+    setFlights((prev) => [...prev, { id, src: resolvedUrl!, from, to }]);
+  }, []);
 
   const handleComplete = useCallback((id: string) => {
     setFlights((prev) => prev.filter((f) => f.id !== id));
@@ -137,11 +134,7 @@ interface FlyToCartLayerProps {
 function FlyToCartLayer({ flights, onComplete }: FlyToCartLayerProps) {
   if (typeof document === "undefined") return null;
   return createPortal(
-    <div
-      aria-hidden
-      className="fixed inset-0 pointer-events-none"
-      style={{ zIndex: 9999 }}
-    >
+    <div aria-hidden className="fixed inset-0 pointer-events-none" style={{ zIndex: 9999 }}>
       <AnimatePresence>
         {flights.map((f) => (
           <FlyingClone key={f.id} flight={f} onComplete={() => onComplete(f.id)} />
@@ -152,17 +145,11 @@ function FlyToCartLayer({ flights, onComplete }: FlyToCartLayerProps) {
   );
 }
 
-function FlyingClone({
-  flight,
-  onComplete,
-}: {
-  flight: Flight;
-  onComplete: () => void;
-}) {
+function FlyingClone({ flight, onComplete }: { flight: Flight; onComplete: () => void }) {
   const { from, to, src } = flight;
 
   // Size the clone proportionally to the source so a tiny thumbnail tosses
-  // a small clone and a hero image tosses a bigger one — but always within
+  // a small clone and a hero image tosses a bigger one - but always within
   // the min/max bounds for readability.
   const sourceShort = Math.min(from.width, from.height);
   const size = Math.round(
@@ -176,7 +163,7 @@ function FlyingClone({
   const dx = endX - startX;
   const dy = endY - startY;
 
-  // Arc midpoint — half-way between source and destination horizontally, but
+  // Arc midpoint - half-way between source and destination horizontally, but
   // lifted above the linear midpoint vertically so the trajectory curves up
   // before settling into the cart. Direction of rotation depends on which
   // way the clone is travelling so the spin "follows" the motion.
@@ -213,8 +200,7 @@ function FlyingClone({
         objectFit: "cover",
         borderRadius: 18,
         background: "white",
-        boxShadow:
-          "0 16px 40px rgba(74,46,130,0.32), 0 2px 8px rgba(74,46,130,0.18)",
+        boxShadow: "0 16px 40px rgba(74,46,130,0.32), 0 2px 8px rgba(74,46,130,0.18)",
         willChange: "transform, opacity",
       }}
     />

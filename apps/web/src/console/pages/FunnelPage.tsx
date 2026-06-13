@@ -1,7 +1,7 @@
 import { FilterBar } from "@/components/molecules/console";
 import { adminApi } from "../api";
-import { useAsync } from "../hooks";
 import { formatNumber, formatPct } from "../format";
+import { useAsync } from "../hooks";
 
 export function FunnelPage() {
   const { data } = useAsync(() => adminApi.funnel());
@@ -37,7 +37,11 @@ export function FunnelPage() {
                   {i === 0 ? (
                     <span className="text-muted">–</span>
                   ) : (
-                    <span className={s.dropoffPct > 0.5 ? "text-[color:var(--color-status-err)]" : "text-muted"}>
+                    <span
+                      className={
+                        s.dropoffPct > 0.5 ? "text-[color:var(--color-status-err)]" : "text-muted"
+                      }
+                    >
                       -{formatPct(s.dropoffPct, 1)}
                     </span>
                   )}

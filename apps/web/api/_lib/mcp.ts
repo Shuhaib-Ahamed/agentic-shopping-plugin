@@ -36,10 +36,7 @@ async function getClient(): Promise<Client> {
     const { MCP_SERVER_URL } = env();
     log.info("mcp.connect.start", { url: MCP_SERVER_URL });
     const t0 = Date.now();
-    const client = new Client(
-      { name: "kapruka-agent", version: "0.1.0" },
-      { capabilities: {} },
-    );
+    const client = new Client({ name: "kapruka-agent", version: "0.1.0" }, { capabilities: {} });
     const transport = new StreamableHTTPClientTransport(new URL(MCP_SERVER_URL));
     try {
       await client.connect(transport);

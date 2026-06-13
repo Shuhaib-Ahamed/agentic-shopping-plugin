@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Check, ChevronRight, Copy } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/cn";
 
 export interface JsonExpandProps {
@@ -11,7 +11,12 @@ export interface JsonExpandProps {
 
 // Lazy JSON preview: never serializes until opened. Always shows under 200KB
 // of formatted output to keep the DOM small.
-export function JsonExpand({ value, label = "Raw payload", defaultOpen = false, className }: JsonExpandProps) {
+export function JsonExpand({
+  value,
+  label = "Raw payload",
+  defaultOpen = false,
+  className,
+}: JsonExpandProps) {
   const [open, setOpen] = useState(defaultOpen);
   const [copied, setCopied] = useState(false);
   const text = open ? safeStringify(value) : "";
@@ -25,7 +30,12 @@ export function JsonExpand({ value, label = "Raw payload", defaultOpen = false, 
     }
   };
   return (
-    <div className={cn("rounded-lg border border-[color:var(--color-border)] overflow-hidden", className)}>
+    <div
+      className={cn(
+        "rounded-lg border border-[color:var(--color-border)] overflow-hidden",
+        className,
+      )}
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

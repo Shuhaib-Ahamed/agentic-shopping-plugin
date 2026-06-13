@@ -1,8 +1,8 @@
-import { CheckCircle2, ExternalLink } from "lucide-react";
 import type { OrderConfirmedEvent } from "@kapruka/protocol";
+import { CheckCircle2, ExternalLink } from "lucide-react";
 import { Button, Price } from "@/components/atoms";
-import { useAppStore } from "@/store";
 import { pickStrings } from "@/i18n";
+import { useAppStore } from "@/store";
 
 export interface SuccessCardProps {
   event: OrderConfirmedEvent;

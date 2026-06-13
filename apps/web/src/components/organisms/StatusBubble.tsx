@@ -1,8 +1,8 @@
-import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { StatusState } from "@/store";
+import { useMemo } from "react";
 import { JunoMark } from "@/components/atoms";
 import { cn } from "@/lib/cn";
+import type { StatusState } from "@/store";
 
 export interface StatusBubbleProps {
   state: StatusState;
@@ -61,11 +61,10 @@ function pickFromPool(pool: readonly string[]): string {
 export function StatusBubble({ state, label, detail, className }: StatusBubbleProps) {
   // Re-pick a themed phrase whenever the state changes. Stays stable while
   // the state is held so the bubble doesn't shuffle on every re-render.
-  // Hook must run unconditionally — read the pool defensively so we can
+  // Hook must run unconditionally - read the pool defensively so we can
   // still bail early below when state === "idle".
   const fallbackLabel = useMemo(() => {
-    const pool =
-      state !== "idle" ? STATE_META[state].labels : STATE_META.thinking.labels;
+    const pool = state !== "idle" ? STATE_META[state].labels : STATE_META.thinking.labels;
     return pickFromPool(pool);
   }, [state]);
 
@@ -136,14 +135,11 @@ export function StatusBubble({ state, label, detail, className }: StatusBubblePr
   );
 }
 
-// Three pulsing dots — sit on the text baseline so they read like an
+// Three pulsing dots - sit on the text baseline so they read like an
 // ellipsis after the status word, not a separate bouncing widget.
 function TypingDots({ className }: { className?: string }) {
   return (
-    <span
-      className={cn("inline-flex items-baseline gap-1 shrink-0", className)}
-      aria-hidden
-    >
+    <span className={cn("inline-flex items-baseline gap-1 shrink-0", className)} aria-hidden>
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}

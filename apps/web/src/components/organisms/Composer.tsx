@@ -1,3 +1,4 @@
+import { ArrowUp } from "lucide-react";
 import {
   useEffect,
   useLayoutEffect,
@@ -6,11 +7,10 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { ArrowUp } from "lucide-react";
-import { useAppStore } from "@/store";
+import { BorderBeam } from "@/components/ui/border-beam";
 import { pickStrings } from "@/i18n";
 import { cn } from "@/lib/cn";
-import { BorderBeam } from "@/components/ui/border-beam";
+import { useAppStore } from "@/store";
 
 export interface ComposerProps {
   onSubmit: (text: string) => void;
@@ -68,10 +68,7 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
   const disabled = !value.trim() || isPending;
 
   return (
-    <form
-      onSubmit={submit}
-      className="relative w-full pt-1 pb-3 md:pb-5 safe-bottom"
-    >
+    <form onSubmit={submit} className="relative w-full pt-1 pb-3 md:pb-5 safe-bottom">
       <div
         className={cn(
           "relative flex gap-2 p-1.5 pl-2",
@@ -81,7 +78,7 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
           multiline ? "items-end" : "items-center",
         )}
       >
-        {/* Border-beam — only on the empty hero state. Two beams running in
+        {/* Border-beam - only on the empty hero state. Two beams running in
             opposite directions for a balanced, continuous chase around the
             input. On-brand: saffron → violet. */}
         {showBeam && (
@@ -122,12 +119,12 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
             "flex-1 resize-none bg-transparent px-4 py-3 max-h-40",
             "text-[var(--text-md)] leading-[var(--leading-body)] text-primary",
             "placeholder:text-muted placeholder:font-medium",
-            /* Kill every default border + focus ring on the textarea — focus
+            /* Kill every default border + focus ring on the textarea - focus
                feedback lives on the wrapper. */
             "border-0 outline-none ring-0",
             "focus:outline-none focus:ring-0 focus:border-0",
             "focus-visible:outline-none focus-visible:ring-0",
-            /* Hide the scrollbar — content still scrolls when it overflows. */
+            /* Hide the scrollbar - content still scrolls when it overflows. */
             "no-scrollbar",
           )}
           style={{
@@ -164,8 +161,22 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
               style={{ animationDuration: "900ms" }}
               aria-hidden
             >
-              <circle cx="12" cy="12" r="10" stroke="white" strokeOpacity="0.3" strokeWidth="2.5" fill="none" />
-              <path d="M22 12a10 10 0 0 0-10-10" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="white"
+                strokeOpacity="0.3"
+                strokeWidth="2.5"
+                fill="none"
+              />
+              <path
+                d="M22 12a10 10 0 0 0-10-10"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                fill="none"
+              />
             </svg>
           ) : (
             <ArrowUp size={18} strokeWidth={2.6} />

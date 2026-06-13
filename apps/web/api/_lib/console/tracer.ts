@@ -29,8 +29,9 @@ import type {
   TurnRecord,
 } from "@kapruka/protocol";
 import type { SseWriter } from "../sse";
-import { PRICING } from "./pricing";
+import { TOKENS_PER_MILLION } from "./constants";
 import { collections, hasMongo } from "./mongo";
+import { PRICING } from "./pricing";
 
 const MAX_LOGS_PER_TURN = 800;
 
@@ -52,7 +53,7 @@ function promptVersion(): string {
     }
   }
   CACHED_PROMPT_VERSION = `v_${createHash("sha256")
-    .update(process.env.OPENAI_MODEL ?? "gpt-5.1-mini")
+    .update(process.env.OPENAI_MODEL ?? "gpt-5-nano")
     .digest("hex")
     .slice(0, 7)}`;
   return CACHED_PROMPT_VERSION;
@@ -97,8 +98,7 @@ function readUsage(raw: unknown): TokenUsage {
   const reasoning =
     deep(u.completion_tokens_details ?? u.output_tokens_details, "reasoning_tokens") ?? 0;
   usage.reasoning = reasoning;
-  const cached =
-    deep(u.prompt_tokens_details ?? u.input_tokens_details, "cached_tokens") ?? 0;
+  const cached = deep(u.prompt_tokens_details ?? u.input_tokens_details, "cached_tokens") ?? 0;
   usage.cachedInput = cached;
   usage.total = usage.input + usage.output + usage.reasoning;
   return usage;
@@ -193,14 +193,18 @@ export function startTurnTrace({ request, writer, turnIndex, traceId }: StartArg
       step.usage = readUsage(f.usage);
       step.latencyMs = num(f.durationMs) ?? 0;
       step.finishReason = String(f.finishReason ?? "tool_calls");
-      const names = Array.isArray(f.toolCallNames) ? (f.toolCallNames as unknown[]).map((n) => String(n)) : [];
+      const names = Array.isArray(f.toolCallNames)
+        ? (f.toolCallNames as unknown[]).map((n) => String(n))
+        : [];
       step.toolNames = names;
     } else if (entry.msg === "response.step") {
       const step = getOrPushStep("response", "response-stage");
       step.usage = readUsage(f.usage);
       step.latencyMs = num(f.durationMs) ?? 0;
       step.finishReason = String(f.finishReason ?? "stop");
-      const names = Array.isArray(f.toolCallNames) ? (f.toolCallNames as unknown[]).map((n) => String(n)) : [];
+      const names = Array.isArray(f.toolCallNames)
+        ? (f.toolCallNames as unknown[]).map((n) => String(n))
+        : [];
       step.toolNames = names;
     } else if (entry.msg === "toolLoop.mcp" || entry.msg === "toolLoop.local") {
       const target = lastStep();
@@ -309,7 +313,7 @@ export function startTurnTrace({ request, writer, turnIndex, traceId }: StartArg
           completedAt: completedAt.toISOString(),
           durationMs,
           promptVersion: promptVersionId,
-          model: steps[0]?.model ?? "gpt-5.1-mini",
+          model: steps[0]?.model ?? "gpt-5-nano",
           locale,
           currency: request.context?.currency ?? "LKR",
           input,
@@ -412,10 +416,10 @@ function summarizeEvent(e: SseEvent): string {
 
 function computeCost(model: string, usage: TokenUsage) {
   const p = PRICING.find((r) => r.model === model) ?? PRICING[0]!;
-  const input = (usage.input / 1_000_000) * p.inputPer1M;
-  const cachedInput = (usage.cachedInput / 1_000_000) * p.cachedInputPer1M;
-  const output = (usage.output / 1_000_000) * p.outputPer1M;
-  const reasoning = (usage.reasoning / 1_000_000) * p.reasoningPer1M;
+  const input = (usage.input / TOKENS_PER_MILLION) * p.inputPer1M;
+  const cachedInput = (usage.cachedInput / TOKENS_PER_MILLION) * p.cachedInputPer1M;
+  const output = (usage.output / TOKENS_PER_MILLION) * p.outputPer1M;
+  const reasoning = (usage.reasoning / TOKENS_PER_MILLION) * p.reasoningPer1M;
   return { input, cachedInput, output, reasoning, total: input + cachedInput + output + reasoning };
 }
 

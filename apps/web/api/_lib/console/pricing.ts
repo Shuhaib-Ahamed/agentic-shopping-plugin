@@ -5,6 +5,16 @@ import type { PricingRow } from "./mongo";
 
 export const PRICING: PricingRow[] = [
   {
+    // Default runtime model. Cheapest tool-calling tier in the OpenAI lineup.
+    model: "gpt-5-nano",
+    inputPer1M: 0.05,
+    cachedInputPer1M: 0.025,
+    outputPer1M: 0.4,
+    reasoningPer1M: 0,
+    currency: "USD",
+    effectiveFrom: "2026-01-01",
+  },
+  {
     model: "gpt-5.1-mini",
     inputPer1M: 0.4,
     cachedInputPer1M: 0.2,

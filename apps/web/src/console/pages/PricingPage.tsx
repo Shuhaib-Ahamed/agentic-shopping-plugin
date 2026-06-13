@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import type { AdminPricingRow } from "@kapruka/protocol";
-import { FilterBar } from "@/components/molecules/console";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
+import { FilterBar } from "@/components/molecules/console";
 import { ConsoleApiError, adminApi } from "../api";
 
 export function PricingPage() {
@@ -75,19 +75,29 @@ export function PricingPage() {
       </header>
       <FilterBar range="Latest table" />
 
-      {error ? (
-        <p className="text-[13px] text-[color:var(--color-status-err)]">{error}</p>
-      ) : null}
+      {error ? <p className="text-[13px] text-[color:var(--color-status-err)]">{error}</p> : null}
       <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] overflow-hidden">
         <table className="w-full text-[13px]">
           <thead className="bg-[color:var(--color-console-sunken)] text-muted">
             <tr className="text-left">
-              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">Model</th>
-              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">Input</th>
-              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">Cached</th>
-              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">Output</th>
-              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">Reasoning</th>
-              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">Effective from</th>
+              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Model
+              </th>
+              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Input
+              </th>
+              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Cached
+              </th>
+              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Output
+              </th>
+              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Reasoning
+              </th>
+              <th className="px-3 py-2 font-semibold uppercase tracking-[0.06em] text-[11px]">
+                Effective from
+              </th>
               <th className="px-3 py-2"></th>
             </tr>
           </thead>
@@ -109,9 +119,18 @@ export function PricingPage() {
                     />
                   </td>
                   <NumCell value={r.inputPer1M} onChange={(v) => updateRow(i, { inputPer1M: v })} />
-                  <NumCell value={r.cachedInputPer1M} onChange={(v) => updateRow(i, { cachedInputPer1M: v })} />
-                  <NumCell value={r.outputPer1M} onChange={(v) => updateRow(i, { outputPer1M: v })} />
-                  <NumCell value={r.reasoningPer1M} onChange={(v) => updateRow(i, { reasoningPer1M: v })} />
+                  <NumCell
+                    value={r.cachedInputPer1M}
+                    onChange={(v) => updateRow(i, { cachedInputPer1M: v })}
+                  />
+                  <NumCell
+                    value={r.outputPer1M}
+                    onChange={(v) => updateRow(i, { outputPer1M: v })}
+                  />
+                  <NumCell
+                    value={r.reasoningPer1M}
+                    onChange={(v) => updateRow(i, { reasoningPer1M: v })}
+                  />
                   <td className="px-3 py-2">
                     <Input
                       type="date"
@@ -137,7 +156,9 @@ export function PricingPage() {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button onClick={save} disabled={saving || !rows}>{saving ? "Saving..." : "Save table"}</Button>
+          <Button onClick={save} disabled={saving || !rows}>
+            {saving ? "Saving..." : "Save table"}
+          </Button>
           <Button variant="secondary" onClick={addRow}>
             Add row
           </Button>

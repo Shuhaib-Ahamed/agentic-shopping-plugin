@@ -14,7 +14,7 @@ export interface MarkdownMessageProps {
 // in the system prompt, but enforce it defensively here too: anything that
 // slips through is converted to ", " so the layout never breaks visually.
 function normalizePunctuation(s: string): string {
-  return s.replace(/\s?—\s?/g, ", ").replace(/\s?–\s?/g, ", ");
+  return s.replace(/\s?-\s?/g, ", ").replace(/\s?–\s?/g, ", ");
 }
 
 // Renders assistant text as Markdown. GitHub-flavoured (lists, bold, italic,
@@ -55,18 +55,12 @@ export const MarkdownMessage = memo(function MarkdownMessage({
       </a>
     ),
     ul: ({ children }) => (
-      <ul className="m-0 mt-2 pl-5 list-disc space-y-1 marker:opacity-60">
-        {children}
-      </ul>
+      <ul className="m-0 mt-2 pl-5 list-disc space-y-1 marker:opacity-60">{children}</ul>
     ),
     ol: ({ children }) => (
-      <ol className="m-0 mt-2 pl-5 list-decimal space-y-1 marker:opacity-60">
-        {children}
-      </ol>
+      <ol className="m-0 mt-2 pl-5 list-decimal space-y-1 marker:opacity-60">{children}</ol>
     ),
-    li: ({ children }) => (
-      <li className="text-pretty leading-snug">{children}</li>
-    ),
+    li: ({ children }) => <li className="text-pretty leading-snug">{children}</li>,
     code: ({ children, className: codeClassName }) => {
       // Inline code: no language tag. Fenced blocks have a language- prefix.
       const isBlock = codeClassName?.startsWith("language-");
@@ -88,7 +82,8 @@ export const MarkdownMessage = memo(function MarkdownMessage({
         <code
           className="px-1.5 py-0.5 rounded-[6px]"
           style={{
-            background: tone === "inverted" ? "rgba(255,255,255,0.18)" : "var(--color-surface-warm)",
+            background:
+              tone === "inverted" ? "rgba(255,255,255,0.18)" : "var(--color-surface-warm)",
             fontFamily: "var(--font-mono)",
             fontSize: "0.92em",
           }}
@@ -111,7 +106,9 @@ export const MarkdownMessage = memo(function MarkdownMessage({
     hr: () => (
       <hr
         className="my-3 border-0 h-px"
-        style={{ background: tone === "inverted" ? "rgba(255,255,255,0.25)" : "var(--color-border)" }}
+        style={{
+          background: tone === "inverted" ? "rgba(255,255,255,0.25)" : "var(--color-border)",
+        }}
       />
     ),
     h1: ({ children }) => (
@@ -140,7 +137,11 @@ export const MarkdownMessage = memo(function MarkdownMessage({
     thead: ({ children }) => <thead>{children}</thead>,
     tbody: ({ children }) => <tbody>{children}</tbody>,
     tr: ({ children }) => (
-      <tr style={{ borderBottom: `1px solid ${tone === "inverted" ? "rgba(255,255,255,0.18)" : "var(--color-border)"}` }}>
+      <tr
+        style={{
+          borderBottom: `1px solid ${tone === "inverted" ? "rgba(255,255,255,0.18)" : "var(--color-border)"}`,
+        }}
+      >
         {children}
       </tr>
     ),

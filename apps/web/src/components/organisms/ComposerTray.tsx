@@ -1,5 +1,5 @@
-import { type ReactNode } from "react";
 import { X } from "lucide-react";
+import { type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export interface ComposerTrayProps {
@@ -18,7 +18,7 @@ export interface ComposerTrayProps {
 
 // Slide-up tray that sits directly above the composer. Visibility, max-width,
 // horizontal padding and entry/exit motion are now owned by the parent
-// `ComposerStack` — this component only renders the card itself.
+// `ComposerStack` - this component only renders the card itself.
 export function ComposerTray({
   open,
   title,

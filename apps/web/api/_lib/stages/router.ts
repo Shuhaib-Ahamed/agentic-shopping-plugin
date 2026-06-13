@@ -4,12 +4,12 @@
 // tools. Decides whether the rest of the pipeline needs to fetch data
 // (Stage 2) before producing a reply (Stage 3).
 
-import { z } from "zod";
 import type { ChatMessage } from "@kapruka/protocol";
+import { z } from "zod";
+import type { Logger } from "../log";
 import { modelClient, stageModel, type ChatMessageItem } from "../openai";
 import { buildRouterSystem } from "../promptSlices";
 import { renderStateBlock, type SessionState } from "../sessionState";
-import type { Logger } from "../log";
 
 export const RouteSchema = z.enum([
   "greeting",
@@ -190,7 +190,7 @@ function normalize(d: RoutingDecision): RoutingDecision {
 
 export function renderRoutingBlock(d: RoutingDecision): string {
   return [
-    "<ROUTING note=\"Stage 1 classification. Trusted internal context.\">",
+    '<ROUTING note="Stage 1 classification. Trusted internal context.">',
     JSON.stringify(d),
     "</ROUTING>",
   ].join("\n");

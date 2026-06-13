@@ -1,9 +1,9 @@
-import { useRef } from "react";
-import { Plus } from "lucide-react";
 import type { Product } from "@kapruka/protocol";
+import { Plus } from "lucide-react";
+import { useRef } from "react";
+import { useFlyToCart } from "@/components/organisms/FlyToCart";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
-import { useFlyToCart } from "@/components/organisms/FlyToCart";
 
 export interface ProductCardProps {
   product: Product;
@@ -27,7 +27,7 @@ function truncateTitle(title: string, max = TITLE_CHAR_BUDGET): string {
   if (trimmed.length <= max) return trimmed;
   const window = trimmed.slice(0, max + 1);
   const lastSpace = window.lastIndexOf(" ");
-  // Only honour the word break if it's not absurdly short — otherwise
+  // Only honour the word break if it's not absurdly short - otherwise
   // a single super-long word at the start could collapse the title to "...".
   const cut = lastSpace > Math.floor(max * 0.55) ? lastSpace : max;
   return `${trimmed.slice(0, cut).trimEnd()}…`;
@@ -61,7 +61,7 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
         className,
       )}
     >
-      {/* Top pane — lavender canvas with the product image centered. */}
+      {/* Top pane - lavender canvas with the product image centered. */}
       <div
         className="relative flex items-center justify-center"
         style={{
@@ -69,7 +69,7 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
           background: "var(--color-lavender)",
         }}
       >
-        {/* Promo pill — yellow, top-left. */}
+        {/* Promo pill - yellow, top-left. */}
         {promo && (
           <span
             className={cn(
@@ -86,11 +86,9 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
           </span>
         )}
 
-        {/* Out-of-stock badge — top-right when applicable. */}
+        {/* Out-of-stock badge - top-right when applicable. */}
         {!product.inStock && (
-          <span
-            className="absolute top-3 right-3 z-10 inline-flex items-center px-2.5 py-1 rounded-full text-[var(--text-2xs)] font-bold uppercase tracking-wide bg-white/85 text-[color:var(--color-text-muted)] backdrop-blur-sm"
-          >
+          <span className="absolute top-3 right-3 z-10 inline-flex items-center px-2.5 py-1 rounded-full text-[var(--text-2xs)] font-bold uppercase tracking-wide bg-white/85 text-[color:var(--color-text-muted)] backdrop-blur-sm">
             Sold out
           </span>
         )}
@@ -114,7 +112,7 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
         )}
       </div>
 
-      {/* Bottom pane — white, holds title, price, and actions. */}
+      {/* Bottom pane - white, holds title, price, and actions. */}
       <div className="p-4 md:p-5 flex flex-col gap-3">
         <h3
           className={cn(
@@ -199,9 +197,7 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
 // otherwise renders product.badge verbatim.
 function derivePromo(product: Product): string | null {
   if (product.compareAtPrice && product.compareAtPrice.amount > product.price.amount) {
-    const pct = Math.round(
-      (1 - product.price.amount / product.compareAtPrice.amount) * 100,
-    );
+    const pct = Math.round((1 - product.price.amount / product.compareAtPrice.amount) * 100);
     if (pct > 0) return `${pct}% OFF`;
   }
   return product.badge ?? null;

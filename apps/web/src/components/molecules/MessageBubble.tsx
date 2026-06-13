@@ -1,6 +1,6 @@
 import { memo, type ReactNode } from "react";
-import { cn } from "@/lib/cn";
 import { JunoMark } from "@/components/atoms";
+import { cn } from "@/lib/cn";
 import { MarkdownMessage } from "./MarkdownMessage";
 
 export type MessageRole = "user" | "assistant";
@@ -80,10 +80,7 @@ export const MessageBubble = memo(function MessageBubble({
         {children}
         {timestamp && (
           <p
-            className={cn(
-              "mt-1 text-[var(--text-2xs)]",
-              isUser ? "text-white/70" : "text-muted",
-            )}
+            className={cn("mt-1 text-[var(--text-2xs)]", isUser ? "text-white/70" : "text-muted")}
             style={{ fontVariantNumeric: "tabular-nums" }}
           >
             {timestamp}

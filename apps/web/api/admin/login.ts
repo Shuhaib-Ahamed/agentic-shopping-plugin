@@ -26,10 +26,7 @@ async function handler(req: Request): Promise<Response> {
   const ip = clientIp(req);
   const rate = checkRateLimit(ip);
   if (!rate.ok) {
-    return jsonResponse(
-      { error: "rate_limited", retryInMs: rate.retryInMs },
-      429,
-    );
+    return jsonResponse({ error: "rate_limited", retryInMs: rate.retryInMs }, 429);
   }
   let parsed: ReturnType<typeof BodySchema.safeParse>;
   try {
@@ -48,11 +45,7 @@ async function handler(req: Request): Promise<Response> {
   const token = await signSession(identity);
   const secure = req.url.startsWith("https://");
   const cookie = buildSessionCookie(token, { secure });
-  return jsonResponse(
-    { ok: true, email: identity.email },
-    200,
-    { "Set-Cookie": cookie },
-  );
+  return jsonResponse({ ok: true, email: identity.email }, 200, { "Set-Cookie": cookie });
 }
 
 export const POST = handler;

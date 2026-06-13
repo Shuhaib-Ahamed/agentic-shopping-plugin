@@ -5,22 +5,19 @@ export interface ChatBackgroundProps {
   className?: string;
 }
 
-// Chat background — "Gift-wrap" vibe ported verbatim from
+// Chat background - "Gift-wrap" vibe ported verbatim from
 // /Users/shuhaib/Downloads/Juno Welcome.html (VIBE 3). A two-tone polka
 // pattern in violet + saffron, softened by a white centre wash, with sparse
 // violet line motifs (gift box, ribbon bow, present, gift bag) and two slow
 // amber sparkles in the middle band. Lives behind the message stream once
-// the shopper leaves the hero state — paired with HeroParallax which covers
+// the shopper leaves the hero state - paired with HeroParallax which covers
 // the empty hero state. Honors `prefers-reduced-motion` via the global rule
 // in styles.css.
 export const ChatBackground = memo(function ChatBackground({ className }: ChatBackgroundProps) {
   return (
     <div
       aria-hidden
-      className={cn(
-        "absolute inset-0 overflow-hidden pointer-events-none select-none",
-        className,
-      )}
+      className={cn("absolute inset-0 overflow-hidden pointer-events-none select-none", className)}
     >
       {/* Two-tone polka pattern. Violet dots on the base grid + saffron dots
           on a 19px-offset grid → a checker of warm + cool dots at 38px
@@ -46,7 +43,7 @@ export const ChatBackground = memo(function ChatBackground({ className }: ChatBa
         }}
       />
 
-      {/* Sparse line motifs — violet gift iconography drifting in the corners
+      {/* Sparse line motifs - violet gift iconography drifting in the corners
           so the centre stays clear for messages. */}
       <div
         className="absolute"

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { formatCountdown } from "@/lib/format";
 
@@ -16,7 +16,9 @@ export interface CountdownPillProps {
 // Ticks every 1s. Color shifts to warn under 5min, error under 1min.
 // Tabular-nums so digits do not jitter.
 export function CountdownPill({ expiresAt, onExpire, label, className }: CountdownPillProps) {
-  const [msLeft, setMsLeft] = useState(() => Math.max(0, new Date(expiresAt).getTime() - Date.now()));
+  const [msLeft, setMsLeft] = useState(() =>
+    Math.max(0, new Date(expiresAt).getTime() - Date.now()),
+  );
 
   useEffect(() => {
     const tick = () => {
@@ -46,7 +48,8 @@ export function CountdownPill({ expiresAt, onExpire, label, className }: Countdo
         warn &&
           !danger &&
           "bg-[color:var(--color-warn-bg)] text-[var(--color-warn)] border-[var(--color-warn)]",
-        danger && "bg-[color:var(--color-warn-bg)] text-[var(--color-error)] border-[var(--color-error)]",
+        danger &&
+          "bg-[color:var(--color-warn-bg)] text-[var(--color-error)] border-[var(--color-error)]",
         className,
       )}
       style={{ fontVariantNumeric: "tabular-nums" }}

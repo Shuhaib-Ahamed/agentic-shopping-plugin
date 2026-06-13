@@ -1,8 +1,8 @@
-import { FilterBar, MetricGrid } from "@/components/molecules/console";
 import { KpiCard, ModelPill } from "@/components/atoms/console";
+import { FilterBar, MetricGrid } from "@/components/molecules/console";
 import { adminApi } from "../api";
-import { useAsync } from "../hooks";
 import { formatMs, formatNumber, formatPct, formatUSD } from "../format";
+import { useAsync } from "../hooks";
 
 const KIND_COLORS: Record<string, string> = {
   input: "var(--color-series-5)",
@@ -59,7 +59,11 @@ export function PipelinePage() {
               {data.nodes.map((n) => (
                 <tr key={n.id} className="border-t border-[color:var(--color-border)]">
                   <td className="py-2">
-                    {n.kind === "stage" ? <ModelPill model={n.label} /> : <span className="font-mono">{n.label}</span>}
+                    {n.kind === "stage" ? (
+                      <ModelPill model={n.label} />
+                    ) : (
+                      <span className="font-mono">{n.label}</span>
+                    )}
                   </td>
                   <td className="py-2">
                     <span
@@ -94,7 +98,9 @@ export function PipelinePage() {
       </section>
 
       <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] p-5">
-        <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em] mb-3">Top edges</h3>
+        <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em] mb-3">
+          Top edges
+        </h3>
         {!data ? null : (
           <ul className="divide-y divide-[color:var(--color-border)]">
             {data.edges
@@ -102,7 +108,10 @@ export function PipelinePage() {
               .sort((a, b) => b.count - a.count)
               .slice(0, 20)
               .map((e) => (
-                <li key={`${e.from}-${e.to}`} className="flex items-center justify-between py-2 text-[13px]">
+                <li
+                  key={`${e.from}-${e.to}`}
+                  className="flex items-center justify-between py-2 text-[13px]"
+                >
                   <span className="font-mono text-muted">
                     {e.from} <span className="text-text">→</span> {e.to}
                   </span>

@@ -1,5 +1,3 @@
-import { create } from "zustand";
-import { persist, createJSONStorage, type StateStorage } from "zustand/middleware";
 import type {
   CartLine,
   CheckoutEvent,
@@ -15,9 +13,11 @@ import type {
   SseEvent,
 } from "@kapruka/protocol";
 import { nanoid } from "nanoid";
+import { create } from "zustand";
+import { persist, createJSONStorage, type StateStorage } from "zustand/middleware";
 
 // -----------------------------------------------------------------------------
-// Timeline items — the chat is a heterogeneous stream of text turns plus
+// Timeline items - the chat is a heterogeneous stream of text turns plus
 // inline UI cards (products, delivery quotes).
 // -----------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ export interface AppState {
   setCurrency: (c: Currency) => void;
   pushUserMessage: (text: string) => TextMessage;
   /** Append a structured "delivery details" block as if the shopper submitted
-   *  it. Use when the form replaces a plain user bubble — the raw text still
+   *  it. Use when the form replaces a plain user bubble - the raw text still
    *  goes to the AI via `send(..., { silent: true })`. */
   pushDeliveryDetails: (values: Record<string, string>) => DeliveryDetailsBlock;
   applyEvent: (e: SseEvent) => void;
@@ -379,7 +379,7 @@ export const useAppStore = create<AppState>()(
           quickOptions: null,
         })),
 
-      /** Clear the conversation timeline only — keeps cart, locale, currency. */
+      /** Clear the conversation timeline only - keeps cart, locale, currency. */
       clearMessages: () =>
         set({
           messages: [],

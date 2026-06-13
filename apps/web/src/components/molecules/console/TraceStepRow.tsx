@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
-import { ChevronRight } from "lucide-react";
 import type { StepRecord } from "@kapruka/protocol";
+import { ChevronRight } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { CurrencyCell, LatencyBar, ModelPill } from "@/components/atoms/console";
 import { cn } from "@/lib/cn";
 
@@ -29,11 +29,7 @@ export function TraceStepRow({ step, scaleMs, children, defaultOpen = false }: T
             : step.toolCalls.map((tc) => tc.name).join(" · ")}
         </span>
         <span className="block w-full">
-          <LatencyBar
-            durationMs={step.latency.totalMs}
-            scaleMs={scaleMs}
-            kind="model"
-          />
+          <LatencyBar durationMs={step.latency.totalMs} scaleMs={scaleMs} kind="model" />
         </span>
         <span className="text-[12px] tabular text-muted text-right">
           {step.latency.totalMs.toFixed(0)} ms
@@ -47,7 +43,11 @@ export function TraceStepRow({ step, scaleMs, children, defaultOpen = false }: T
           aria-hidden
         />
       </button>
-      {open ? <div className="border-t border-[color:var(--color-border)] p-3 bg-[color:var(--color-console-sunken)]/60">{children}</div> : null}
+      {open ? (
+        <div className="border-t border-[color:var(--color-border)] p-3 bg-[color:var(--color-console-sunken)]/60">
+          {children}
+        </div>
+      ) : null}
     </div>
   );
 }

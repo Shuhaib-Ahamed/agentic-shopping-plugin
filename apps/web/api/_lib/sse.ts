@@ -13,7 +13,9 @@ export interface SseWriter {
   isClosed(): boolean;
 }
 
-export function createSseWriter(controller: ReadableStreamDefaultController<Uint8Array>): SseWriter {
+export function createSseWriter(
+  controller: ReadableStreamDefaultController<Uint8Array>,
+): SseWriter {
   const encoder = new TextEncoder();
   let closed = false;
   const enqueue = (event: SseEvent) => {

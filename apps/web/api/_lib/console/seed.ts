@@ -12,6 +12,7 @@ import type {
   TurnRecord,
   TurnOutcome,
 } from "@kapruka/protocol";
+import { TOKENS_PER_MILLION } from "./constants";
 import { PRICING } from "./pricing";
 
 const BASE_ISO = "2026-06-13T08:00:00.000Z";
@@ -21,17 +22,20 @@ function isoOffset(minutes: number): string {
   return new Date(new Date(BASE_ISO).getTime() + minutes * 60_000).toISOString();
 }
 
-function costFromUsage(model: string, usage: {
-  input: number;
-  cachedInput: number;
-  output: number;
-  reasoning: number;
-}) {
+function costFromUsage(
+  model: string,
+  usage: {
+    input: number;
+    cachedInput: number;
+    output: number;
+    reasoning: number;
+  },
+) {
   const p = PRICING.find((r) => r.model === model) ?? PRICING[0]!;
-  const input = (usage.input / 1_000_000) * p.inputPer1M;
-  const cachedInput = (usage.cachedInput / 1_000_000) * p.cachedInputPer1M;
-  const output = (usage.output / 1_000_000) * p.outputPer1M;
-  const reasoning = (usage.reasoning / 1_000_000) * p.reasoningPer1M;
+  const input = (usage.input / TOKENS_PER_MILLION) * p.inputPer1M;
+  const cachedInput = (usage.cachedInput / TOKENS_PER_MILLION) * p.cachedInputPer1M;
+  const output = (usage.output / TOKENS_PER_MILLION) * p.outputPer1M;
+  const reasoning = (usage.reasoning / TOKENS_PER_MILLION) * p.reasoningPer1M;
   const total = input + cachedInput + output + reasoning;
   return { input, cachedInput, output, reasoning, total };
 }
@@ -72,10 +76,7 @@ function makeStep(spec: StepSpec, index: number): StepRecord {
   };
 }
 
-function tool(
-  partial: Omit<ToolCallRecord, "id"> & { id?: string },
-  id: string,
-): ToolCallRecord {
+function tool(partial: Omit<ToolCallRecord, "id"> & { id?: string }, id: string): ToolCallRecord {
   return { ...partial, id: partial.id ?? id };
 }
 
@@ -167,8 +168,7 @@ function birthdayCakeGalleSession(idx: number): {
     buildTurn(sessionId, startMin, "en", {
       index: 0,
       inputText: "Need a birthday cake to Galle on Friday",
-      finalMessage:
-        "Lovely. Let me check what we have for Friday delivery in Galle.",
+      finalMessage: "Lovely. Let me check what we have for Friday delivery in Galle.",
       durationMs: 1200,
       steps: [
         {
@@ -186,7 +186,7 @@ function birthdayCakeGalleSession(idx: number): {
               {
                 kind: "mcp",
                 name: "kapruka.search_products",
-                argsSummary: "q=\"birthday cake\", limit=8, locale=en",
+                argsSummary: 'q="birthday cake", limit=8, locale=en',
                 argsRedacted: { q: "birthday cake", limit: 8, locale: "en" },
                 resultSummary: "8 results, top 4 shown",
                 httpStatus: 200,
@@ -250,7 +250,7 @@ function birthdayCakeGalleSession(idx: number): {
               {
                 kind: "mcp",
                 name: "kapruka.quote_delivery",
-                argsSummary: "city=\"Galle\", date=\"2026-06-12\", perishable=true",
+                argsSummary: 'city="Galle", date="2026-06-12", perishable=true',
                 resultSummary: "rate LKR 850, perishableWarning shown",
                 httpStatus: 200,
                 rateLimitRemaining: 97,
@@ -293,7 +293,8 @@ function birthdayCakeGalleSession(idx: number): {
     }),
     buildTurn(sessionId, startMin + 4, "en", {
       index: 2,
-      inputText: "Delivery details: name=Priya; phone=0771234567; city=Galle; line1=12 Lighthouse Rd",
+      inputText:
+        "Delivery details: name=Priya; phone=0771234567; city=Galle; line1=12 Lighthouse Rd",
       finalMessage: "Got it. Generating a pay link for LKR 5,850 including delivery.",
       durationMs: 2140,
       steps: [
@@ -335,7 +336,12 @@ function birthdayCakeGalleSession(idx: number): {
           toolsSent: ["present_checkout"],
           toolCalls: [
             tool(
-              { kind: "ui", name: "present_checkout", argsSummary: "checkout panel", latencyMs: 22 },
+              {
+                kind: "ui",
+                name: "present_checkout",
+                argsSummary: "checkout panel",
+                latencyMs: 22,
+              },
               "tc_ui_03",
             ),
           ],
@@ -350,8 +356,7 @@ function birthdayCakeGalleSession(idx: number): {
     buildTurn(sessionId, startMin + 9, "en", {
       index: 3,
       inputText: "I just paid for order KP-209814.",
-      finalMessage:
-        "Payment received. Order KP-209814 is on its way to Galle for Friday.",
+      finalMessage: "Payment received. Order KP-209814 is on its way to Galle for Friday.",
       durationMs: 980,
       steps: [
         {
@@ -457,7 +462,7 @@ function flowersBrowsingSession(idx: number): {
               {
                 kind: "mcp",
                 name: "kapruka.search_products",
-                argsSummary: "q=\"flower bouquet\", limit=6, locale=si",
+                argsSummary: 'q="flower bouquet", limit=6, locale=si',
                 resultSummary: "6 bouquets, top 3 shown",
                 httpStatus: 200,
                 cacheHit: false,
@@ -587,7 +592,7 @@ function erroredCheckoutSession(idx: number): {
               {
                 kind: "mcp",
                 name: "kapruka.search_products",
-                argsSummary: "q=\"birthday cake\", locale=ta, city=Colombo",
+                argsSummary: 'q="birthday cake", locale=ta, city=Colombo',
                 resultSummary: "12 results, top 4 shown",
                 httpStatus: 200,
                 cacheHit: true,
@@ -615,9 +620,7 @@ function erroredCheckoutSession(idx: number): {
           ],
         },
       ],
-      emitted: [
-        { type: "products", offsetMs: 1020, payloadSummary: "4 cakes" },
-      ],
+      emitted: [{ type: "products", offsetMs: 1020, payloadSummary: "4 cakes" }],
       outcome: "viewed_product",
     }),
     buildTurn(sessionId, startMin + 4, "ta", {
@@ -667,7 +670,12 @@ function erroredCheckoutSession(idx: number): {
           toolsSent: ["request_info"],
           toolCalls: [
             tool(
-              { kind: "ui", name: "request_info", argsSummary: "delivery form, 5 fields", latencyMs: 16 },
+              {
+                kind: "ui",
+                name: "request_info",
+                argsSummary: "delivery form, 5 fields",
+                latencyMs: 16,
+              },
               "tc_ui_08",
             ),
           ],
@@ -679,7 +687,9 @@ function erroredCheckoutSession(idx: number): {
       ],
       outcome: "errored",
       flags: { schemaValidationFailed: true, retried: true },
-      errors: [{ code: "schema_invalid", message: "recipient.phone is required", recoverable: true }],
+      errors: [
+        { code: "schema_invalid", message: "recipient.phone is required", recoverable: true },
+      ],
     }),
   ];
   const totals = turns.reduce(
@@ -744,7 +754,7 @@ function quickBrowseSession(idx: number): {
               {
                 kind: "mcp",
                 name: "kapruka.search_products",
-                argsSummary: "q=\"anniversary\", maxPrice=5000",
+                argsSummary: 'q="anniversary", maxPrice=5000',
                 resultSummary: "6 results",
                 cacheHit: true,
                 httpStatus: 200,

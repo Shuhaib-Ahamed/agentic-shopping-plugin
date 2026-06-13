@@ -1,14 +1,13 @@
+import type { Product, Variant, OptionsEvent } from "@kapruka/protocol";
 import { useEffect, useLayoutEffect, useRef } from "react";
-import type { Product, Variant } from "@kapruka/protocol";
-import { selectMessages, selectStatus, useAppStore } from "@/store";
-import type { OptionsEvent } from "@kapruka/protocol";
 import { MessageBubble } from "@/components/molecules";
-import { ProductCarouselInline } from "./ProductCarouselInline";
-import { DeliveryQuoteCard } from "./DeliveryQuoteCard";
+import { pickStrings } from "@/i18n";
+import { selectMessages, selectStatus, useAppStore } from "@/store";
 import { DeliveryDetailsCard } from "./DeliveryDetailsCard";
+import { DeliveryQuoteCard } from "./DeliveryQuoteCard";
+import { ProductCarouselInline } from "./ProductCarouselInline";
 import { ProductDetailInline } from "./ProductDetailInline";
 import { StatusBubble } from "./StatusBubble";
-import { pickStrings } from "@/i18n";
 
 export interface MessageListProps {
   onOpenProduct?: (p: Product) => void;
@@ -19,8 +18,8 @@ export interface MessageListProps {
   pending?: boolean;
 }
 
-// Renders the chat timeline — text turns, inline product carousels, inline
-// delivery quote cards — chronologically. This is where the editorial
+// Renders the chat timeline - text turns, inline product carousels, inline
+// delivery quote cards - chronologically. This is where the editorial
 // feel lives: generous spacing between groups, clear hierarchy.
 export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageListProps) {
   const messages = useAppStore(selectMessages);
@@ -73,7 +72,7 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
   const tail = messages[messages.length - 1];
   const tailText = tail?.kind === "text" ? tail.text : "";
 
-  // Run the scroll AFTER layout so the new content is already measured —
+  // Run the scroll AFTER layout so the new content is already measured -
   // useEffect would paint the new content briefly above the fold first.
   // The first arrival of a new message gets the smooth behaviour; subsequent
   // token-stream growth uses instant so it doesn't queue smooth animations
@@ -113,8 +112,7 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
   })();
   // Bubble only shows while the BE is actively narrating progress AND nothing
   // has arrived yet. Once content lands or status returns to idle, hide.
-  const showStatus =
-    status.state !== "idle" && !hasAssistantResponded;
+  const showStatus = status.state !== "idle" && !hasAssistantResponded;
   // `pending` is the safety net for the brief window between send() and the
   // first SSE status event: surface a bubble even if status hasn't been
   // pushed yet, so the input never feels frozen.
@@ -133,7 +131,10 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
         {messages.map((m) => {
           if (m.kind === "products") {
             return (
-              <div key={m.id} className="animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]">
+              <div
+                key={m.id}
+                className="animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]"
+              >
                 <ProductCarouselInline
                   title={m.title}
                   items={m.items}
@@ -153,7 +154,10 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
           }
           if (m.kind === "product-detail") {
             return (
-              <div key={m.id} className="animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]">
+              <div
+                key={m.id}
+                className="animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]"
+              >
                 <ProductDetailInline
                   detail={m.payload}
                   onAdd={(product, variant) => onAddProduct?.(product, variant)}
@@ -163,7 +167,10 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
           }
           if (m.kind === "delivery-details") {
             return (
-              <div key={m.id} className="animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]">
+              <div
+                key={m.id}
+                className="animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]"
+              >
                 <DeliveryDetailsCard values={m.values} />
               </div>
             );
@@ -179,11 +186,7 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
           );
         })}
         {renderBubble && (
-          <StatusBubble
-            state={fallbackState}
-            label={status.label}
-            detail={status.detail}
-          />
+          <StatusBubble state={fallbackState} label={status.label} detail={status.detail} />
         )}
         <div ref={anchorRef} aria-hidden />
       </div>

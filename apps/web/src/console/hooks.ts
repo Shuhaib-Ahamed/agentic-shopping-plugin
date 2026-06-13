@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ConsoleApiError } from "./api";
+import type { ConsoleApiError } from "./api";
 
 export interface AsyncState<T> {
   data: T | null;
@@ -8,13 +8,15 @@ export interface AsyncState<T> {
   reload: () => void;
 }
 
-export function useAsync<T>(fn: () => Promise<T>, deps: ReadonlyArray<unknown> = []): AsyncState<T> {
+export function useAsync<T>(
+  fn: () => Promise<T>,
+  deps: ReadonlyArray<unknown> = [],
+): AsyncState<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ConsoleApiError | Error | null>(null);
   const [bump, setBump] = useState(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let cancelled = false;
     setLoading(true);

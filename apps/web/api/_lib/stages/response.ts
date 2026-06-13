@@ -4,17 +4,23 @@
 // DATA block (when present), drives the screen, then streams the shopper-
 // facing text. Stage 3 owns the SSE writer.
 
-import { nanoid } from "nanoid";
 import type { ChatMessage } from "@kapruka/protocol";
-import { modelClient, stageModel, type ChatCompletionTool, type ChatMessageItem, type ToolCall } from "../openai";
+import { nanoid } from "nanoid";
+import type { Logger } from "../log";
+import {
+  modelClient,
+  stageModel,
+  type ChatCompletionTool,
+  type ChatMessageItem,
+  type ToolCall,
+} from "../openai";
 import { buildResponseSystem } from "../promptSlices";
 import { renderStateBlock, type SessionState } from "../sessionState";
+import type { SseWriter } from "../sse";
+import { pickStatusLabel } from "../statusPool";
 import { uiToolByName, uiToolDefs } from "../uiTools";
 import { renderRoutingBlock, type RoutingDecision } from "./router";
 import { renderDataBlock, type ToolBundle } from "./toolLoop";
-import { pickStatusLabel } from "../statusPool";
-import type { Logger } from "../log";
-import type { SseWriter } from "../sse";
 
 const MAX_ITERATIONS = 6;
 
@@ -135,7 +141,7 @@ export async function runResponse({
 function runOneUiCall(call: ToolCall, writer: SseWriter, log: Logger): string {
   const name = call.function.name;
   const raw = call.function.arguments ?? "{}";
-  let args: Record<string, unknown> = {};
+  let args: Record<string, unknown>;
   try {
     args = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
   } catch {
@@ -143,7 +149,13 @@ function runOneUiCall(call: ToolCall, writer: SseWriter, log: Logger): string {
     return `Could not parse arguments for ${name}: bad JSON.`;
   }
 
-  if (!name.startsWith("present_") && name !== "update_cart" && name !== "request_info" && name !== "order_confirmed" && name !== "notify") {
+  if (
+    !name.startsWith("present_") &&
+    name !== "update_cart" &&
+    name !== "request_info" &&
+    name !== "order_confirmed" &&
+    name !== "notify"
+  ) {
     log.warn("response.tool.forbidden", { tool: name });
     return `Forbidden: ${name} is not a UI tool. Use only present_*, update_cart, request_info, order_confirmed, notify.`;
   }
