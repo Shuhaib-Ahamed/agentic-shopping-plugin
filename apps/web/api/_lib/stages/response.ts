@@ -12,6 +12,7 @@ import { renderStateBlock, type SessionState } from "../sessionState";
 import { uiToolByName, uiToolDefs } from "../uiTools";
 import { renderRoutingBlock, type RoutingDecision } from "./router";
 import { renderDataBlock, type ToolBundle } from "./toolLoop";
+import { pickStatusLabel } from "../statusPool";
 import type { Logger } from "../log";
 import type { SseWriter } from "../sse";
 
@@ -60,7 +61,7 @@ export async function runResponse({
   const model = stageModel("response");
   const client = modelClient();
 
-  writer.write({ type: "status", state: "thinking" });
+  writer.write({ type: "status", state: "composing", label: pickStatusLabel("composing") });
 
   let iter = 0;
   while (iter < MAX_ITERATIONS) {

@@ -14,6 +14,7 @@ import { buildToolsSystem } from "../promptSlices";
 import { renderStateBlock, type SessionState } from "../sessionState";
 import type { Logger } from "../log";
 import type { SseWriter } from "../sse";
+import { pickStatusLabel } from "../statusPool";
 import { renderRoutingBlock, type RoutingDecision } from "./router";
 
 const MAX_ITERATIONS = 5;
@@ -83,7 +84,7 @@ export async function runToolLoop({
   const client = modelClient();
   const bundle: ToolBundle = { calls: [], errors: [], truncated: false };
 
-  writer.write({ type: "status", state: "working", label: "Looking through Kapruka" });
+  writer.write({ type: "status", state: "thinking", label: pickStatusLabel("thinking") });
 
   let iter = 0;
   while (iter < MAX_ITERATIONS) {
@@ -152,6 +153,10 @@ export async function runToolLoop({
         continue;
       }
 
+      // Emit a per-tool status so the bubble narrates what's happening.
+      const status = statusForTool(call.function.name, args);
+      writer.write({ type: "status", ...status });
+
       const payload = await runOne(call.function.name, args, session, bundle, stepLog);
       messages.push({
         role: "tool",
@@ -160,12 +165,51 @@ export async function runToolLoop({
       });
     }
 
-    writer.write({ type: "status", state: "thinking" });
+    writer.write({ type: "status", state: "thinking", label: pickStatusLabel("thinking") });
   }
 
   bundle.truncated = true;
   log.warn("toolLoop.truncated", { iters: iter });
   return bundle;
+}
+
+// Map a Kapruka tool call to a streaming status the UI can show.
+function statusForTool(
+  tool: string,
+  args: Record<string, unknown>,
+): { state: "searching" | "fetching" | "checking" | "creating" | "tracking" | "working"; label: string; detail?: string } {
+  const safeStr = (v: unknown): string | undefined =>
+    typeof v === "string" && v.length > 0 && v.length < 60 ? v : undefined;
+  switch (tool) {
+    case "kapruka_search_products": {
+      const q = safeStr(args.q ?? args.query);
+      return q
+        ? { state: "searching", label: pickStatusLabel("searching"), detail: q }
+        : { state: "searching", label: pickStatusLabel("searching") };
+    }
+    case "kapruka_get_product":
+      return { state: "fetching", label: pickStatusLabel("fetching") };
+    case "kapruka_list_categories":
+      return { state: "fetching", label: pickStatusLabel("fetching") };
+    case "kapruka_list_delivery_cities": {
+      const q = safeStr(args.query);
+      return q
+        ? { state: "checking", label: pickStatusLabel("checking"), detail: q }
+        : { state: "checking", label: pickStatusLabel("checking") };
+    }
+    case "kapruka_check_delivery": {
+      const city = safeStr(args.city);
+      return city
+        ? { state: "checking", label: pickStatusLabel("checking"), detail: city }
+        : { state: "checking", label: pickStatusLabel("checking") };
+    }
+    case "kapruka_create_order":
+      return { state: "creating", label: pickStatusLabel("creating") };
+    case "kapruka_track_order":
+      return { state: "tracking", label: pickStatusLabel("tracking") };
+    default:
+      return { state: "working", label: pickStatusLabel("working") };
+  }
 }
 
 function parseArgs(raw: string, tool: string, bundle: ToolBundle): Record<string, unknown> {
@@ -193,13 +237,23 @@ async function runOne(
     try {
       const result = local.execute(session, args);
       bundle.calls.push({ tool: name, args, ok: true, result });
-      log.info("toolLoop.local", { tool: name, durationMs: Date.now() - t0 });
+      log.info("toolLoop.local", {
+        tool: name,
+        args,
+        preview: previewResult(result),
+        durationMs: Date.now() - t0,
+      });
       return JSON.stringify(result);
     } catch (err) {
       const message = (err as Error).message;
       bundle.errors.push({ tool: name, code: "local_error", message });
       bundle.calls.push({ tool: name, args, ok: false, result: { error: message } });
-      log.error("toolLoop.localError", { tool: name, error: message });
+      log.error("toolLoop.localError", {
+        tool: name,
+        args,
+        error: message,
+        durationMs: Date.now() - t0,
+      });
       return JSON.stringify({ ok: false, error: message });
     }
   }
@@ -210,15 +264,37 @@ async function runOne(
     const normalized = normalizeMcp(result);
     bundle.calls.push({ tool: name, args, ok: true, result: normalized });
     mergeIntoSession(name, args, normalized, session);
-    log.info("toolLoop.mcp", { tool: name, durationMs: Date.now() - t0 });
+    log.info("toolLoop.mcp", {
+      tool: name,
+      args,
+      preview: previewResult(normalized),
+      durationMs: Date.now() - t0,
+    });
     return JSON.stringify({ ok: true, data: normalized });
   } catch (err) {
     const message = (err as Error).message;
     const code = /rate.?limit|429/i.test(message) ? "rate_limited" : "tool_error";
     bundle.errors.push({ tool: name, code, message });
     bundle.calls.push({ tool: name, args, ok: false, result: { error: message } });
-    log.error("toolLoop.mcpError", { tool: name, error: message, code });
+    log.error("toolLoop.mcpError", {
+      tool: name,
+      args,
+      error: message,
+      code,
+      durationMs: Date.now() - t0,
+    });
     return JSON.stringify({ ok: false, code, message });
+  }
+}
+
+function previewResult(value: unknown): string {
+  if (value === null || value === undefined) return "ok";
+  if (typeof value !== "object") return String(value).slice(0, 160);
+  try {
+    const s = JSON.stringify(value);
+    return s.length > 160 ? `${s.slice(0, 160)}...` : s;
+  } catch {
+    return "ok";
   }
 }
 

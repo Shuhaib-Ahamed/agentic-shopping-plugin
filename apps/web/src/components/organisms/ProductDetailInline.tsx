@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import type { Product, ProductDetailEvent, Variant } from "@kapruka/protocol";
 import { Badge, Button, Price } from "@/components/atoms";
 import { cn } from "@/lib/cn";
 import { useAppStore } from "@/store";
 import { pickStrings } from "@/i18n";
+import { useFlyToCart } from "./FlyToCart";
 
 export interface ProductDetailInlineProps {
   detail: ProductDetailEvent;
@@ -23,6 +24,13 @@ export function ProductDetailInline({ detail, onAdd }: ProductDetailInlineProps)
   const [activeVariant, setActiveVariant] = useState<string | null>(null);
   const variant = activeVariant ? variants.find((v) => v.id === activeVariant) : variants[0];
 
+  const { flyToCart } = useFlyToCart();
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const handleAdd = () => {
+    flyToCart(imageRef.current, images[activeImage] ?? product.image);
+    onAdd(product, variant);
+  };
+
   return (
     <article
       className={cn(
@@ -38,6 +46,7 @@ export function ProductDetailInline({ detail, onAdd }: ProductDetailInlineProps)
           >
             {images[activeImage] ? (
               <img
+                ref={imageRef}
                 src={images[activeImage]}
                 alt={product.title}
                 loading="lazy"
@@ -124,7 +133,7 @@ export function ProductDetailInline({ detail, onAdd }: ProductDetailInlineProps)
               variant="primary"
               size="md"
               block
-              onClick={() => onAdd(product, variant)}
+              onClick={handleAdd}
               disabled={!product.inStock}
             >
               {t.products.addedToCart}

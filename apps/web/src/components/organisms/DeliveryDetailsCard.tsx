@@ -40,9 +40,9 @@ export function DeliveryDetailsCard({ values, className }: DeliveryDetailsCardPr
             <Check size={12} strokeWidth={3} />
           </span>
           <span
-            className="text-[var(--text-xs)] font-semibold uppercase tracking-[0.14em] text-[color:var(--color-text-muted)]"
+            className="text-[var(--text-xs)] font-semibold tracking-[0.02em] text-[color:var(--color-text-muted)]"
           >
-            Delivery details
+            delivery details
           </span>
         </header>
 
@@ -70,7 +70,7 @@ function Row({ Icon, label, value }: Omit<RowConfig, "key">) {
         <Icon size={14} strokeWidth={2.2} />
       </dt>
       <dd className="min-w-0">
-        <div className="text-[var(--text-2xs)] uppercase tracking-[0.1em] text-[color:var(--color-text-muted)]">
+        <div className="text-[var(--text-2xs)] tracking-[0.02em] text-[color:var(--color-text-muted)]">
           {label}
         </div>
         <div
@@ -87,18 +87,18 @@ function Row({ Icon, label, value }: Omit<RowConfig, "key">) {
 // Field-name dictionary. The AI's request_info schema sets the keys, so we
 // recognise the common ones and fall back to a humanised key for the rest.
 const FIELD_MAP: Record<string, { Icon: LucideIcon; label: string }> = {
-  recipient_name: { Icon: User, label: "Recipient" },
-  name: { Icon: User, label: "Recipient" },
-  recipient_phone: { Icon: Phone, label: "Phone" },
-  phone: { Icon: Phone, label: "Phone" },
-  address: { Icon: MapPin, label: "Address" },
-  line1: { Icon: MapPin, label: "Address" },
-  line2: { Icon: MapPin, label: "Address line 2" },
-  city: { Icon: MapPin, label: "City" },
-  postal_code: { Icon: MapPin, label: "Postal code" },
-  postalCode: { Icon: MapPin, label: "Postal code" },
-  delivery_date: { Icon: CalendarDays, label: "Delivery date" },
-  date: { Icon: CalendarDays, label: "Delivery date" },
+  recipient_name: { Icon: User, label: "recipient" },
+  name: { Icon: User, label: "recipient" },
+  recipient_phone: { Icon: Phone, label: "phone" },
+  phone: { Icon: Phone, label: "phone" },
+  address: { Icon: MapPin, label: "address" },
+  line1: { Icon: MapPin, label: "address" },
+  line2: { Icon: MapPin, label: "address line 2" },
+  city: { Icon: MapPin, label: "city" },
+  postal_code: { Icon: MapPin, label: "postal code" },
+  postalCode: { Icon: MapPin, label: "postal code" },
+  delivery_date: { Icon: CalendarDays, label: "delivery date" },
+  date: { Icon: CalendarDays, label: "delivery date" },
 };
 
 // Display order — known keys first in a sensible order, unknown keys last
@@ -149,11 +149,11 @@ function orderRows(values: Record<string, string>): RowConfig[] {
   return rows;
 }
 
-// "recipient_name" → "Recipient name".
+// "recipient_name" → "recipient name". Keeps the lowercase house style.
 function humanise(key: string): string {
   const spaced = key.replace(/[_-]+/g, " ").trim();
   if (!spaced) return key;
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+  return spaced.toLowerCase();
 }
 
 function formatValue(key: string, raw: string): string {

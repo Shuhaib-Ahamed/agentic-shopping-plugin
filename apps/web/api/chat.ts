@@ -2,6 +2,8 @@ import { ChatRequestSchema } from "@kapruka/protocol";
 import { runAgent } from "./_lib/agent";
 import { createSseWriter } from "./_lib/sse";
 import { makeLogger, newTraceId } from "./_lib/log";
+import { startTurnTrace } from "./_lib/console/tracer";
+import { runWithTracer } from "./_lib/console/traceContext";
 
 const log = makeLogger({ ctx: "chat" });
 
@@ -50,15 +52,37 @@ async function handler(req: Request): Promise<Response> {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const writer = createSseWriter(controller);
+      // Wrap with the console tracer. Fire-and-forget persistence; failures
+      // here must never delay or break the SSE stream.
+      const tracer = startTurnTrace({
+        request: parsed.data,
+        writer,
+        turnIndex: parsed.data.messages.filter((m) => m.role === "user").length - 1,
+        traceId,
+      });
       try {
-        await runAgent({ request: parsed.data, writer, signal: ctrl.signal, traceId });
+        await runWithTracer(tracer, () =>
+          runAgent({ request: parsed.data, writer: tracer.writer, signal: ctrl.signal, traceId }),
+        );
       } catch (err) {
         reqLog.error("chat.internalError", { error: (err as Error).message });
+        tracer.recordError({
+          code: "internal",
+          message: (err as Error).message ?? "Internal error",
+          recoverable: true,
+        });
         writer.fail("internal", (err as Error).message ?? "Internal error", true);
       } finally {
         writer.done();
         writer.close();
         req.signal.removeEventListener("abort", onClientAbort);
+        // Persist trace after stream close. Awaited so cold-start fluid compute
+        // doesn't lose the write, but inner try/catch swallows tracer errors.
+        try {
+          await tracer.finish();
+        } catch {
+          /* swallow */
+        }
         reqLog.info("chat.closed");
       }
     },

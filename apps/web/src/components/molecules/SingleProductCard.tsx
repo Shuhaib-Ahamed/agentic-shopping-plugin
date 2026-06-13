@@ -1,7 +1,9 @@
+import { useRef } from "react";
 import { Plus } from "lucide-react";
 import type { Product } from "@kapruka/protocol";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
+import { useFlyToCart } from "@/components/organisms/FlyToCart";
 
 export interface SingleProductCardProps {
   product: Product;
@@ -16,6 +18,13 @@ export interface SingleProductCardProps {
 // instead of stacking on top of them.
 export function SingleProductCard({ product, onOpen, onAdd, className }: SingleProductCardProps) {
   const promo = derivePromo(product);
+
+  const { flyToCart } = useFlyToCart();
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const handleAdd = () => {
+    flyToCart(imageRef.current, product.image);
+    onAdd?.(product);
+  };
 
   return (
     <article
@@ -58,6 +67,7 @@ export function SingleProductCard({ product, onOpen, onAdd, className }: SingleP
 
         {product.image ? (
           <img
+            ref={imageRef}
             src={product.image}
             alt=""
             loading="lazy"
@@ -120,7 +130,7 @@ export function SingleProductCard({ product, onOpen, onAdd, className }: SingleP
 
           <button
             type="button"
-            onClick={() => onAdd?.(product)}
+            onClick={handleAdd}
             disabled={!product.inStock}
             aria-label={`Add ${product.title} to cart`}
             className={cn(

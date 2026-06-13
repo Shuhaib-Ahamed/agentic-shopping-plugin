@@ -2,6 +2,8 @@ export { MessageBubble } from "./MessageBubble";
 export type { MessageBubbleProps, MessageRole } from "./MessageBubble";
 export { MarkdownMessage } from "./MarkdownMessage";
 export type { MarkdownMessageProps } from "./MarkdownMessage";
+export { Marquee } from "./Marquee";
+export type { MarqueeProps } from "./Marquee";
 export { SuggestionChip } from "./SuggestionChip";
 export type { SuggestionChipProps } from "./SuggestionChip";
 export { QuantityStepper } from "./QuantityStepper";

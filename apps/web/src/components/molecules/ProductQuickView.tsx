@@ -1,8 +1,10 @@
+import { useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ExternalLink, Plus, Star, X } from "lucide-react";
 import type { Product } from "@kapruka/protocol";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
+import { useFlyToCart } from "@/components/organisms/FlyToCart";
 
 export interface ProductQuickViewProps {
   product: Product | null;
@@ -20,11 +22,19 @@ export function ProductQuickView({
   onOpenChange,
   onAdd,
 }: ProductQuickViewProps) {
+  const { flyToCart } = useFlyToCart();
+  const imageRef = useRef<HTMLImageElement | null>(null);
+
   if (!product) return null;
 
   const promo = derivePromo(product);
   const showCompare =
     product.compareAtPrice && product.compareAtPrice.amount > product.price.amount;
+
+  const handleAdd = () => {
+    flyToCart(imageRef.current, product.image);
+    onAdd(product);
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -79,6 +89,7 @@ export function ProductQuickView({
 
             {product.image ? (
               <img
+                ref={imageRef}
                 src={product.image}
                 alt=""
                 loading="lazy"
@@ -197,7 +208,7 @@ export function ProductQuickView({
             <div className="flex items-center gap-3 mt-2">
               <button
                 type="button"
-                onClick={() => onAdd(product)}
+                onClick={handleAdd}
                 disabled={!product.inStock}
                 className={cn(
                   "inline-flex items-center justify-center gap-2 flex-1 px-5 py-3 rounded-full cursor-pointer",
@@ -230,7 +241,7 @@ export function ProductQuickView({
                   )}
                   style={{ color: "var(--color-cta)" }}
                 >
-                  <span>View on Kapruka</span>
+                  <span>View</span>
                   <ExternalLink size={14} strokeWidth={2.4} />
                 </a>
               )}

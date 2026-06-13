@@ -6,6 +6,7 @@
 // redacted and large strings are truncated.
 
 import { randomUUID } from "node:crypto";
+import { getActiveTracer } from "./console/traceContext";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -53,11 +54,12 @@ function sanitize(value: unknown, depth = 0): unknown {
 }
 
 function emit(level: LogLevel, msg: string, fields: Record<string, unknown>): void {
+  const sanitized = sanitize(fields) as Record<string, unknown>;
   const payload = {
     ts: new Date().toISOString(),
     level,
     msg,
-    ...(sanitize(fields) as Record<string, unknown>),
+    ...sanitized,
   };
   let line: string;
   try {
@@ -68,6 +70,17 @@ function emit(level: LogLevel, msg: string, fields: Record<string, unknown>): vo
   if (level === "error") console.error(line);
   else if (level === "warn") console.warn(line);
   else console.log(line);
+
+  // Tee to the active tracer so the admin console gets every debug line.
+  try {
+    const tracer = getActiveTracer();
+    if (tracer) {
+      const ctx = typeof sanitized.ctx === "string" ? sanitized.ctx : undefined;
+      tracer.recordLog({ at: payload.ts, level, ctx, msg, fields: sanitized });
+    }
+  } catch {
+    // Tracer hook must never break logging.
+  }
 }
 
 export interface Logger {

@@ -10,10 +10,14 @@ import { ArrowUp } from "lucide-react";
 import { useAppStore } from "@/store";
 import { pickStrings } from "@/i18n";
 import { cn } from "@/lib/cn";
+import { BorderBeam } from "@/components/ui/border-beam";
 
 export interface ComposerProps {
   onSubmit: (text: string) => void;
   isPending?: boolean;
+  /** Decorate the input with the Magic UI border-beam. Used on the empty
+   *  hero state to draw attention to the composer; turned off in active chat. */
+  showBeam?: boolean;
 }
 
 // Single-line height for the autosize textarea (line-height 1.55 * 17px font +
@@ -21,7 +25,7 @@ export interface ComposerProps {
 const SINGLE_LINE_PX = 50;
 const MAX_HEIGHT_PX = 160;
 
-export function Composer({ onSubmit, isPending }: ComposerProps) {
+export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
   const locale = useAppStore((s) => s.locale);
   const t = pickStrings(locale);
   const [value, setValue] = useState("");
@@ -66,7 +70,7 @@ export function Composer({ onSubmit, isPending }: ComposerProps) {
   return (
     <form
       onSubmit={submit}
-      className="relative w-full max-w-[760px] mx-auto px-4 md:px-8 pt-3 pb-4 md:pb-6 safe-bottom"
+      className="relative w-full pt-1 pb-3 md:pb-5 safe-bottom"
     >
       <div
         className={cn(
@@ -77,6 +81,29 @@ export function Composer({ onSubmit, isPending }: ComposerProps) {
           multiline ? "items-end" : "items-center",
         )}
       >
+        {/* Border-beam — only on the empty hero state. Two beams running in
+            opposite directions for a balanced, continuous chase around the
+            input. On-brand: saffron → violet. */}
+        {showBeam && (
+          <>
+            <BorderBeam
+              size={120}
+              duration={7}
+              colorFrom="#F9B233"
+              colorTo="#4A2E82"
+              borderWidth={1.5}
+            />
+            <BorderBeam
+              size={120}
+              duration={7}
+              delay={3.5}
+              colorFrom="#6B4BA0"
+              colorTo="#F9B233"
+              borderWidth={1.5}
+              reverse
+            />
+          </>
+        )}
         <label htmlFor="composer-input" className="sr-only">
           {t.composer.placeholder}
         </label>

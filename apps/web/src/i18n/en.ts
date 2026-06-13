@@ -20,7 +20,7 @@ export const en = {
     categoriesTitle: "Or browse a category",
   },
   composer: {
-    placeholder: "Ask Juno anything, in English, Sinhala, Tamil, or Tanglish",
+    placeholder: "Make a Wish ...",
     send: "Send",
     languageEN: "EN",
     languageSI: "සි",
@@ -37,10 +37,10 @@ export const en = {
     addedToCart: "Added to cart",
     soldOut: "Sold out",
     inStock: "In stock",
-    openOnKapruka: "View on Kapruka",
+    openOnKapruka: "View",
   },
   cart: {
-    title: "Your cart",
+    title: "Cart",
     subtotal: "Subtotal",
     delivery: "Delivery",
     total: "Total",

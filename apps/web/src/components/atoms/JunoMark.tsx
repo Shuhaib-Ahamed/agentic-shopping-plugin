@@ -7,23 +7,26 @@ export interface JunoMarkProps {
   status?: "idle" | "thinking" | "working";
   /** Compact mode: no live dot. */
   bare?: boolean;
+  /** Skip the inline width/height so responsive Tailwind classes on
+   *  `className` (e.g. `w-20 md:w-28 lg:w-36`) can drive the size. The
+   *  inner SVG then fills 100% × 100% of the wrapper. */
+  fluid?: boolean;
 }
 
 // Juno's mascot — a friendly chat bubble with a happy face and an orange
 // status dot floating above. Renders an inline SVG so it can be themed and
 // sized fluidly. Pairs with the chat-card UI direction (soft, light, playful).
-export function JunoMark({ size = 40, className, status = "idle", bare }: JunoMarkProps) {
+export function JunoMark({ size = 40, className, status = "idle", bare, fluid }: JunoMarkProps) {
   const pulse = status !== "idle";
   return (
     <span
       className={cn("relative inline-block shrink-0", className)}
-      style={{ width: size, height: size }}
+      style={fluid ? undefined : { width: size, height: size }}
       aria-hidden
     >
       <svg
-        viewBox="0 0 200 190"
-        width={size}
-        height={size}
+        viewBox="42 20 116 152"
+        {...(fluid ? { width: "100%", height: "100%" } : { width: size, height: size })}
         xmlns="http://www.w3.org/2000/svg"
         className="block overflow-visible"
       >
@@ -62,12 +65,16 @@ export function JunoMark({ size = 40, className, status = "idle", bare }: JunoMa
       {!bare && !pulse && (
         <span
           className="absolute rounded-full border border-white bg-emerald-500"
-          style={{
-            width: Math.max(7, Math.round(size * 0.16)),
-            height: Math.max(7, Math.round(size * 0.16)),
-            bottom: Math.round(size * 0.06),
-            right: Math.round(size * 0.1),
-          }}
+          style={
+            fluid
+              ? { width: "16%", height: "16%", bottom: "6%", right: "10%" }
+              : {
+                  width: Math.max(7, Math.round(size * 0.16)),
+                  height: Math.max(7, Math.round(size * 0.16)),
+                  bottom: Math.round(size * 0.06),
+                  right: Math.round(size * 0.1),
+                }
+          }
           aria-label="online"
         />
       )}

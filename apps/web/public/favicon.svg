@@ -1,10 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Juno, the Kapruka shopping agent">
+  <title>Juno</title>
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0E7490" />
-      <stop offset="1" stop-color="#155E75" />
+    <linearGradient id="junoBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6B4BA0" />
+      <stop offset="0.6" stop-color="#4A2E82" />
+      <stop offset="1" stop-color="#3B2367" />
     </linearGradient>
   </defs>
-  <rect width="32" height="32" rx="8" fill="url(#g)" />
-  <path d="M9 11h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H14l-5 4v-4H9a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z" fill="#F8F4EC" />
+  <!-- Violet rounded-square chip — visible in both light and dark browser tabs. -->
+  <rect width="200" height="200" rx="44" fill="url(#junoBg)" />
+  <!-- Yellow accent dot — Kapruka's saffron, sat above the bubble like the mascot. -->
+  <circle cx="100" cy="38" r="14" fill="#F9B233" />
+  <!-- White chat bubble with a soft tail. -->
+  <path d="M 112 158 A 52 52 0 1 0 88 158 L 100 168 Z"
+        fill="#ffffff" stroke="#ffffff" stroke-width="0" stroke-linejoin="round" />
+  <!-- Happy closed eyes — same arcs as JunoMark. -->
+  <g fill="none" stroke="#161624" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 70 115 Q 82 100 95 115" />
+    <path d="M 105 115 Q 118 100 130 115" />
+  </g>
 </svg>

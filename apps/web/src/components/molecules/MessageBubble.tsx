@@ -30,14 +30,14 @@ export const MessageBubble = memo(function MessageBubble({
   return (
     <div
       className={cn(
-        "flex w-full gap-3 items-end",
+        "flex w-full gap-3 items-start",
         isUser ? "flex-row-reverse" : "flex-row",
         "animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]",
         className,
       )}
     >
       {!isUser && (
-        <div className="pb-1 shrink-0">
+        <div className="mt-0.5 shrink-0">
           <JunoMark size={40} bare />
         </div>
       )}

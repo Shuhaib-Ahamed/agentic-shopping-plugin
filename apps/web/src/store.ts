@@ -72,7 +72,18 @@ export type TimelineItem =
 /** @deprecated Use TimelineItem. */
 export type ChatMessage = TextMessage;
 
-export type StatusState = "thinking" | "working" | "idle";
+/** Mirrors the protocol's StatusState so the UI can narrate stage progress. */
+export type StatusState =
+  | "idle"
+  | "thinking"
+  | "routing"
+  | "searching"
+  | "fetching"
+  | "checking"
+  | "creating"
+  | "tracking"
+  | "composing"
+  | "working";
 
 export type ActionSurface =
   | { kind: "none" }
@@ -86,7 +97,7 @@ export interface AppState {
   locale: Locale;
   currency: Currency;
   messages: TimelineItem[];
-  status: { state: StatusState; label?: string };
+  status: { state: StatusState; label?: string; detail?: string };
   cart: { lines: CartLine[]; subtotal: Money };
   cartOpen: boolean;
   surface: ActionSurface;
@@ -205,7 +216,7 @@ export const useAppStore = create<AppState>()(
           const now = new Date().toISOString();
           switch (e.type) {
             case "status":
-              return { status: { state: e.state, label: e.label } };
+              return { status: { state: e.state, label: e.label, detail: e.detail } };
 
             case "message": {
               const existing = s.messages.find(

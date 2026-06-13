@@ -66,6 +66,31 @@
   --shadow-xl: var(--shadow-xl);
   --shadow-cta: var(--shadow-cta);
   --shadow-accent: var(--shadow-accent);
+
+  /* Console aliases (admin only). */
+  --color-console-canvas: var(--console-canvas);
+  --color-console-card: var(--console-card);
+  --color-console-sunken: var(--console-card-sunken);
+  --color-console-grid: var(--console-grid-line);
+  --color-console-faint: var(--console-text-faint);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-series-4: var(--series-4);
+  --color-series-5: var(--series-5);
+  --color-series-6: var(--series-6);
+  --color-token-input: var(--token-input);
+  --color-token-cached: var(--token-cached);
+  --color-token-output: var(--token-output);
+  --color-token-reason: var(--token-reason);
+  --color-span-model: var(--span-model);
+  --color-span-mcp: var(--span-mcp);
+  --color-span-ui: var(--span-ui);
+  --color-span-error: var(--span-error);
+  --color-status-ok: var(--status-ok);
+  --color-status-warn: var(--status-warn);
+  --color-status-err: var(--status-err);
+  --color-status-mute: var(--status-mute);
 }
 
 /* -----------------------------------------------------------------------------
@@ -328,6 +353,151 @@
 @keyframes typing-dot {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
   30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Parallax background — vector layers that float, drift, and twinkle behind
+ * the hero. Compositor-only (transform + opacity) and disabled cleanly by the
+ * prefers-reduced-motion rule below.
+ * ------------------------------------------------------------------------- */
+@keyframes hero-flo-a {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -22px, 0); }
+}
+@keyframes hero-flo-b {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, 18px, 0); }
+}
+@keyframes hero-flo-c {
+  0%, 100% { transform: translate3d(0, -10px, 0); }
+  50%      { transform: translate3d(0, 14px, 0); }
+}
+@keyframes hero-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(4%, -3%, 0) scale(1.08); }
+}
+@keyframes hero-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(-4%, 4%, 0) scale(1.1); }
+}
+@keyframes hero-sway {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-12px) rotate(4deg); }
+}
+@keyframes hero-twinkle {
+  0%, 100% { opacity: 0.18; transform: scale(0.78); }
+  50%      { opacity: 0.6;  transform: scale(1.12); }
+}
+/* Chat background gift-wrap motifs — drift + slow rotation. Used by the
+   ChatBackground organism that lives behind the message stream once the
+   shopper has left the hero state. Smaller amplitudes than the hero
+   `hero-flo-*` keyframes so the chat surface stays calm. */
+@keyframes chat-bg-floA {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-16px); }
+}
+@keyframes chat-bg-floB {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(14px); }
+}
+@keyframes chat-bg-floC {
+  0%, 100% { transform: translateY(-8px); }
+  50%      { transform: translateY(12px); }
+}
+@keyframes chat-bg-spin {
+  to { transform: rotate(360deg); }
+}
+/* Drives the looped horizontal march of the storefront parallax layers
+   (bunting + back + mid + front). Each layer is 4320px wide; translating it
+   -1440px exactly equals one tile, so the loop is seamless. */
+@keyframes marchLeft {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-1440px, 0, 0); }
+}
+/* Marquee — Magic UI pattern. Each row is rendered N times in a flex
+   container; this keyframe slides the row left by exactly its own width plus
+   the gap, so when N tiles are stacked the next tile slips in perfectly and
+   the loop is seamless. */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-100% - var(--marquee-gap, 1rem))); }
+}
+
+/* ---------------------------------------------------------------------------
+ * Glassmorphism — suggestion chips inside the Hero. Tinted translucent
+ * surface with backdrop-blur + saturate, an inner top highlight stroke, and a
+ * soft tinted drop shadow so the card lifts above the parallax background.
+ * ------------------------------------------------------------------------- */
+.suggestion-glass {
+  /* Frosted-glass body. The fill is intentionally low-opacity (~25–35%) so
+     the backdrop-filter blur has visible material to work with. The pair of
+     inset highlights and the violet edge keep the chip reading as glass even
+     when the backdrop behind it is calm. */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(231, 224, 250, 0.18) 100%
+  );
+  border: 1px solid rgba(154, 134, 192, 0.5);
+  /* Top + left inner highlight = etched glass edges. Tinted violet lift. */
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.7),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 0 rgba(74, 46, 130, 0.12),
+    0 18px 36px -12px rgba(74, 46, 130, 0.32),
+    0 6px 14px -8px rgba(74, 46, 130, 0.18);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+.suggestion-glass:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(231, 224, 250, 0.3) 100%
+  );
+  /* Violet accent border on hover — the "the brand's reaching for you" cue. */
+  border-color: rgba(74, 46, 130, 0.65);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.85),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 0 rgba(74, 46, 130, 0.18),
+    0 24px 44px -14px rgba(74, 46, 130, 0.42),
+    0 8px 18px -8px rgba(74, 46, 130, 0.24);
+}
+.suggestion-glass--featured {
+  /* Featured starter gets a subtle violet wash inside the glass so it leads
+     visually without making the chip opaque. */
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(122, 92, 192, 0.2), rgba(122, 92, 192, 0) 60%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(220, 209, 244, 0.22) 100%);
+  border-color: rgba(122, 92, 192, 0.55);
+}
+.suggestion-glass--featured:hover {
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(122, 92, 192, 0.28), rgba(122, 92, 192, 0) 60%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.44) 0%, rgba(220, 209, 244, 0.34) 100%);
+  border-color: rgba(74, 46, 130, 0.7);
+}
+
+/* The little arrow icon at the trailing edge — sits on the glass as part of
+   the same surface (no opaque circle), tinted violet, slides + brightens on
+   hover so the chip still has a visible "click me" cue. */
+.suggestion-glass .glass-arrow {
+  color: var(--color-cta-deep);
+  opacity: 0.75;
+  transition: transform 200ms var(--easing-emphasized), opacity 200ms var(--easing-emphasized);
+}
+.suggestion-glass:hover .glass-arrow {
+  transform: translate(2px, -2px);
+  opacity: 1;
+}
+
+/* Fallback for browsers without backdrop-filter: switch to a more opaque
+   violet-tinted surface so the chips never read as washed-out cards. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .suggestion-glass {
+    background: rgba(244, 240, 252, 0.95);
+  }
 }
 
 /* -----------------------------------------------------------------------------

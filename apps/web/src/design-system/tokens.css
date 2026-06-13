@@ -168,4 +168,43 @@
   --z-overlay: 30;
   --z-toast: 40;
   --z-modal: 50;
+
+  /* ---------------------------------------------------------------------------
+   * Console (/admin) tokens. Sealed namespace so analytics surfaces don't drift
+   * the shopper palette. Half-step cooler than the parchment shell so dense
+   * tables don't feel warm-bias; series colors orbit the brand violet through
+   * differentiable warm complements. WCAG AA on console-canvas, deuteranopia
+   * safe. See Console design spec section 1.1.
+   * ------------------------------------------------------------------------- */
+  --console-canvas:        #f7f5f1;
+  --console-card:          #ffffff;
+  --console-card-sunken:   #f3f0ea;
+  --console-grid-line:     #ece9e1;
+  --console-text-faint:    #b8b3a8;
+
+  /* Chart series, anchored by brand violet. */
+  --series-1: #4A2E82;
+  --series-2: #F9B233;
+  --series-3: #2F8F8C;
+  --series-4: #C7456E;
+  --series-5: #6B7280;
+  --series-6: #A98AE0;
+
+  /* Token cost segmentation (input / cached / output / reasoning). */
+  --token-input:  #4A2E82;
+  --token-cached: #A98AE0;
+  --token-output: #2F8F8C;
+  --token-reason: #F9B233;
+
+  /* Trace span colors. */
+  --span-model: #4A2E82;
+  --span-mcp:   #2F8F8C;
+  --span-ui:    #F9B233;
+  --span-error: #dc2626;
+
+  /* Status. */
+  --status-ok:   #16a34a;
+  --status-warn: #d97706;
+  --status-err:  #dc2626;
+  --status-mute: #9a9aae;
 }

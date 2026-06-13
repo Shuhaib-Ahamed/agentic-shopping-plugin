@@ -12,8 +12,10 @@ import {
   CartPanel,
   CheckoutPanel,
   Composer,
+  ComposerStack,
   ComposerTray,
   DeliveryForm,
+  FlyToCartProvider,
   GiftMessageField,
   HeroIntro,
   HeroPrompts,
@@ -25,6 +27,7 @@ import { selectCart, selectStatus, selectSurface, useAppStore } from "@/store";
 import { pollOrderStatus, streamChat } from "@/transport";
 import { ErrorBanner, ProductQuickView, type CityOption } from "@/components/molecules";
 import { pickStrings } from "@/i18n";
+import { emitTelemetry } from "@/lib/telemetry";
 
 // Safety net: shown when the AI didn't emit `present_options` so the chips
 // bar above the composer is never empty. The system prompt mandates chips
@@ -97,18 +100,35 @@ export function App() {
   const send = useCallback(
     (text: string, opts: { silent?: boolean } = {}) => {
       if (!opts.silent) pushUserMessage(text);
+      emitTelemetry({
+        sessionId,
+        kind: "ui_input",
+        payload: { source: opts.silent ? "system" : "composer", textLength: text.length },
+      });
       setPending(true);
       abortRef.current?.abort();
       abortRef.current = streamChat(makeRequest(text), {
-        onEvent: (e) => applyEvent(e),
+        onEvent: (e) => {
+          applyEvent(e);
+          emitTelemetry({
+            sessionId,
+            kind: "render_ack",
+            payload: { event: e.type },
+          });
+        },
         onError: (err) => {
           const message = err instanceof Error ? err.message : t.error.generic;
           setError("transport", message, true);
+          emitTelemetry({
+            sessionId,
+            kind: "client_error",
+            payload: { scope: "transport", message },
+          });
         },
         onClose: () => setPending(false),
       });
     },
-    [applyEvent, makeRequest, pushUserMessage, setError, t.error.generic],
+    [applyEvent, makeRequest, pushUserMessage, setError, sessionId, t.error.generic],
   );
 
   // Polling lives below `send` so it can use it.
@@ -247,6 +267,9 @@ export function App() {
               onCityQuery={cityQuery}
               onSubmit={(values) => {
                 pushDeliveryDetails(values);
+                // Close the tray the moment the form is submitted; the
+                // delivery card now lives inline in the chat timeline.
+                resetSurface();
                 send(
                   `Delivery details: ${Object.entries(values)
                     .map(([k, v]) => `${k}=${v}`)
@@ -258,7 +281,10 @@ export function App() {
             />
           ) : surface.payload.intent === "gift" ? (
             <GiftMessageField
-              onSave={(msg) => send(msg ? `Gift message: ${msg}` : "No gift message.")}
+              onSave={(msg) => {
+                resetSurface();
+                send(msg ? `Gift message: ${msg}` : "No gift message.");
+              }}
             />
           ) : (
             <DeliveryForm
@@ -266,6 +292,7 @@ export function App() {
               onCityQuery={cityQuery}
               onSubmit={(values) => {
                 pushDeliveryDetails(values);
+                resetSurface();
                 send(
                   Object.entries(values)
                     .map(([k, v]) => `${k}=${v}`)
@@ -333,55 +360,57 @@ export function App() {
   // Stop the stream on unmount.
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  // Composer column. Top→bottom stack:
-  //   1. ComposerTray   — surface content (form, cart, checkout, success)
-  //   2. ErrorBanner    — recoverable / dismissible alert
-  //   3. OptionsBar     — quick-reply chips
-  //   4. Composer       — the input itself
+  // Composer column. Slot order top → bottom: tray, error, options, composer.
+  // The unified `ComposerStack` owns max-width, horizontal padding, vertical
+  // gap, and per-slot spring transitions, so the column reads as one cohesive
+  // surface that reflows smoothly as slots come and go.
   const composerColumn = (
-    <>
-      <ComposerTray
-        open={trayOpen}
-        title={trayTitle}
-        onClose={handleCloseTray}
-      >
-        {trayBody}
-      </ComposerTray>
-
-      {surface.kind === "error" && (
-        <ErrorBanner
-          message={surface.message || t.error.generic}
-          code={surface.code}
-          recoverable={surface.recoverable}
-          retryLabel={t.error.retry}
-          onRetry={() => {
-            const recoverable = surface.recoverable;
-            clearError();
-            if (recoverable) send(t.error.retry);
-          }}
-          onDismiss={clearError}
-        />
-      )}
-
-      <OptionsBar
-        options={displayOptions}
-        onSelect={(value) => {
-          clearQuickOptions();
-          if (lastAssistantTextId) setDefaultsDismissedFor(lastAssistantTextId);
-          send(value);
-        }}
-        onDismiss={() => {
-          if (quickOptions) clearQuickOptions();
-          if (lastAssistantTextId) setDefaultsDismissedFor(lastAssistantTextId);
-        }}
-      />
-
-      <Composer onSubmit={send} isPending={pending} />
-    </>
+    <ComposerStack
+      tray={
+        trayOpen ? (
+          <ComposerTray open title={trayTitle} onClose={handleCloseTray}>
+            {trayBody}
+          </ComposerTray>
+        ) : null
+      }
+      banner={
+        surface.kind === "error" ? (
+          <ErrorBanner
+            message={surface.message || t.error.generic}
+            code={surface.code}
+            recoverable={surface.recoverable}
+            retryLabel={t.error.retry}
+            onRetry={() => {
+              const recoverable = surface.recoverable;
+              clearError();
+              if (recoverable) send(t.error.retry);
+            }}
+            onDismiss={clearError}
+          />
+        ) : null
+      }
+      options={
+        displayOptions ? (
+          <OptionsBar
+            options={displayOptions}
+            onSelect={(value) => {
+              clearQuickOptions();
+              if (lastAssistantTextId) setDefaultsDismissedFor(lastAssistantTextId);
+              send(value);
+            }}
+            onDismiss={() => {
+              if (quickOptions) clearQuickOptions();
+              if (lastAssistantTextId) setDefaultsDismissedFor(lastAssistantTextId);
+            }}
+          />
+        ) : null
+      }
+      composer={<Composer onSubmit={send} isPending={pending} showBeam={showHero} />}
+    />
   );
 
   return (
-    <>
+    <FlyToCartProvider>
       <ChatLayout
         showHero={showHero}
         heroIntro={<HeroIntro />}
@@ -401,6 +430,6 @@ export function App() {
           setQuickViewProduct(null);
         }}
       />
-    </>
+    </FlyToCartProvider>
   );
 }

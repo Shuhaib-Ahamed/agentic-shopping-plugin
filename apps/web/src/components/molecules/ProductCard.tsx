@@ -1,7 +1,9 @@
+import { useRef } from "react";
 import { Plus } from "lucide-react";
 import type { Product } from "@kapruka/protocol";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
+import { useFlyToCart } from "@/components/organisms/FlyToCart";
 
 export interface ProductCardProps {
   product: Product;
@@ -40,6 +42,13 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
   // current price. Fall back to product.badge if MCP only sends a label.
   const promo = derivePromo(product);
   const displayTitle = truncateTitle(product.title);
+
+  const { flyToCart } = useFlyToCart();
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const handleAdd = () => {
+    flyToCart(imageRef.current, product.image);
+    onAdd?.(product);
+  };
 
   return (
     <article
@@ -88,6 +97,7 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
 
         {product.image ? (
           <img
+            ref={imageRef}
             src={product.image}
             alt=""
             loading="lazy"
@@ -158,7 +168,7 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
 
           <button
             type="button"
-            onClick={() => onAdd?.(product)}
+            onClick={handleAdd}
             disabled={!product.inStock}
             aria-label={`Add ${product.title} to cart`}
             className={cn(

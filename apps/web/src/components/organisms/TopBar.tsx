@@ -1,9 +1,12 @@
+import { useEffect, useRef } from "react";
+import { motion, useAnimationControls } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
 import { useAppStore, selectCart } from "@/store";
 import { pickStrings } from "@/i18n";
 import { cn } from "@/lib/cn";
 import { KaprukaLogo } from "@/components/atoms";
 import { SessionMenu } from "./SessionMenu";
+import { useFlyToCart } from "./FlyToCart";
 import type { Locale } from "@kapruka/protocol";
 
 export interface TopBarProps {
@@ -30,6 +33,28 @@ export function TopBar({ className }: TopBarProps) {
   const t = pickStrings(locale);
   const cartCount = cart.lines.reduce((n, l) => n + l.qty, 0);
 
+  // Fly-to-cart wiring. The cart button registers itself as the anchor so
+  // any product card on the page knows where to send its image. shakeKey
+  // increments every time a flight lands, which we map to a quick wiggle
+  // on the cart icon — feels like the bag is reacting to the impact.
+  const { setCartAnchor, shakeKey } = useFlyToCart();
+  const cartButtonRef = useRef<HTMLButtonElement | null>(null);
+  const wiggleControls = useAnimationControls();
+
+  useEffect(() => {
+    setCartAnchor(cartButtonRef.current);
+  }, [setCartAnchor]);
+
+  useEffect(() => {
+    if (shakeKey === 0) return;
+    // Decaying back-and-forth rotation. Reads as a satisfied shimmy, not a
+    // panicked shake. Keep the duration short so rapid adds feel responsive.
+    void wiggleControls.start({
+      rotate: [0, -14, 11, -8, 6, -3, 0],
+      transition: { duration: 0.55, ease: "easeOut" },
+    });
+  }, [shakeKey, wiggleControls]);
+
   return (
     <header
       className={cn(
@@ -44,11 +69,11 @@ export function TopBar({ className }: TopBarProps) {
         <a
           href="/"
           aria-label="Kapruka home"
-          className="flex items-center min-w-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
+          className="flex items-center ml-4 min-w-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
         >
           {/* Bigger Kapruka wordmark — the PNG variant designed for dark
               surfaces is the right read on the violet pill. */}
-          <KaprukaLogo height={15} />
+          <KaprukaLogo height={20} />
         </a>
 
         <div className="flex items-center gap-2 md:gap-3">
@@ -78,24 +103,31 @@ export function TopBar({ className }: TopBarProps) {
             ))}
           </div>
 
-          <button
+          <motion.button
+            ref={cartButtonRef}
             type="button"
             onClick={toggleCart}
             aria-expanded={cartOpen}
             aria-label={`${t.cart.title}, ${cartCount} ${cartCount === 1 ? "item" : "items"}`}
+            whileHover={{ y: -1 }}
             className={cn(
               "relative inline-flex items-center gap-2 h-11 px-4 rounded-full cursor-pointer",
               "text-[var(--text-sm)] font-semibold",
               "border border-white/25 backdrop-blur-sm",
-              "transition-[transform,background-color,color] duration-200 ease-[var(--easing-emphasized)]",
-              "hover:-translate-y-[1px]",
+              "transition-[background-color,color,box-shadow] duration-200 ease-[var(--easing-emphasized)]",
+              "hover:bg-white/20",
               "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
               cartOpen
                 ? "bg-[color:var(--color-accent)] text-[color:var(--color-text)] border-transparent shadow-[var(--shadow-accent)]"
-                : "bg-white/[0.14] text-white hover:bg-white/20",
+                : "bg-white/[0.14] text-white",
             )}
           >
-            <ShoppingBag size={16} strokeWidth={2.2} />
+            <motion.span
+              animate={wiggleControls}
+              style={{ transformOrigin: "50% 50%", display: "inline-flex" }}
+            >
+              <ShoppingBag size={16} strokeWidth={2.2} />
+            </motion.span>
             <span className="hidden md:inline">{t.cart.title}</span>
             {cartCount > 0 && (
               <span
@@ -110,7 +142,7 @@ export function TopBar({ className }: TopBarProps) {
                 {cartCount}
               </span>
             )}
-          </button>
+          </motion.button>
 
           <SessionMenu />
         </div>

@@ -28,6 +28,7 @@ import { getOrCreateSession } from "./sessionState";
 import { routeTurn } from "./stages/router";
 import { runToolLoop, type ToolBundle } from "./stages/toolLoop";
 import { runResponse } from "./stages/response";
+import { pickStatusLabel } from "./statusPool";
 import type { SseWriter } from "./sse";
 import { makeLogger, newTraceId, type Logger } from "./log";
 
@@ -65,6 +66,7 @@ export async function runAgent({
   });
 
   // STAGE 1: Router.
+  writer.write({ type: "status", state: "routing", label: pickStatusLabel("routing") });
   const decision = await runStage(log, "router", () =>
     routeTurn({ recent, session, log: log.child({ ctx: "router" }) }),
   );
