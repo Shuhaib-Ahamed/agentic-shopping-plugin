@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist/cjs",
+    "declaration": false,
+    "noEmit": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["ES2023"],
+    "verbatimModuleSyntax": false,
+    "isolatedModules": false
+  },
+  "include": ["src"]
+}
