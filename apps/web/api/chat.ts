@@ -74,15 +74,17 @@ async function handler(req: Request): Promise<Response> {
         writer.fail("internal", (err as Error).message ?? "Internal error", true);
       } finally {
         writer.done();
-        writer.close();
         req.signal.removeEventListener("abort", onClientAbort);
-        // Persist trace after stream close. Awaited so cold-start fluid compute
-        // doesn't lose the write, but inner try/catch swallows tracer errors.
+        // Persist BEFORE closing the controller — once the response body is
+        // closed, the function may be terminated and the await would never
+        // resolve. Inner try/catch swallows tracer errors so persistence can
+        // never delay or break chat.
         try {
           await tracer.finish();
         } catch {
           /* swallow */
         }
+        writer.close();
         reqLog.info("chat.closed");
       }
     },

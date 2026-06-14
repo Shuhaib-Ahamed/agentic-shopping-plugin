@@ -364,7 +364,6 @@ function buildSessionInsert(req: ChatRequest, startedAt: Date): Partial<SessionR
   return {
     sessionId: req.sessionId,
     startedAt: startedAt.toISOString(),
-    lastSeenAt: startedAt.toISOString(),
     locale: (req.context?.locale ?? "en") as Locale,
     currency: req.context?.currency ?? "LKR",
     device: "desktop",
@@ -377,7 +376,6 @@ function buildSessionInsert(req: ChatRequest, startedAt: Date): Partial<SessionR
       paid: false,
     },
     outcome: "browsing",
-    totals: { turns: 0, tokens: 0, costUSD: 0, toolCalls: 0, durationMs: 0 },
   };
 }
 
