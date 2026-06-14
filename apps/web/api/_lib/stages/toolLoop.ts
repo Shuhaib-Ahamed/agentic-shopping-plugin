@@ -114,7 +114,6 @@ export async function runToolLoop({
       tools: tools as any,
       tool_choice: "auto",
       parallel_tool_calls: false,
-      temperature: 0.1,
     });
 
     const choice = response.choices?.[0];

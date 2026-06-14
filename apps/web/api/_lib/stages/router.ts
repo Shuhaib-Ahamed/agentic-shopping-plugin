@@ -125,7 +125,6 @@ async function attempt(
       model,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ChatMessageItem matches SDK subset
       messages: messages as any,
-      temperature: 0,
       response_format: { type: "json_object" },
     });
     const text: string = response.choices?.[0]?.message?.content?.trim() ?? "";
