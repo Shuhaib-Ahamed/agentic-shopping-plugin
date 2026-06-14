@@ -10,7 +10,7 @@ import {
   jsonResponse,
   signSession,
   verifyPassword,
-} from "../_lib/console/auth";
+} from "../_lib/console/auth.js";
 
 export const config = { runtime: "nodejs", maxDuration: 10 };
 

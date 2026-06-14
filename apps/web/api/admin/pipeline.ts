@@ -1,6 +1,6 @@
 // GET /api/admin/pipeline. Pipeline topology derived over the range.
-import { jsonResponse, withAdmin } from "../_lib/console/auth";
-import { getPipeline } from "../_lib/console/store";
+import { jsonResponse, withAdmin } from "../_lib/console/auth.js";
+import { getPipeline } from "../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 15 };
 

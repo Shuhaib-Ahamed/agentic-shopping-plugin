@@ -1,7 +1,7 @@
 // Default pricing table. The admin pricing editor edits this in Mongo when
 // MONGODB_URI is set. With no Mongo, the seed and admin APIs fall back to this.
 // USD per 1M tokens. Effective dates align with hypothetical OpenAI price cuts.
-import type { PricingRow } from "./mongo";
+import type { PricingRow } from "./mongo.js";
 
 export const PRICING: PricingRow[] = [
   {

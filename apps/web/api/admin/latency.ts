@@ -1,6 +1,6 @@
 // GET /api/admin/latency. Latency percentiles per stage and per tool.
-import { jsonResponse, withAdmin } from "../_lib/console/auth";
-import { getLatency } from "../_lib/console/store";
+import { jsonResponse, withAdmin } from "../_lib/console/auth.js";
+import { getLatency } from "../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 15 };
 

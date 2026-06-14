@@ -6,21 +6,21 @@
 
 import type { ChatMessage } from "@kapruka/protocol";
 import { nanoid } from "nanoid";
-import type { Logger } from "../log";
+import type { Logger } from "../log.js";
 import {
   modelClient,
   stageModel,
   type ChatCompletionTool,
   type ChatMessageItem,
   type ToolCall,
-} from "../openai";
-import { buildResponseSystem } from "../promptSlices";
-import { renderStateBlock, type SessionState } from "../sessionState";
-import type { SseWriter } from "../sse";
-import { pickStatusLabel } from "../statusPool";
-import { uiToolByName, uiToolDefs } from "../uiTools";
-import { renderRoutingBlock, type RoutingDecision } from "./router";
-import { renderDataBlock, type ToolBundle } from "./toolLoop";
+} from "../openai.js";
+import { buildResponseSystem } from "../promptSlices.js";
+import { renderStateBlock, type SessionState } from "../sessionState.js";
+import type { SseWriter } from "../sse.js";
+import { pickStatusLabel } from "../statusPool.js";
+import { uiToolByName, uiToolDefs } from "../uiTools.js";
+import { renderRoutingBlock, type RoutingDecision } from "./router.js";
+import { renderDataBlock, type ToolBundle } from "./toolLoop.js";
 
 const MAX_ITERATIONS = 6;
 

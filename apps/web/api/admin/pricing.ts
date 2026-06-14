@@ -2,8 +2,8 @@
 // PUT /api/admin/pricing  -> replace with a new table (admin only).
 import { AdminPricingRowSchema } from "@kapruka/protocol";
 import { z } from "zod";
-import { jsonResponse, withAdmin } from "../_lib/console/auth";
-import { getPricing, setPricing } from "../_lib/console/store";
+import { jsonResponse, withAdmin } from "../_lib/console/auth.js";
+import { getPricing, setPricing } from "../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 10 };
 

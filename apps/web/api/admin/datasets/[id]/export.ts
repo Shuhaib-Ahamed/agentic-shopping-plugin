@@ -1,6 +1,6 @@
 // GET /api/admin/datasets/:id/export. Streams jsonl of the curated turns.
-import { jsonResponse, withAdmin } from "../../../_lib/console/auth";
-import { exportDataset } from "../../../_lib/console/store";
+import { jsonResponse, withAdmin } from "../../../_lib/console/auth.js";
+import { exportDataset } from "../../../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 30 };
 

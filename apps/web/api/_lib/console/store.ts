@@ -19,9 +19,9 @@ import type {
   SessionRecord,
   TurnRecord,
 } from "@kapruka/protocol";
-import { collections, hasMongo } from "./mongo";
-import { PRICING } from "./pricing";
-import { getSeed } from "./seed";
+import { collections, hasMongo } from "./mongo.js";
+import { PRICING } from "./pricing.js";
+import { getSeed } from "./seed.js";
 
 export interface SessionListQuery {
   page: number;

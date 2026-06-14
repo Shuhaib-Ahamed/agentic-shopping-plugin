@@ -2,7 +2,7 @@
 // and a small in-memory buffer for the no-Mongo demo mode so the admin reads
 // can still observe live client events.
 import type { ClientTelemetryEvent } from "@kapruka/protocol";
-import { collections, hasMongo } from "./mongo";
+import { collections, hasMongo } from "./mongo.js";
 
 const MEMO: ClientTelemetryEvent[] = [];
 const MEMO_CAP = 1000;

@@ -2,8 +2,8 @@
 // writer module owns redaction and persistence; this endpoint stays small.
 // Idempotent enough for the demo via the eventId field.
 import { TelemetryBatchSchema } from "@kapruka/protocol";
-import { jsonResponse } from "./_lib/console/auth";
-import { writeTelemetryBatch } from "./_lib/console/writer";
+import { jsonResponse } from "./_lib/console/auth.js";
+import { writeTelemetryBatch } from "./_lib/console/writer.js";
 
 export const config = { runtime: "nodejs", maxDuration: 10 };
 

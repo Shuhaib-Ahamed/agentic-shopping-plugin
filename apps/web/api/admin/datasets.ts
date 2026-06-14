@@ -1,8 +1,8 @@
 // GET /api/admin/datasets       -> list
 // POST /api/admin/datasets      -> create from filter
 import { AdminDatasetCreateBodySchema } from "@kapruka/protocol";
-import { jsonResponse, withAdmin } from "../_lib/console/auth";
-import { createDataset, listDatasets } from "../_lib/console/store";
+import { jsonResponse, withAdmin } from "../_lib/console/auth.js";
+import { createDataset, listDatasets } from "../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 15 };
 

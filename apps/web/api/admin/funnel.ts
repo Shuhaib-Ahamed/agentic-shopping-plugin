@@ -1,6 +1,6 @@
 // GET /api/admin/funnel. Conversion funnel with drop-off pairs.
-import { jsonResponse, withAdmin } from "../_lib/console/auth";
-import { getFunnel } from "../_lib/console/store";
+import { jsonResponse, withAdmin } from "../_lib/console/auth.js";
+import { getFunnel } from "../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 10 };
 

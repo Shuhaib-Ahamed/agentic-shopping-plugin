@@ -1,9 +1,9 @@
 import { ChatRequestSchema } from "@kapruka/protocol";
-import { runAgent } from "./_lib/agent";
-import { runWithTracer } from "./_lib/console/traceContext";
-import { startTurnTrace } from "./_lib/console/tracer";
-import { makeLogger, newTraceId } from "./_lib/log";
-import { createSseWriter } from "./_lib/sse";
+import { runAgent } from "./_lib/agent.js";
+import { runWithTracer } from "./_lib/console/traceContext.js";
+import { startTurnTrace } from "./_lib/console/tracer.js";
+import { makeLogger, newTraceId } from "./_lib/log.js";
+import { createSseWriter } from "./_lib/sse.js";
 
 const log = makeLogger({ ctx: "chat" });
 

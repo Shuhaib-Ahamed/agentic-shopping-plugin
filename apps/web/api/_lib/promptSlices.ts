@@ -5,7 +5,7 @@
 // duplicate its content here, only carve it by H2 headings and append a
 // per-stage TASK block.
 
-import { loadPrompt } from "./prompts";
+import { loadPrompt } from "./prompts.js";
 
 /** Heading text used to identify each section. Matches the H2 lines verbatim, sans "## ". */
 const H1_IDENTITY_KEY = "__identity__";

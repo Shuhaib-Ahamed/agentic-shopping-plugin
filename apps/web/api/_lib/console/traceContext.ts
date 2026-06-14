@@ -2,7 +2,7 @@
 // logger and any nested code call into the tracer without passing it through
 // every function signature.
 import { AsyncLocalStorage } from "node:async_hooks";
-import type { TurnTracer } from "./tracer";
+import type { TurnTracer } from "./tracer.js";
 
 const store = new AsyncLocalStorage<TurnTracer>();
 

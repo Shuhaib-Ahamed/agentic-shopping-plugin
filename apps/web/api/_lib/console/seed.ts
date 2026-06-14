@@ -12,8 +12,8 @@ import type {
   TurnRecord,
   TurnOutcome,
 } from "@kapruka/protocol";
-import { TOKENS_PER_MILLION } from "./constants";
-import { PRICING } from "./pricing";
+import { TOKENS_PER_MILLION } from "./constants.js";
+import { PRICING } from "./pricing.js";
 
 const BASE_ISO = "2026-06-13T08:00:00.000Z";
 const PROMPT_VERSION = "v_3a7c91f";

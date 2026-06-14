@@ -1,5 +1,5 @@
-import { makeLogger } from "./_lib/log";
-import { callTool } from "./_lib/mcp";
+import { makeLogger } from "./_lib/log.js";
+import { callTool } from "./_lib/mcp.js";
 
 const log = makeLogger({ ctx: "cities" });
 

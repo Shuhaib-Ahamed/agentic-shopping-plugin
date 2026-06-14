@@ -6,7 +6,7 @@
 // redacted and large strings are truncated.
 
 import { randomUUID } from "node:crypto";
-import { getActiveTracer } from "./console/traceContext";
+import { getActiveTracer } from "./console/traceContext.js";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 

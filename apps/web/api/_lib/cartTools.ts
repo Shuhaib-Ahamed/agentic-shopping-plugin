@@ -8,7 +8,7 @@
 
 import { CartLineSchema, type CartLine } from "@kapruka/protocol";
 import { z } from "zod";
-import { computeCart, type SessionState } from "./sessionState";
+import { computeCart, type SessionState } from "./sessionState.js";
 
 export interface LocalCartTool {
   name: string;

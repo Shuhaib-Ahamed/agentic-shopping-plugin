@@ -7,8 +7,8 @@
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { env } from "./env";
-import { makeLogger } from "./log";
+import { env } from "./env.js";
+import { makeLogger } from "./log.js";
 
 const log = makeLogger({ ctx: "mcp" });
 

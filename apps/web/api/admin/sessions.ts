@@ -1,6 +1,6 @@
 // GET /api/admin/sessions. Paginated, filterable list. Guarded.
-import { jsonResponse, withAdmin } from "../_lib/console/auth";
-import { getSessionList } from "../_lib/console/store";
+import { jsonResponse, withAdmin } from "../_lib/console/auth.js";
+import { getSessionList } from "../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 10 };
 

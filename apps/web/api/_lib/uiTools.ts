@@ -14,7 +14,7 @@ import {
   UiToolName,
   type SseEvent,
 } from "@kapruka/protocol";
-import type { SseWriter } from "./sse";
+import type { SseWriter } from "./sse.js";
 
 export interface ResponsesFunctionTool {
   type: "function";

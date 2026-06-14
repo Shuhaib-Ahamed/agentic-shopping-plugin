@@ -6,10 +6,10 @@
 
 import type { ChatMessage } from "@kapruka/protocol";
 import { z } from "zod";
-import type { Logger } from "../log";
-import { modelClient, stageModel, type ChatMessageItem } from "../openai";
-import { buildRouterSystem } from "../promptSlices";
-import { renderStateBlock, type SessionState } from "../sessionState";
+import type { Logger } from "../log.js";
+import { modelClient, stageModel, type ChatMessageItem } from "../openai.js";
+import { buildRouterSystem } from "../promptSlices.js";
+import { renderStateBlock, type SessionState } from "../sessionState.js";
 
 export const RouteSchema = z.enum([
   "greeting",

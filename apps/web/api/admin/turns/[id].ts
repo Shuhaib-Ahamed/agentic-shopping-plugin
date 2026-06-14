@@ -1,6 +1,6 @@
 // GET /api/admin/turns/:id. Single turn trace. Guarded.
-import { jsonResponse, withAdmin } from "../../_lib/console/auth";
-import { getTurn } from "../../_lib/console/store";
+import { jsonResponse, withAdmin } from "../../_lib/console/auth.js";
+import { getTurn } from "../../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 10 };
 

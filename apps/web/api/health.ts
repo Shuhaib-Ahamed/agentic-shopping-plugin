@@ -1,4 +1,4 @@
-import { env } from "./_lib/env";
+import { env } from "./_lib/env.js";
 
 export const config = {
   runtime: "nodejs",

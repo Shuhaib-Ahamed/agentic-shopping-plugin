@@ -1,4 +1,4 @@
-import { loadPrompt } from "../_lib/prompts";
+import { loadPrompt } from "../_lib/prompts.js";
 
 export const config = {
   runtime: "nodejs",

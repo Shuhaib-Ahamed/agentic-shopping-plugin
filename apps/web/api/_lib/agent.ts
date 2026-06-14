@@ -22,15 +22,15 @@
 // order) lives in sessionState.
 
 import type { ChatRequest } from "@kapruka/protocol";
-import { env } from "./env";
-import { makeLogger, newTraceId, type Logger } from "./log";
-import { modelProvider } from "./openai";
-import { getOrCreateSession } from "./sessionState";
-import type { SseWriter } from "./sse";
-import { runResponse } from "./stages/response";
-import { routeTurn } from "./stages/router";
-import { runToolLoop, type ToolBundle } from "./stages/toolLoop";
-import { pickStatusLabel } from "./statusPool";
+import { env } from "./env.js";
+import { makeLogger, newTraceId, type Logger } from "./log.js";
+import { modelProvider } from "./openai.js";
+import { getOrCreateSession } from "./sessionState.js";
+import type { SseWriter } from "./sse.js";
+import { runResponse } from "./stages/response.js";
+import { routeTurn } from "./stages/router.js";
+import { runToolLoop, type ToolBundle } from "./stages/toolLoop.js";
+import { pickStatusLabel } from "./statusPool.js";
 
 const baseLog = makeLogger({ ctx: "agent" });
 

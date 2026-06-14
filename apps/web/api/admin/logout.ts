@@ -1,5 +1,5 @@
 // POST /api/admin/logout. Clears the session cookie.
-import { buildClearCookie, jsonResponse } from "../_lib/console/auth";
+import { buildClearCookie, jsonResponse } from "../_lib/console/auth.js";
 
 export const config = { runtime: "nodejs", maxDuration: 5 };
 

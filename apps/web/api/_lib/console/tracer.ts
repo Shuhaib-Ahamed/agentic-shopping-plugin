@@ -28,10 +28,10 @@ import type {
   TurnOutcome,
   TurnRecord,
 } from "@kapruka/protocol";
-import type { SseWriter } from "../sse";
-import { TOKENS_PER_MILLION } from "./constants";
-import { collections, hasMongo } from "./mongo";
-import { PRICING } from "./pricing";
+import type { SseWriter } from "../sse.js";
+import { TOKENS_PER_MILLION } from "./constants.js";
+import { collections, hasMongo } from "./mongo.js";
+import { PRICING } from "./pricing.js";
 
 const MAX_LOGS_PER_TURN = 800;
 

@@ -7,21 +7,21 @@
 // updated session state.
 
 import type { ChatMessage } from "@kapruka/protocol";
-import { findLocalCartTool, localCartToolNames, localCartTools } from "../cartTools";
-import type { Logger } from "../log";
-import { callTool, listTools as listMcpTools, type McpCallResult } from "../mcp";
+import { findLocalCartTool, localCartToolNames, localCartTools } from "../cartTools.js";
+import type { Logger } from "../log.js";
+import { callTool, listTools as listMcpTools, type McpCallResult } from "../mcp.js";
 import {
   modelClient,
   stageModel,
   type ChatCompletionTool,
   type ChatMessageItem,
   type ToolCall,
-} from "../openai";
-import { buildToolsSystem } from "../promptSlices";
-import { renderStateBlock, type SessionState } from "../sessionState";
-import type { SseWriter } from "../sse";
-import { pickStatusLabel } from "../statusPool";
-import { renderRoutingBlock, type RoutingDecision } from "./router";
+} from "../openai.js";
+import { buildToolsSystem } from "../promptSlices.js";
+import { renderStateBlock, type SessionState } from "../sessionState.js";
+import type { SseWriter } from "../sse.js";
+import { pickStatusLabel } from "../statusPool.js";
+import { renderRoutingBlock, type RoutingDecision } from "./router.js";
 
 const MAX_ITERATIONS = 5;
 

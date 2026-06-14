@@ -1,7 +1,7 @@
 // POST /api/admin/turns/:id/label. Curation: rate, tag, correct.
 import { AdminLabelBodySchema } from "@kapruka/protocol";
-import { jsonResponse, withAdmin } from "../../../_lib/console/auth";
-import { getTurn, setTurnLabel } from "../../../_lib/console/store";
+import { jsonResponse, withAdmin } from "../../../_lib/console/auth.js";
+import { getTurn, setTurnLabel } from "../../../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 10 };
 

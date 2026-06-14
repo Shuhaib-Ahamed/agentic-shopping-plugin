@@ -6,7 +6,7 @@
 // works for gemini-2.5-flash with only the apiKey and baseURL changed.
 
 import OpenAI from "openai";
-import { env } from "./env";
+import { env } from "./env.js";
 
 let cachedClient: OpenAI | null = null;
 

@@ -1,6 +1,6 @@
 // GET /api/admin/sessions/:id. Full session detail with turns. Guarded.
-import { jsonResponse, withAdmin } from "../../_lib/console/auth";
-import { getSessionDetail } from "../../_lib/console/store";
+import { jsonResponse, withAdmin } from "../../_lib/console/auth.js";
+import { getSessionDetail } from "../../_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 10 };
 
