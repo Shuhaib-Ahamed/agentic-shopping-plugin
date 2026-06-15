@@ -17,7 +17,7 @@ import {
   signSession,
   verifyPassword,
   withAdmin,
-} from "../_lib/console/auth.js";
+} from "./_lib/console/auth.js";
 import {
   createDataset,
   exportDataset,
@@ -34,7 +34,7 @@ import {
   listDatasets,
   setPricing,
   setTurnLabel,
-} from "../_lib/console/store.js";
+} from "./_lib/console/store.js";
 
 export const config = { runtime: "nodejs", maxDuration: 30 };
 
