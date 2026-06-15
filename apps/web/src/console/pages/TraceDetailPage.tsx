@@ -18,6 +18,7 @@ import {
   ToolCallRow,
   TraceStepRow,
 } from "@/components/molecules/console";
+import { TurnNarrative } from "@/components/organisms/TurnNarrative";
 import { adminApi } from "../api";
 import { formatDateTime, formatMs, formatNumber } from "../format";
 import { useAsync } from "../hooks";
@@ -77,6 +78,10 @@ export function TraceDetailPage() {
         <Fact label="Tool calls" value={String(data.totals.toolCalls)} />
         <Fact label="Errors" value={String(data.errors.length)} />
       </div>
+
+      {/* Narrative: story-style walk through the pipeline. The waterfall + raw
+          panels below are kept for power-user debugging. */}
+      <TurnNarrative turn={data} />
 
       <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] p-5">
         <h2 className="font-display font-semibold text-[15px] tracking-[-0.01em] mb-3">
