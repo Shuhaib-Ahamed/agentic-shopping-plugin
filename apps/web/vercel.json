@@ -3,7 +3,11 @@
   "functions": {
     "api/chat.ts": { "maxDuration": 300 },
     "api/order-status.ts": { "maxDuration": 10 },
-    "api/prompts/[name].ts": { "maxDuration": 5 }
+    "api/prompts/[name].ts": { "maxDuration": 5 },
+    "api/admin-dispatch.ts": { "maxDuration": 30 }
   },
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/admin/:path*", "destination": "/api/admin-dispatch" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }
