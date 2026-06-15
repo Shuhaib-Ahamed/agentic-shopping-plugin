@@ -1,4 +1,0 @@
-# Excluded from production deploys (Hobby plan 12-function cap).
-# These routes still run locally during `vercel dev`.
-api/admin/
-api/telemetry.ts
