@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Children, Fragment, isValidElement, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { springs } from "@/lib/motion";
 
 export interface ComposerStackProps {
   /** Active tray (cart, form, checkout, success). `null` when nothing is open. */
@@ -14,17 +15,14 @@ export interface ComposerStackProps {
   className?: string;
 }
 
-const STACK_SPRING = {
-  type: "spring" as const,
-  stiffness: 320,
-  damping: 30,
-  mass: 0.85,
-};
+// Pulls from the shared sheet preset so the composer-adjacent stack
+// breathes at the same rhythm as cart / checkout / form panels.
+const STACK_SPRING = springs.sheet;
 
 const ENTRY = {
-  initial: { opacity: 0, y: 22, scale: 0.985 },
+  initial: { opacity: 0, y: 18, scale: 0.99 },
   animate: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: 14, scale: 0.985, transition: { duration: 0.2 } },
+  exit: { opacity: 0, y: 10, scale: 0.99, transition: { duration: 0.18, ease: [0.4, 0, 0.2, 1] } },
 };
 
 // Unified, animated stack that lives directly above the composer.

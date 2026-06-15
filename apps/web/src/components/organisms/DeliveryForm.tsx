@@ -1,8 +1,10 @@
 import type { Field, RequestInfoEvent } from "@kapruka/protocol";
+import { motion, useReducedMotion } from "framer-motion";
 import { useId, useState, type FormEvent } from "react";
 import { Button, Input } from "@/components/atoms";
 import { CityAutocompleteField, DatePickerField, type CityOption } from "@/components/molecules";
 import { pickStrings } from "@/i18n";
+import { instant, springs } from "@/lib/motion";
 import { useAppStore } from "@/store";
 
 export interface DeliveryFormProps {
@@ -16,6 +18,7 @@ export interface DeliveryFormProps {
 export function DeliveryForm({ event, onCityQuery, onSubmit, isPending }: DeliveryFormProps) {
   const locale = useAppStore((s) => s.locale);
   const t = pickStrings(locale);
+  const reduced = useReducedMotion();
   const baseId = useId();
   const [values, setValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
@@ -48,7 +51,12 @@ export function DeliveryForm({ event, onCityQuery, onSubmit, isPending }: Delive
   };
 
   return (
-    <section className="px-4 md:px-6 py-4 md:py-6 animate-[surface-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]">
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reduced ? instant : springs.sheet}
+      className="px-4 md:px-6 py-4 md:py-6"
+    >
       <form
         onSubmit={handleSubmit}
         className="rounded-[14px] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-sm)] p-4 md:p-5 max-w-[540px] mx-auto"
@@ -81,7 +89,7 @@ export function DeliveryForm({ event, onCityQuery, onSubmit, isPending }: Delive
           </Button>
         </div>
       </form>
-    </section>
+    </motion.section>
   );
 }
 

@@ -1,9 +1,11 @@
 import type { Product } from "@kapruka/protocol";
+import { motion, useReducedMotion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useRef } from "react";
 import { useFlyToCart } from "@/components/organisms/FlyToCart";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
+import { springs } from "@/lib/motion";
 
 export interface ProductCardProps {
   product: Product;
@@ -45,18 +47,22 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
 
   const { flyToCart } = useFlyToCart();
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const reduced = useReducedMotion();
   const handleAdd = () => {
     flyToCart(imageRef.current, product.image);
     onAdd?.(product);
   };
 
   return (
-    <article
+    <motion.article
+      whileHover={reduced ? undefined : { y: -3, scale: 1.005 }}
+      whileTap={reduced ? undefined : { scale: 0.99 }}
+      transition={springs.snappy}
       className={cn(
         "group relative my-4 flex flex-col rounded-[22px] overflow-hidden bg-white",
         "shadow-[var(--shadow-md)]",
-        "transition-[transform,box-shadow] duration-300 ease-[var(--easing-emphasized)]",
-        "hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]",
+        "hover:shadow-[var(--shadow-lg)]",
+        "transition-shadow duration-300 ease-[var(--easing-emphasized)]",
         emphasized && "ring-1 ring-[color:var(--color-cta)]",
         className,
       )}
@@ -189,7 +195,7 @@ export function ProductCard({ product, onOpen, onAdd, className, emphasized }: P
           </button>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 }
 

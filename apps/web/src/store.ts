@@ -7,8 +7,10 @@ import type {
   Money,
   OptionsEvent,
   OrderConfirmedEvent,
+  OrderSummary,
   Product,
   ProductDetailEvent,
+  Recipient,
   RequestInfoEvent,
   SseEvent,
 } from "@kapruka/protocol";
@@ -105,6 +107,16 @@ export interface AppState {
   /** Quick-reply chips above the composer. Lives only until the next user
    *  reply (clicked chip or typed message). Never persisted. */
   quickOptions: OptionsEvent | null;
+  /** Recipient captured by the delivery form. Persisted so a reload + click on
+   *  "Proceed to checkout" skips the form. The direct checkout endpoint also
+   *  mirrors this into server-side session_state. */
+  recipient: Recipient | null;
+  /** Optional gift message. */
+  giftMessage: string | null;
+  /** True when the cart "Proceed to checkout" flow opened the synthetic delivery
+   *  form. App.tsx reads this in the form's onSubmit to route to /api/checkout
+   *  instead of the LLM. Transient; never persisted. */
+  checkoutFlowActive: boolean;
 
   // actions
   setLocale: (l: Locale) => void;
@@ -133,6 +145,27 @@ export interface AppState {
    *  but the trimmed cart is included in the next chat request context, so the
    *  AI sees the new state on the next turn. */
   removeCartLine: (productId: string, variantId?: string) => void;
+  /** Persist the recipient (and optional gift message) collected on the
+   *  client. Called by the direct checkout flow before posting to /api/checkout. */
+  setRecipient: (recipient: Recipient, giftMessage?: string | null) => void;
+  /** Open a synthetic delivery form without calling the LLM. The DeliveryForm
+   *  organism renders off this surface, exactly as if the AI emitted it. Sets
+   *  checkoutFlowActive so the form submit routes to /api/checkout. Pre-fills
+   *  any recipient fields we already remember from a prior order. */
+  openCheckoutDeliveryForm: (params?: {
+    defaultCity?: string;
+    defaults?: Partial<Recipient> & { giftMessage?: string | null };
+  }) => void;
+  /** Apply the JSON response from /api/checkout: synthesize a checkout surface
+   *  and start polling for the pay status. No SSE involved. */
+  applyDirectCheckout: (payload: {
+    orderId: string;
+    payUrl: string;
+    expiresAt: string;
+    summary: OrderSummary;
+  }) => void;
+  /** Clear the checkout-flow flag, e.g. when the shopper closes the tray. */
+  endCheckoutFlow: () => void;
 }
 
 const initialCurrency: Currency = "LKR";
@@ -174,6 +207,9 @@ export const useAppStore = create<AppState>()(
       surface: { kind: "none" },
       pollingOrderId: null,
       quickOptions: null,
+      recipient: null,
+      giftMessage: null,
+      checkoutFlowActive: false,
 
       setLocale: (locale) => {
         set({ locale });
@@ -349,7 +385,7 @@ export const useAppStore = create<AppState>()(
           }
         }),
 
-      resetSurface: () => set({ surface: { kind: "none" } }),
+      resetSurface: () => set({ surface: { kind: "none" }, checkoutFlowActive: false }),
 
       setError: (code, message, recoverable) =>
         set({
@@ -377,6 +413,8 @@ export const useAppStore = create<AppState>()(
           surface: { kind: "none" },
           pollingOrderId: null,
           quickOptions: null,
+          recipient: null,
+          giftMessage: null,
         })),
 
       /** Clear the conversation timeline only - keeps cart, locale, currency. */
@@ -405,6 +443,113 @@ export const useAppStore = create<AppState>()(
             cart: { lines, subtotal: { amount, currency: s.cart.subtotal.currency } },
           };
         }),
+
+      setRecipient: (recipient, giftMessage) =>
+        set((s) => ({
+          recipient,
+          giftMessage: giftMessage === undefined ? s.giftMessage : giftMessage,
+        })),
+
+      openCheckoutDeliveryForm: ({ defaultCity, defaults } = {}) =>
+        set(() => {
+          const d = defaults ?? {};
+          // Synthetic RequestInfoEvent that mirrors what the AI used to emit.
+          // The DeliveryForm renders identically off this, no LLM involved.
+          const synthetic: RequestInfoEvent = {
+            type: "request_info",
+            title: "Where should we send it?",
+            intent: "delivery",
+            submitLabel: "Continue to checkout",
+            fields: [
+              {
+                name: "recipient_name",
+                label: "Recipient name",
+                type: "text",
+                required: true,
+                placeholder: "Who is this for?",
+                defaultValue: d.name,
+              },
+              {
+                name: "recipient_phone",
+                label: "Recipient phone",
+                type: "tel",
+                required: true,
+                placeholder: "07X XXX XXXX",
+                defaultValue: d.phone,
+              },
+              {
+                name: "address_line1",
+                label: "Address",
+                type: "text",
+                required: true,
+                placeholder: "House / street",
+                defaultValue: d.line1,
+              },
+              {
+                name: "address_line2",
+                label: "Apartment, suite, etc.",
+                type: "text",
+                required: false,
+                placeholder: "Optional",
+                defaultValue: d.line2,
+              },
+              {
+                name: "city",
+                label: "City",
+                type: "city",
+                required: true,
+                placeholder: "Type a Sri Lankan city",
+                defaultValue: d.city ?? defaultCity,
+              },
+              {
+                name: "postal_code",
+                label: "Postal code",
+                type: "text",
+                required: false,
+                placeholder: "Optional",
+                defaultValue: d.postalCode,
+              },
+              {
+                name: "delivery_date",
+                label: "Delivery date",
+                type: "date",
+                required: true,
+              },
+              {
+                name: "gift_message",
+                label: "Gift message",
+                type: "textarea",
+                required: false,
+                placeholder: "Optional, up to 200 characters",
+                maxLength: 200,
+                defaultValue: d.giftMessage ?? undefined,
+              },
+            ],
+          };
+          return {
+            surface: { kind: "request_info", payload: synthetic },
+            checkoutFlowActive: true,
+          };
+        }),
+
+      applyDirectCheckout: ({ orderId, payUrl, expiresAt, summary }) =>
+        set(() => {
+          const synthetic: CheckoutEvent = {
+            type: "checkout",
+            orderId,
+            payUrl,
+            expiresAt,
+            summary,
+          };
+          return {
+            surface: { kind: "checkout", payload: synthetic },
+            pollingOrderId: orderId,
+            status: { state: "idle" as StatusState },
+            checkoutFlowActive: false,
+          };
+        }),
+
+      endCheckoutFlow: () => set({ checkoutFlowActive: false }),
     }),
     {
       name: "kapruka-chat-session",
@@ -419,6 +564,8 @@ export const useAppStore = create<AppState>()(
         currency: state.currency,
         messages: state.messages,
         cart: state.cart,
+        recipient: state.recipient,
+        giftMessage: state.giftMessage,
       }),
       // On rehydrate, re-sync html[lang] for the typography pipeline.
       onRehydrateStorage: () => (state) => {

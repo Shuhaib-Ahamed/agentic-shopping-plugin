@@ -1,8 +1,10 @@
 import type { Product } from "@kapruka/protocol";
+import { motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 import { IconButton } from "@/components/atoms";
 import { ProductCard } from "@/components/molecules";
+import { fadeUpVariants, instant, staggerContainer } from "@/lib/motion";
 
 export interface ProductCarouselProps {
   title?: string;
@@ -13,6 +15,8 @@ export interface ProductCarouselProps {
 
 export function ProductCarousel({ title, items, onOpen, onAdd }: ProductCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const reduced = useReducedMotion();
+  const itemTransition = reduced ? instant : undefined;
 
   const scrollBy = (dir: 1 | -1) => {
     const el = scrollerRef.current;
@@ -22,18 +26,23 @@ export function ProductCarousel({ title, items, onOpen, onAdd }: ProductCarousel
   };
 
   return (
-    <section
-      className="w-full animate-[surface-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]"
+    <motion.section
+      variants={staggerContainer(0.06, 0.07)}
+      initial="hidden"
+      animate="visible"
+      className="w-full"
       aria-label={title ?? "Products"}
     >
       <div className="flex items-center justify-between px-4 md:px-6 mb-3">
         {title && (
-          <h3
+          <motion.h3
+            variants={fadeUpVariants}
+            transition={itemTransition}
             className="text-[var(--text-lg)] font-semibold text-[var(--color-primary)]"
             style={{ fontFamily: "var(--font-display)" }}
           >
             {title}
-          </h3>
+          </motion.h3>
         )}
         <div className="hidden md:flex items-center gap-1 ml-auto">
           <IconButton
@@ -58,11 +67,17 @@ export function ProductCarousel({ title, items, onOpen, onAdd }: ProductCarousel
         style={{ scrollPaddingInline: 16 }}
       >
         {items.map((p, idx) => (
-          <div key={p.id} className="scroll-snap-start shrink-0" style={{ width: 240 }}>
+          <motion.div
+            key={p.id}
+            variants={fadeUpVariants}
+            transition={itemTransition}
+            className="scroll-snap-start shrink-0"
+            style={{ width: 240 }}
+          >
             <ProductCard product={p} onOpen={onOpen} onAdd={onAdd} emphasized={idx === 0} />
-          </div>
+          </motion.div>
         ))}
       </div>
-    </section>
+    </motion.section>
   );
 }

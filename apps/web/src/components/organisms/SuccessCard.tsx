@@ -1,7 +1,9 @@
 import type { OrderConfirmedEvent } from "@kapruka/protocol";
+import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle2, ExternalLink } from "lucide-react";
 import { Button, Price } from "@/components/atoms";
 import { pickStrings } from "@/i18n";
+import { instant, springs } from "@/lib/motion";
 import { useAppStore } from "@/store";
 
 export interface SuccessCardProps {
@@ -19,9 +21,15 @@ const TIMELINE_STEPS = [
 export function SuccessCard({ event, onShopAgain }: SuccessCardProps) {
   const locale = useAppStore((s) => s.locale);
   const t = pickStrings(locale);
+  const reduced = useReducedMotion();
 
   return (
-    <section className="px-4 md:px-6 py-4 md:py-6 animate-[surface-in_700ms_cubic-bezier(0.16,1,0.3,1)_both]">
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reduced ? instant : springs.sheet}
+      className="px-4 md:px-6 py-4 md:py-6"
+    >
       <div className="glass-strong overflow-hidden">
         <div
           className="px-5 md:px-6 py-5 md:py-6 text-[var(--color-success)] bg-[color:var(--color-success-bg)]"
@@ -110,6 +118,6 @@ export function SuccessCard({ event, onShopAgain }: SuccessCardProps) {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

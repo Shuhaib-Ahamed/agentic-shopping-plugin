@@ -1,4 +1,5 @@
 import type { CartLine, Money } from "@kapruka/protocol";
+import { motion, useReducedMotion } from "framer-motion";
 import { ShoppingBag, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button, Price } from "@/components/atoms";
@@ -14,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { pickStrings } from "@/i18n";
+import { instant, springs } from "@/lib/motion";
 import { useAppStore } from "@/store";
 
 export interface CartPanelProps {
@@ -27,6 +29,7 @@ export function CartPanel({ lines, subtotal, onProceed }: CartPanelProps) {
   const clearCart = useAppStore((s) => s.clearCart);
   const removeCartLine = useAppStore((s) => s.removeCartLine);
   const t = pickStrings(locale);
+  const reduced = useReducedMotion();
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const totalItems = lines.reduce((n, l) => n + l.qty, 0);
 
@@ -43,7 +46,12 @@ export function CartPanel({ lines, subtotal, onProceed }: CartPanelProps) {
 
   return (
     <>
-      <section className="px-4 md:px-6 py-4 md:py-6 animate-[surface-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]">
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reduced ? instant : springs.sheet}
+        className="px-4 md:px-6 py-4 md:py-6"
+      >
         <div className="rounded-[14px] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-sm)] p-4 md:p-5">
           <header className="flex items-center justify-between gap-3 mb-3">
             <div className="flex items-baseline gap-2 min-w-0">
@@ -88,7 +96,7 @@ export function CartPanel({ lines, subtotal, onProceed }: CartPanelProps) {
             </Button>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       <AlertDialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
         <AlertDialogContent>

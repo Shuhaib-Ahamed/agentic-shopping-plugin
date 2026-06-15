@@ -4,6 +4,9 @@ import { Price } from "@/components/atoms";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/format";
 
+// Entry motion is owned by the parent `MessageList` (wraps each block in a
+// motion.div with `fadeUpVariants`). This component renders the card only.
+
 export interface DeliveryQuoteCardProps {
   quote: DeliveryQuoteEvent;
   className?: string;
@@ -17,7 +20,6 @@ export function DeliveryQuoteCard({ quote, className }: DeliveryQuoteCardProps) 
       className={cn(
         "w-full max-w-[480px] rounded-[var(--radius-lg)] bg-surface border border-border",
         "shadow-[var(--shadow-sm)] overflow-hidden",
-        "animate-[surface-in_420ms_cubic-bezier(0.16,1,0.3,1)_both]",
         className,
       )}
     >

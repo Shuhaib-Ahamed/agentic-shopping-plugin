@@ -1,6 +1,8 @@
+import { motion, useReducedMotion } from "framer-motion";
 import { memo, type ReactNode } from "react";
 import { JunoMark } from "@/components/atoms";
 import { cn } from "@/lib/cn";
+import { instant, springs } from "@/lib/motion";
 import { MarkdownMessage } from "./MarkdownMessage";
 
 export type MessageRole = "user" | "assistant";
@@ -27,18 +29,29 @@ export const MessageBubble = memo(function MessageBubble({
   children,
 }: MessageBubbleProps) {
   const isUser = role === "user";
+  const reduced = useReducedMotion();
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reduced ? instant : springs.snappy}
+      layout="position"
       className={cn(
         "flex w-full gap-3 items-start",
         isUser ? "flex-row-reverse" : "flex-row",
-        "animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]",
         className,
       )}
     >
       {!isUser && (
-        <div className="mt-0.5 shrink-0">
-          <JunoMark size={40} bare />
+        <div
+          className="mt-0.5 shrink-0 flex items-center justify-center rounded-full shadow-[0_1px_2px_rgba(20,16,40,0.08)]"
+          style={{
+            width: 40,
+            height: 40,
+            background: "var(--color-violet)",
+          }}
+        >
+          <JunoMark size={28} bare mono="#ffffff" />
         </div>
       )}
       <div
@@ -87,6 +100,6 @@ export const MessageBubble = memo(function MessageBubble({
           </p>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 });

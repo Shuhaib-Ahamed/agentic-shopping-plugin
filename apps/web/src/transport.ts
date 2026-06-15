@@ -1,9 +1,60 @@
 import {
   ChatRequestSchema,
+  type CartLine,
   type ChatRequest,
+  type Currency,
+  type OrderSummary,
+  type Recipient,
   type SseEvent,
   SseEventSchema,
 } from "@kapruka/protocol";
+
+export interface PostCheckoutInput {
+  sessionId: string;
+  cart: CartLine[];
+  recipient: Recipient;
+  delivery: { city: string; date: string };
+  giftMessage?: string;
+  sender?: { name?: string; phone?: string; email?: string };
+  currency?: Currency;
+}
+
+export type PostCheckoutResult =
+  | {
+      ok: true;
+      orderId: string;
+      payUrl: string;
+      expiresAt: string;
+      summary: OrderSummary;
+      perishableWarning: string | null;
+    }
+  | {
+      ok: false;
+      code: "bad_request" | "mcp_failed" | "rate_limited" | "internal";
+      message: string;
+    };
+
+/**
+ * Direct checkout: POSTs to /api/checkout, which calls Kapruka MCP without
+ * touching the LLM. Returns a single JSON payload — no SSE, no streaming.
+ */
+export async function postCheckout(input: PostCheckoutInput): Promise<PostCheckoutResult> {
+  try {
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(input),
+    });
+    const json = (await res.json()) as PostCheckoutResult;
+    return json;
+  } catch (err) {
+    return {
+      ok: false,
+      code: "internal",
+      message: (err as Error).message ?? "Network error during checkout.",
+    };
+  }
+}
 
 export interface ChatStreamHandlers {
   onEvent: (event: SseEvent) => void;

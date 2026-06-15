@@ -1,6 +1,8 @@
 import type { Product } from "@kapruka/protocol";
+import { motion, useReducedMotion } from "framer-motion";
 import { ProductCard, ProductCardSkeleton, SingleProductCard } from "@/components/molecules";
 import { cn } from "@/lib/cn";
+import { fadeUpVariants, instant, springs, staggerContainer } from "@/lib/motion";
 
 export interface ProductCarouselInlineProps {
   title?: string;
@@ -27,17 +29,19 @@ export function ProductCarouselInline({
   className,
 }: ProductCarouselInlineProps) {
   const skeletons = Array.from({ length: 4 });
+  const reduced = useReducedMotion();
+  const itemTransition = reduced ? instant : undefined;
 
   // Single-item shortcut: ProductCard's vertical aspect-ratio image gets huge
   // at full chat width. Swap to the horizontal SingleProductCard instead.
   const soloItem = !loading && items.length === 1 ? items[0] : undefined;
   if (soloItem) {
     return (
-      <section
-        className={cn(
-          "w-full animate-[surface-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]",
-          className,
-        )}
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reduced ? instant : springs.gentle}
+        className={cn("w-full", className)}
         aria-label={title ?? "Product"}
       >
         {title && (
@@ -49,7 +53,7 @@ export function ProductCarouselInline({
           </h3>
         )}
         <SingleProductCard product={soloItem} onOpen={onOpen} onAdd={onAdd} />
-      </section>
+      </motion.section>
     );
   }
 
@@ -58,17 +62,22 @@ export function ProductCarouselInline({
   const minCol = layout === "grid" ? "180px" : "240px";
 
   return (
-    <section
-      className={cn("w-full animate-[surface-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]", className)}
+    <motion.section
+      variants={staggerContainer(0.06, 0.07)}
+      initial="hidden"
+      animate="visible"
+      className={cn("w-full", className)}
       aria-label={title ?? "Products"}
     >
       {title && (
-        <h3
+        <motion.h3
+          variants={fadeUpVariants}
+          transition={itemTransition}
           className="text-[var(--text-md)] font-semibold text-primary mb-3"
           style={{ fontFamily: "var(--font-display)" }}
         >
           {title}
-        </h3>
+        </motion.h3>
       )}
       <div
         className="grid gap-3"
@@ -78,19 +87,20 @@ export function ProductCarouselInline({
       >
         {(loading ? skeletons : items).map((p, idx) =>
           loading ? (
-            <ProductCardSkeleton key={idx} />
+            <motion.div key={idx} variants={fadeUpVariants} transition={itemTransition}>
+              <ProductCardSkeleton />
+            </motion.div>
           ) : (
-            <div
+            <motion.div
               key={(p as Product).id}
-              style={{
-                animation: `surface-in 420ms cubic-bezier(0.16, 1, 0.3, 1) ${idx * 50}ms both`,
-              }}
+              variants={fadeUpVariants}
+              transition={itemTransition}
             >
               <ProductCard product={p as Product} onOpen={onOpen} onAdd={onAdd} />
-            </div>
+            </motion.div>
           ),
         )}
       </div>
-    </section>
+    </motion.section>
   );
 }

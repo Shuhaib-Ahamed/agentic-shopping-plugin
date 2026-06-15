@@ -1,5 +1,14 @@
-import { CalendarDays, Check, MapPin, Phone, User, type LucideIcon } from "lucide-react";
+import {
+  CalendarDays,
+  CircleDollarSign,
+  MapPin,
+  Phone,
+  Sparkles,
+  User,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/cn";
+import { formatMoney as formatLkr } from "@/lib/format";
 
 export interface DeliveryDetailsCardProps {
   values: Record<string, string>;
@@ -14,39 +23,44 @@ export function DeliveryDetailsCard({ values, className }: DeliveryDetailsCardPr
   if (rows.length === 0) return null;
 
   return (
-    <div className={cn("ml-auto max-w-[520px] w-full", className)}>
+    <div className={cn("ml-auto w-full max-w-[440px]", className)}>
       <article
         className={cn(
-          "rounded-[18px] bg-[var(--color-surface)]",
-          "border border-[var(--color-border)]",
-          "shadow-[var(--shadow-sm)]",
+          "rounded-[var(--radius-bubble)] rounded-br-[6px]",
+          "bg-[var(--color-surface)]",
+          "ring-1 ring-[var(--color-border)]",
+          "shadow-[var(--shadow-bubble)]",
           "overflow-hidden",
         )}
       >
         <header
           className={cn(
-            "flex items-center gap-2 px-4 py-2.5",
-            "border-b border-[var(--color-border)]",
-            "bg-[color:var(--color-surface-warm)]",
+            "flex items-center gap-2.5 px-4 pt-3.5 pb-3",
+            "border-b border-dashed border-[var(--color-border)]",
           )}
         >
           <span
             aria-hidden
             className={cn(
-              "grid place-items-center w-5 h-5 rounded-full",
-              "bg-[color:var(--color-accent)] text-[color:var(--color-text)]",
+              "grid place-items-center w-7 h-7 rounded-[10px] shrink-0",
+              "bg-[var(--color-lavender)] text-[var(--color-lavender-ink)]",
             )}
           >
-            <Check size={12} strokeWidth={3} />
+            <Sparkles size={14} strokeWidth={2.2} />
           </span>
-          <span className="text-[var(--text-xs)] font-semibold tracking-[0.02em] text-[color:var(--color-text-muted)]">
-            delivery details
-          </span>
+          <h3
+            className={cn(
+              "m-0 text-[var(--text-sm)] font-semibold leading-snug",
+              "text-[var(--color-text)] tracking-[0.005em]",
+            )}
+          >
+            Delivery Details
+          </h3>
         </header>
 
-        <dl className="px-4 py-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-2.5">
-          {rows.map(({ key, Icon, label, value }) => (
-            <Row key={key} Icon={Icon} label={label} value={value} />
+        <dl className="px-4 py-3">
+          {rows.map(({ key, Icon, label, value }, i) => (
+            <Row key={key} Icon={Icon} label={label} value={value} divided={i > 0} />
           ))}
         </dl>
       </article>
@@ -61,42 +75,65 @@ interface RowConfig {
   value: string;
 }
 
-function Row({ Icon, label, value }: Omit<RowConfig, "key">) {
+function Row({ Icon, label, value, divided }: Omit<RowConfig, "key"> & { divided: boolean }) {
   return (
-    <>
-      <dt className="flex items-start pt-0.5 text-[color:var(--color-cta)]">
+    <div
+      className={cn(
+        "grid grid-cols-[28px_1fr] gap-x-3 items-center py-2",
+        divided && "border-t border-[var(--color-border)]",
+      )}
+    >
+      <dt
+        aria-hidden
+        className={cn(
+          "grid place-items-center w-7 h-7 rounded-[8px]",
+          "bg-[var(--color-cta-soft)] text-[var(--color-cta)]",
+        )}
+      >
         <Icon size={14} strokeWidth={2.2} />
       </dt>
-      <dd className="min-w-0">
-        <div className="text-[var(--text-2xs)] tracking-[0.02em] text-[color:var(--color-text-muted)]">
+      <dd className="min-w-0 flex items-baseline justify-between gap-3">
+        <span
+          className={cn(
+            "text-[var(--text-2xs)] font-medium uppercase",
+            "tracking-[0.08em] text-[var(--color-text-muted)]",
+          )}
+        >
           {label}
-        </div>
-        <div
-          className="text-[var(--text-sm)] font-semibold text-[color:var(--color-text)] leading-snug break-words"
+        </span>
+        <span
+          className={cn(
+            "text-[var(--text-sm)] font-semibold leading-snug text-right",
+            "text-[var(--color-text)] break-words min-w-0",
+          )}
           style={{ fontVariantNumeric: "tabular-nums" }}
         >
           {value}
-        </div>
+        </span>
       </dd>
-    </>
+    </div>
   );
 }
 
 // Field-name dictionary. The AI's request_info schema sets the keys, so we
 // recognise the common ones and fall back to a humanised key for the rest.
 const FIELD_MAP: Record<string, { Icon: LucideIcon; label: string }> = {
-  recipient_name: { Icon: User, label: "recipient" },
-  name: { Icon: User, label: "recipient" },
-  recipient_phone: { Icon: Phone, label: "phone" },
-  phone: { Icon: Phone, label: "phone" },
-  address: { Icon: MapPin, label: "address" },
-  line1: { Icon: MapPin, label: "address" },
-  line2: { Icon: MapPin, label: "address line 2" },
-  city: { Icon: MapPin, label: "city" },
-  postal_code: { Icon: MapPin, label: "postal code" },
-  postalCode: { Icon: MapPin, label: "postal code" },
-  delivery_date: { Icon: CalendarDays, label: "delivery date" },
-  date: { Icon: CalendarDays, label: "delivery date" },
+  recipient_name: { Icon: User, label: "Recipient" },
+  name: { Icon: User, label: "Recipient" },
+  recipient_phone: { Icon: Phone, label: "Phone" },
+  phone: { Icon: Phone, label: "Phone" },
+  address: { Icon: MapPin, label: "Address" },
+  line1: { Icon: MapPin, label: "Address" },
+  line2: { Icon: MapPin, label: "Address Line 2" },
+  city: { Icon: MapPin, label: "City" },
+  postal_code: { Icon: MapPin, label: "Postal Code" },
+  postalCode: { Icon: MapPin, label: "Postal Code" },
+  delivery_date: { Icon: CalendarDays, label: "Delivery Date" },
+  date: { Icon: CalendarDays, label: "Delivery Date" },
+  budget: { Icon: CircleDollarSign, label: "Budget" },
+  bouquet_budget: { Icon: CircleDollarSign, label: "Bouquet Budget" },
+  amount: { Icon: CircleDollarSign, label: "Amount" },
+  price: { Icon: CircleDollarSign, label: "Price" },
 };
 
 // Display order - known keys first in a sensible order, unknown keys last
@@ -114,6 +151,10 @@ const ORDER: string[] = [
   "postalCode",
   "delivery_date",
   "date",
+  "bouquet_budget",
+  "budget",
+  "amount",
+  "price",
 ];
 
 function orderRows(values: Record<string, string>): RowConfig[] {
@@ -138,8 +179,8 @@ function orderRows(values: Record<string, string>): RowConfig[] {
     if (!display) continue;
     rows.push({
       key,
-      Icon: cfg?.Icon ?? MapPin,
-      label: cfg?.label ?? humanise(key),
+      Icon: cfg?.Icon ?? pickIconForKey(key),
+      label: cfg?.label ?? titleCase(key),
       value: display,
     });
   }
@@ -147,17 +188,32 @@ function orderRows(values: Record<string, string>): RowConfig[] {
   return rows;
 }
 
-// "recipient_name" → "recipient name". Keeps the lowercase house style.
-function humanise(key: string): string {
+function pickIconForKey(key: string): LucideIcon {
+  const k = key.toLowerCase();
+  if (/(budget|price|amount|cost|total)/.test(k)) return CircleDollarSign;
+  if (/(date|day|when)/.test(k)) return CalendarDays;
+  if (/(phone|mobile|tel)/.test(k)) return Phone;
+  if (/(name|recipient|contact)/.test(k)) return User;
+  return MapPin;
+}
+
+// "recipient_name" → "Recipient Name". Title Case for label legibility.
+function titleCase(key: string): string {
   const spaced = key.replace(/[_-]+/g, " ").trim();
   if (!spaced) return key;
-  return spaced.toLowerCase();
+  return spaced
+    .split(" ")
+    .map((w) => (w ? w[0]!.toUpperCase() + w.slice(1).toLowerCase() : w))
+    .join(" ");
 }
 
 function formatValue(key: string, raw: string): string {
   const value = raw.trim();
   if (!value) return "";
-  if (key === "delivery_date" || key === "date") return formatDate(value);
+  const k = key.toLowerCase();
+  if (k === "delivery_date" || k === "date") return formatDate(value);
+  if (/(phone|mobile|tel)/.test(k)) return formatPhone(value);
+  if (/(budget|price|amount|cost|total)/.test(k)) return formatMoney(value);
   return value;
 }
 
@@ -174,4 +230,32 @@ function formatDate(raw: string): string {
     month: "short",
     year: "numeric",
   });
+}
+
+// "07782647583" → "077 826 4758". Groups LK-style mobile numbers as 3,3,4.
+// Anything that doesn't match the 10/11 digit shape is returned untouched.
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  }
+  if (digits.length === 11 && digits.startsWith("0")) {
+    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+  }
+  return raw;
+}
+
+// "5000 - 10000" → "Rs 5,000 to Rs 10,000". Delegates to the shared LKR
+// formatter in lib/format so the rupee symbol and grouping match the rest
+// of the app (Price atom, master design system rule). Falls back to raw
+// when no numbers parse, so free-form phrases ("around 5k") still render.
+function formatMoney(raw: string): string {
+  const matches = raw.match(/\d[\d,]*/g);
+  if (!matches || matches.length === 0) return raw;
+  const nums = matches.map((m) => Number.parseInt(m.replace(/,/g, ""), 10)).filter(Number.isFinite);
+  if (nums.length === 0) return raw;
+  if (nums.length >= 2) {
+    return `${formatLkr({ amount: nums[0]!, currency: "LKR" })} to ${formatLkr({ amount: nums[1]!, currency: "LKR" })}`;
+  }
+  return formatLkr({ amount: nums[0]!, currency: "LKR" });
 }

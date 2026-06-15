@@ -1,7 +1,8 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useMemo } from "react";
 import { JunoMark } from "@/components/atoms";
 import { cn } from "@/lib/cn";
+import { instant, springs } from "@/lib/motion";
 import type { StatusState } from "@/store";
 
 export interface StatusBubbleProps {
@@ -68,6 +69,8 @@ export function StatusBubble({ state, label, detail, className }: StatusBubblePr
     return pickFromPool(pool);
   }, [state]);
 
+  const reduced = useReducedMotion();
+
   if (state === "idle") return null;
 
   const text = label ?? fallbackLabel;
@@ -76,17 +79,25 @@ export function StatusBubble({ state, label, detail, className }: StatusBubblePr
   const key = `${state}::${text}::${detail ?? ""}`;
 
   return (
-    <div
-      className={cn(
-        "flex w-full gap-3 items-end",
-        "animate-[message-in_420ms_cubic-bezier(0.16,1,0.3,1)_both]",
-        className,
-      )}
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 4 }}
+      transition={reduced ? instant : springs.gentle}
+      layout="position"
+      className={cn("flex w-full gap-3 items-end", className)}
       role="status"
       aria-live="polite"
     >
-      <div className="pb-1 shrink-0">
-        <JunoMark size={40} bare />
+      <div
+        className="mb-1 shrink-0 flex items-center justify-center rounded-full shadow-[0_1px_2px_rgba(20,16,40,0.08)]"
+        style={{
+          width: 40,
+          height: 40,
+          background: "var(--color-violet)",
+        }}
+      >
+        <JunoMark size={28} bare mono="#ffffff" />
       </div>
       <div
         className={cn(
@@ -131,7 +142,7 @@ export function StatusBubble({ state, label, detail, className }: StatusBubblePr
           </motion.div>
         </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

@@ -4,6 +4,7 @@ import type {
   Money,
   OptionsEvent,
   Product,
+  Recipient,
   Variant,
 } from "@kapruka/protocol";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -28,7 +29,7 @@ import { pickStrings } from "@/i18n";
 import { emitTelemetry } from "@/lib/telemetry";
 import type { TextMessage } from "@/store";
 import { selectCart, selectStatus, selectSurface, useAppStore } from "@/store";
-import { pollOrderStatus, streamChat } from "@/transport";
+import { pollOrderStatus, postCheckout, streamChat } from "@/transport";
 
 // Safety net: shown when the AI didn't emit `present_options` so the chips
 // bar above the composer is never empty. The system prompt mandates chips
@@ -61,6 +62,12 @@ export function App() {
   const pushDeliveryDetails = useAppStore((s) => s.pushDeliveryDetails);
   const setError = useAppStore((s) => s.setError);
   const resetSurface = useAppStore((s) => s.resetSurface);
+  const recipient = useAppStore((s) => s.recipient);
+  const giftMessage = useAppStore((s) => s.giftMessage);
+  const checkoutFlowActive = useAppStore((s) => s.checkoutFlowActive);
+  const setRecipient = useAppStore((s) => s.setRecipient);
+  const openCheckoutDeliveryForm = useAppStore((s) => s.openCheckoutDeliveryForm);
+  const applyDirectCheckout = useAppStore((s) => s.applyDirectCheckout);
 
   const [pending, setPending] = useState(false);
   /* Quick-view modal - opens with the Product object the card already has,
@@ -130,6 +137,104 @@ export function App() {
       });
     },
     [applyEvent, makeRequest, pushUserMessage, setError, sessionId, t.error.generic],
+  );
+
+  // -----------------------------------------------------------------------
+  // Direct checkout: cart -> /api/checkout, no LLM. The checkoutFlowActive
+  // flag in the store tells us the delivery form was opened by the cart
+  // proceed button (not by the AI), so its submit should call the gateway
+  // directly and render the CheckoutPanel from the JSON response.
+  // -----------------------------------------------------------------------
+  const proceedFromCart = useCallback(() => {
+    setCartOpen(false);
+    // If we already remember a recipient from a prior order, still show the
+    // form so the shopper can confirm the delivery date for THIS order.
+    // Pre-filling makes it a one-tap confirmation in the common case.
+    openCheckoutDeliveryForm({
+      defaults: {
+        ...(recipient ?? {}),
+        giftMessage,
+      },
+    });
+  }, [setCartOpen, openCheckoutDeliveryForm, recipient, giftMessage]);
+
+  const submitDirectCheckout = useCallback(
+    async (values: Record<string, string>) => {
+      const builtRecipient: Recipient = {
+        name: (values.recipient_name ?? "").trim(),
+        phone: (values.recipient_phone ?? "").trim(),
+        line1: (values.address_line1 ?? "").trim(),
+        line2: values.address_line2?.trim() || undefined,
+        city: (values.city ?? "").trim(),
+        postalCode: values.postal_code?.trim() || undefined,
+      };
+      const deliveryDate = (values.delivery_date ?? "").trim();
+      const gift = values.gift_message?.trim() || undefined;
+
+      if (
+        !builtRecipient.name ||
+        !builtRecipient.phone ||
+        !builtRecipient.line1 ||
+        !builtRecipient.city ||
+        !deliveryDate
+      ) {
+        setError("checkout_form", "Please fill the required delivery fields.", true);
+        return;
+      }
+      if (cart.lines.length === 0) {
+        setError("empty_cart", "Your cart is empty. Add something first.", true);
+        return;
+      }
+
+      // Persist client-side so a reload preserves them.
+      setRecipient(builtRecipient, gift ?? null);
+      // Render a delivery-details block in the timeline so the shopper has
+      // a visible record of what they just submitted.
+      pushDeliveryDetails(values);
+      resetSurface();
+      setPending(true);
+
+      const result = await postCheckout({
+        sessionId,
+        cart: cart.lines,
+        recipient: builtRecipient,
+        delivery: { city: builtRecipient.city, date: deliveryDate },
+        giftMessage: gift,
+        currency,
+      });
+      setPending(false);
+
+      if (!result.ok) {
+        setError("checkout_failed", result.message, true);
+        emitTelemetry({
+          sessionId,
+          kind: "client_error",
+          payload: { scope: "direct_checkout", code: result.code, message: result.message },
+        });
+        return;
+      }
+      applyDirectCheckout({
+        orderId: result.orderId,
+        payUrl: result.payUrl,
+        expiresAt: result.expiresAt,
+        summary: result.summary,
+      });
+      emitTelemetry({
+        sessionId,
+        kind: "render_ack",
+        payload: { event: "checkout", source: "direct" },
+      });
+    },
+    [
+      cart.lines,
+      currency,
+      sessionId,
+      setError,
+      setRecipient,
+      pushDeliveryDetails,
+      resetSurface,
+      applyDirectCheckout,
+    ],
   );
 
   // Polling lives below `send` so it can use it.
@@ -247,16 +352,7 @@ export function App() {
       const subtotal = cart.subtotal ?? { amount: 0, currency };
       return {
         trayTitle: t.cart.title,
-        trayBody: (
-          <CartPanel
-            lines={cart.lines}
-            subtotal={subtotal}
-            onProceed={() => {
-              setCartOpen(false);
-              send("Proceed to checkout, please.");
-            }}
-          />
-        ),
+        trayBody: <CartPanel lines={cart.lines} subtotal={subtotal} onProceed={proceedFromCart} />,
       };
     }
     switch (surface.kind) {
@@ -267,6 +363,10 @@ export function App() {
               event={surface.payload}
               onCityQuery={cityQuery}
               onSubmit={(values) => {
+                if (checkoutFlowActive) {
+                  void submitDirectCheckout(values);
+                  return;
+                }
                 pushDeliveryDetails(values);
                 // Close the tray the moment the form is submitted; the
                 // delivery card now lives inline in the chat timeline.
@@ -346,10 +446,12 @@ export function App() {
     cart.lines,
     cart.subtotal,
     currency,
-    setCartOpen,
     send,
     pushDeliveryDetails,
     resetSurface,
+    proceedFromCart,
+    submitDirectCheckout,
+    checkoutFlowActive,
   ]);
 
   const trayOpen = trayBody !== null;

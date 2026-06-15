@@ -1,9 +1,11 @@
 import type { CheckoutEvent } from "@kapruka/protocol";
+import { motion, useReducedMotion } from "framer-motion";
 import { Copy, ExternalLink, AlertCircle, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { Button, IconButton, Price, Spinner } from "@/components/atoms";
 import { CountdownPill } from "@/components/molecules";
 import { pickStrings } from "@/i18n";
+import { instant, springs } from "@/lib/motion";
 import { useAppStore } from "@/store";
 
 export interface CheckoutPanelProps {
@@ -26,6 +28,7 @@ export function CheckoutPanel({
 }: CheckoutPanelProps) {
   const locale = useAppStore((s) => s.locale);
   const t = pickStrings(locale);
+  const reduced = useReducedMotion();
   const [copied, setCopied] = useState(false);
 
   const openPay = () => {
@@ -46,7 +49,12 @@ export function CheckoutPanel({
   const failed = paymentStatus === "failed";
 
   return (
-    <section className="px-4 md:px-6 py-4 md:py-6 animate-[surface-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]">
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reduced ? instant : springs.sheet}
+      className="px-4 md:px-6 py-4 md:py-6"
+    >
       <div className="glass-strong p-4 md:p-6">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -187,6 +195,6 @@ export function CheckoutPanel({
           </>
         )}
       </div>
-    </section>
+    </motion.section>
   );
 }

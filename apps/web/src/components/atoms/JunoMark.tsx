@@ -11,13 +11,28 @@ export interface JunoMarkProps {
    *  `className` (e.g. `w-20 md:w-28 lg:w-36`) can drive the size. The
    *  inner SVG then fills 100% × 100% of the wrapper. */
   fluid?: boolean;
+  /** Render the mark as a single-colour silhouette (transparent bubble fill,
+   *  given colour for outline + eyes + accent dot). For coloured avatar
+   *  backgrounds. */
+  mono?: string;
 }
 
 // Juno's mascot - a friendly chat bubble with a happy face and an orange
 // status dot floating above. Renders an inline SVG so it can be themed and
 // sized fluidly. Pairs with the chat-card UI direction (soft, light, playful).
-export function JunoMark({ size = 40, className, status = "idle", bare, fluid }: JunoMarkProps) {
+export function JunoMark({
+  size = 40,
+  className,
+  status = "idle",
+  bare,
+  fluid,
+  mono,
+}: JunoMarkProps) {
   const pulse = status !== "idle";
+  const dotFill = mono ?? "var(--color-accent)";
+  const bubbleFill = mono ? "none" : "#ffffff";
+  const bubbleStroke = mono ?? "var(--color-violet)";
+  const eyeStroke = mono ?? "#2c3a47";
   return (
     <span
       className={cn("relative inline-block shrink-0", className)}
@@ -30,28 +45,25 @@ export function JunoMark({ size = 40, className, status = "idle", bare, fluid }:
         xmlns="http://www.w3.org/2000/svg"
         className="block overflow-visible"
       >
-        {/* Floating yellow dot - pulses as the live status indicator. */}
         <circle
           cx="100"
           cy="33"
           r="11"
-          fill="var(--color-accent)"
+          fill={dotFill}
           className={pulse ? "animate-pulse" : undefined}
         />
 
-        {/* Bordered chat bubble with a subtle tail - violet outline matching brand. */}
         <path
           d="M 112 156 A 52 52 0 1 0 88 156 L 100 165 Z"
-          fill="#ffffff"
-          stroke="var(--color-violet)"
+          fill={bubbleFill}
+          stroke={bubbleStroke}
           strokeWidth="9"
           strokeLinejoin="round"
         />
 
-        {/* Happy closed eyes. */}
         <g
           fill="none"
-          stroke="#2c3a47"
+          stroke={eyeStroke}
           strokeWidth="9"
           strokeLinecap="round"
           strokeLinejoin="round"

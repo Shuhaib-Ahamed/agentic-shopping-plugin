@@ -38,7 +38,8 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd }: Product
           className={cn(
             "fixed inset-0 z-40",
             "bg-[rgba(15,15,24,0.45)] backdrop-blur-md",
-            "data-[state=open]:animate-[fade-in_180ms_ease-out]",
+            "data-[state=open]:animate-[dialog-fade-in_200ms_ease-out]",
+            "data-[state=closed]:animate-[dialog-fade-out_140ms_ease-in]",
           )}
         />
         <Dialog.Content
@@ -47,7 +48,8 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd }: Product
             "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50",
             "w-[min(94vw,560px)] max-h-[92vh] overflow-y-auto scroll-quiet",
             "bg-white rounded-[22px] shadow-[var(--shadow-xl)]",
-            "data-[state=open]:animate-[surface-in_300ms_cubic-bezier(0.16,1,0.3,1)_both]",
+            "data-[state=open]:animate-[dialog-pop-in_320ms_cubic-bezier(0.22,1,0.36,1)_both]",
+            "data-[state=closed]:animate-[dialog-pop-out_160ms_ease-in_both]",
           )}
         >
           {/* Close button - floats over the lavender pane. */}

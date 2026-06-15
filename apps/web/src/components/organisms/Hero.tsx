@@ -1,9 +1,11 @@
+import { motion, useReducedMotion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { JunoMark } from "@/components/atoms";
 import { Marquee } from "@/components/molecules";
 import { DiaTextReveal } from "@/components/ui/dia-text-reveal";
 import { pickStrings } from "@/i18n";
 import { cn } from "@/lib/cn";
+import { instant, springs } from "@/lib/motion";
 import { useAppStore } from "@/store";
 
 export interface HeroProps {
@@ -24,6 +26,7 @@ export function HeroIntro() {
   const locale = useAppStore((s) => s.locale);
   const t = pickStrings(locale);
   const brand = t.app.title ?? "Juno";
+  const reduced = useReducedMotion();
 
   // Both lines render at once. Each DiaTextReveal plays a single sweep on
   // mount; the second is delayed so the eye reads left→right, top→bottom.
@@ -32,8 +35,11 @@ export function HeroIntro() {
   const inkColor = "#161624";
 
   return (
-    <div
-      className="relative w-full max-w-[1200px] mx-auto px-5 md:px-8 animate-[surface-in_700ms_cubic-bezier(0.16,1,0.3,1)_both]"
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reduced ? instant : springs.sheet}
+      className="relative w-full max-w-[1200px] mx-auto px-5 md:px-8"
       aria-labelledby="hero-headline"
     >
       <div className="flex items-center justify-center mt-28 sm:mt-32 md:mt-36 gap-4 sm:gap-6 md:gap-7">
@@ -84,7 +90,7 @@ export function HeroIntro() {
           </span>
         </h1>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -97,6 +103,7 @@ export function HeroIntro() {
 export function HeroPrompts({ onSuggestion }: HeroProps) {
   const locale = useAppStore((s) => s.locale);
   const t = pickStrings(locale);
+  const reduced = useReducedMotion();
 
   // Order is chosen so consecutive chips alternate language/topic, which
   // reads more interesting as it scrolls past than birthday-cake-flowers.
@@ -110,12 +117,14 @@ export function HeroPrompts({ onSuggestion }: HeroProps) {
   ];
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={reduced ? instant : { duration: 0.7, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
         // Match ComposerStack's column width so the marquee is exactly as
         // long as the composer above it.
         "relative w-full max-w-[1200px] mx-auto px-3 md:px-5",
-        "animate-[fade-in_700ms_cubic-bezier(0.16,1,0.3,1)_120ms_both]",
       )}
       aria-label="Starter prompts"
     >
@@ -150,7 +159,7 @@ export function HeroPrompts({ onSuggestion }: HeroProps) {
           );
         })}
       </Marquee>
-    </div>
+    </motion.div>
   );
 }
 

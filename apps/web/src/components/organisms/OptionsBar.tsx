@@ -1,9 +1,10 @@
 import type { OptionsEvent } from "@kapruka/protocol";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { X, Sparkles } from "lucide-react";
 import * as Icons from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import { cn } from "@/lib/cn";
+import { fadeRiseVariants, instant, staggerContainer } from "@/lib/motion";
 
 export interface OptionsBarProps {
   options: OptionsEvent | null;
@@ -26,10 +27,16 @@ function resolveIcon(name?: string): LucideIcon | null {
 // the card itself; staggered chip reveal stays internal so chips fan in even
 // when the bar is reused.
 export function OptionsBar({ options, onSelect, onDismiss, className }: OptionsBarProps) {
+  const reduced = useReducedMotion();
   if (!options) return null;
+  const itemTransition = reduced ? instant : undefined;
 
   return (
-    <div
+    <motion.div
+      variants={staggerContainer(0.06, 0.05)}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
       className={cn(
         "relative rounded-[var(--radius-xl)]",
         "bg-white/95 border border-border",
@@ -90,22 +97,18 @@ export function OptionsBar({ options, onSelect, onDismiss, className }: OptionsB
               key={`${opt.value}-${idx}`}
               type="button"
               onClick={() => onSelect(opt.value)}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: 0.04 + idx * 0.035,
-                duration: 0.24,
-                ease: [0.16, 1, 0.3, 1],
-              }}
+              variants={fadeRiseVariants}
+              transition={itemTransition}
+              whileHover={reduced ? undefined : { y: -1 }}
+              whileTap={reduced ? undefined : { scale: 0.97 }}
               className={cn(
                 "group inline-flex items-center gap-2 min-h-[40px] px-3.5 py-2 rounded-full",
                 "bg-[color:var(--color-surface-warm)] hover:bg-white",
                 "border border-border hover:border-[color:var(--color-cta)]",
                 "text-[var(--text-sm)] font-semibold text-primary",
                 "cursor-pointer select-none whitespace-normal text-pretty",
-                "transition-[transform,background-color,border-color,box-shadow] duration-200 ease-[var(--easing-emphasized)]",
-                "hover:-translate-y-[1px] hover:shadow-[0_6px_16px_-6px_rgba(74,46,130,0.25)]",
-                "active:translate-y-0",
+                "transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--easing-emphasized)]",
+                "hover:shadow-[0_6px_16px_-6px_rgba(74,46,130,0.25)]",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cta",
                 options.layout === "grid" && "justify-start",
               )}
@@ -126,6 +129,6 @@ export function OptionsBar({ options, onSelect, onDismiss, className }: OptionsB
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }

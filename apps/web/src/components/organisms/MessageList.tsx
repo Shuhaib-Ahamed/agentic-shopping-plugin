@@ -1,7 +1,9 @@
 import type { Product, Variant, OptionsEvent } from "@kapruka/protocol";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { MessageBubble } from "@/components/molecules";
 import { pickStrings } from "@/i18n";
+import { fadeUpVariants, instant } from "@/lib/motion";
 import { selectMessages, selectStatus, useAppStore } from "@/store";
 import { DeliveryDetailsCard } from "./DeliveryDetailsCard";
 import { DeliveryQuoteCard } from "./DeliveryQuoteCard";
@@ -121,6 +123,9 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
   // Fallback for when only `pending` is true (no SSE status arrived yet).
   const fallbackState = status.state === "idle" ? "thinking" : status.state;
 
+  const reduced = useReducedMotion();
+  const itemTransition = reduced ? instant : undefined;
+
   return (
     <div
       ref={scrollRef}
@@ -128,66 +133,96 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
       style={{ scrollPaddingBlock: 24 }}
     >
       <div className="mx-auto max-w-[1200px] px-4 md:px-6 py-8 md:py-12 space-y-6 md:space-y-8">
-        {messages.map((m) => {
-          if (m.kind === "products") {
+        <AnimatePresence initial={false}>
+          {messages.map((m) => {
+            if (m.kind === "products") {
+              return (
+                <motion.div
+                  key={m.id}
+                  variants={fadeUpVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={itemTransition}
+                  layout="position"
+                >
+                  <ProductCarouselInline
+                    title={m.title}
+                    items={m.items}
+                    layout={m.layout}
+                    onOpen={onOpenProduct}
+                    onAdd={onAddProduct}
+                  />
+                </motion.div>
+              );
+            }
+            if (m.kind === "delivery-quote") {
+              return (
+                <motion.div
+                  key={m.id}
+                  variants={fadeUpVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={itemTransition}
+                  layout="position"
+                >
+                  <DeliveryQuoteCard quote={m.payload} />
+                </motion.div>
+              );
+            }
+            if (m.kind === "product-detail") {
+              return (
+                <motion.div
+                  key={m.id}
+                  variants={fadeUpVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={itemTransition}
+                  layout="position"
+                >
+                  <ProductDetailInline
+                    detail={m.payload}
+                    onAdd={(product, variant) => onAddProduct?.(product, variant)}
+                  />
+                </motion.div>
+              );
+            }
+            if (m.kind === "delivery-details") {
+              return (
+                <motion.div
+                  key={m.id}
+                  variants={fadeUpVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={itemTransition}
+                  layout="position"
+                >
+                  <DeliveryDetailsCard values={m.values} />
+                </motion.div>
+              );
+            }
             return (
-              <div
+              <MessageBubble
                 key={m.id}
-                className="animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]"
-              >
-                <ProductCarouselInline
-                  title={m.title}
-                  items={m.items}
-                  layout={m.layout}
-                  onOpen={onOpenProduct}
-                  onAdd={onAddProduct}
-                />
-              </div>
+                role={m.role}
+                text={m.text}
+                lang={m.lang ?? locale}
+                agentName={t.app.title}
+              />
             );
-          }
-          if (m.kind === "delivery-quote") {
-            return (
-              <div key={m.id}>
-                <DeliveryQuoteCard quote={m.payload} />
-              </div>
-            );
-          }
-          if (m.kind === "product-detail") {
-            return (
-              <div
-                key={m.id}
-                className="animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]"
-              >
-                <ProductDetailInline
-                  detail={m.payload}
-                  onAdd={(product, variant) => onAddProduct?.(product, variant)}
-                />
-              </div>
-            );
-          }
-          if (m.kind === "delivery-details") {
-            return (
-              <div
-                key={m.id}
-                className="animate-[message-in_500ms_cubic-bezier(0.16,1,0.3,1)_both]"
-              >
-                <DeliveryDetailsCard values={m.values} />
-              </div>
-            );
-          }
-          return (
-            <MessageBubble
-              key={m.id}
-              role={m.role}
-              text={m.text}
-              lang={m.lang ?? locale}
-              agentName={t.app.title}
+          })}
+          {renderBubble && (
+            <StatusBubble
+              key="status-bubble"
+              state={fallbackState}
+              label={status.label}
+              detail={status.detail}
             />
-          );
-        })}
-        {renderBubble && (
-          <StatusBubble state={fallbackState} label={status.label} detail={status.detail} />
-        )}
+          )}
+        </AnimatePresence>
         <div ref={anchorRef} aria-hidden />
       </div>
     </div>

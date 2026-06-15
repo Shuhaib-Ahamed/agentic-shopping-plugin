@@ -6,7 +6,7 @@
 // shopper-facing prose. Returns a normalized bundle for Stage 3 plus the
 // updated session state.
 
-import type { ChatMessage } from "@kapruka/protocol";
+import type { ChatMessage, Money } from "@kapruka/protocol";
 import { findLocalCartTool, localCartToolNames, localCartTools } from "../cartTools.js";
 import type { Logger } from "../log.js";
 import { callTool, listTools as listMcpTools, type McpCallResult } from "../mcp.js";
@@ -354,7 +354,8 @@ function mergeIntoSession(
       String(args.delivery_date ?? r.delivery_date ?? session.delivery.date ?? "") || null;
     const quoteDisplay = readPriceDisplay(r.rate ?? r.delivery_rate);
     const perishable = typeof r.perishable_warning === "string" ? r.perishable_warning : null;
-    session.delivery = { city, date, quoteDisplay, perishableWarning: perishable };
+    const rate = readMoney(r.rate ?? r.delivery_rate);
+    session.delivery = { city, date, quoteDisplay, perishableWarning: perishable, rate };
   }
 
   if (name === "kapruka_create_order") {
@@ -375,6 +376,14 @@ function readPriceDisplay(value: unknown): string {
     }
   }
   return "";
+}
+
+function readMoney(value: unknown): Money | null {
+  if (value === null || value === undefined || typeof value !== "object") return null;
+  const v = value as { amount?: number; currency?: string };
+  if (typeof v.amount !== "number") return null;
+  const currency = v.currency === "USD" ? "USD" : "LKR";
+  return { amount: v.amount, currency };
 }
 
 export function renderDataBlock(bundle: ToolBundle): string {
