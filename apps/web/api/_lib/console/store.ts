@@ -519,6 +519,7 @@ export async function getPipeline(): Promise<AdminPipeline> {
     to: sessions[sessions.length - 1]?.lastSeenAt ?? new Date().toISOString(),
   };
 
+  const RECENT_PER_NODE = 5;
   type NodeAgg = {
     id: string;
     label: string;
@@ -527,6 +528,8 @@ export async function getPipeline(): Promise<AdminPipeline> {
     latencySumMs: number;
     errors: number;
     costUSD: number;
+    /** Ring-buffer of the most recent turn IDs that traversed this node. */
+    recentTurnIds: string[];
   };
   const nodes = new Map<string, NodeAgg>();
   const ensureNode = (id: string, label: string, kind: NodeAgg["kind"]): NodeAgg => {
@@ -540,9 +543,15 @@ export async function getPipeline(): Promise<AdminPipeline> {
       latencySumMs: 0,
       errors: 0,
       costUSD: 0,
+      recentTurnIds: [],
     };
     nodes.set(id, next);
     return next;
+  };
+  const recordTurn = (node: NodeAgg, turnId: string) => {
+    if (node.recentTurnIds.includes(turnId)) return;
+    node.recentTurnIds.unshift(turnId);
+    if (node.recentTurnIds.length > RECENT_PER_NODE) node.recentTurnIds.length = RECENT_PER_NODE;
   };
   const edges = new Map<string, { from: string; to: string; count: number }>();
   const ensureEdge = (from: string, to: string) => {
@@ -555,9 +564,12 @@ export async function getPipeline(): Promise<AdminPipeline> {
     edges.set(key, { from, to, count: 1 });
   };
 
-  for (const t of turns) {
+  // Walk turns newest-first so the per-node ring buffer collects the latest IDs.
+  const turnsByRecency = turns.slice().sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1));
+  for (const t of turnsByRecency) {
     const input = ensureNode("user_input", "User input", "input");
     input.calls += 1;
+    recordTurn(input, t.turnId);
     let last = "user_input";
     for (const s of t.steps) {
       const stageId = `step_${s.index + 1}`;
@@ -565,6 +577,7 @@ export async function getPipeline(): Promise<AdminPipeline> {
       stage.calls += 1;
       stage.latencySumMs += s.latency.totalMs;
       stage.costUSD += s.cost.total;
+      recordTurn(stage, t.turnId);
       ensureEdge(last, stageId);
       last = stageId;
       for (const tc of s.toolCalls) {
@@ -573,12 +586,14 @@ export async function getPipeline(): Promise<AdminPipeline> {
         tool.calls += 1;
         tool.latencySumMs += tc.latencyMs;
         if (tc.error) tool.errors += 1;
+        recordTurn(tool, t.turnId);
         ensureEdge(last, toolId);
         last = toolId;
       }
     }
     const out = ensureNode("final_message", "Final message", "output");
     out.calls += 1;
+    recordTurn(out, t.turnId);
     ensureEdge(last, "final_message");
   }
 
@@ -592,6 +607,7 @@ export async function getPipeline(): Promise<AdminPipeline> {
       avgLatencyMs: n.calls > 0 ? n.latencySumMs / n.calls : 0,
       errorRate: n.calls > 0 ? n.errors / n.calls : 0,
       costShareUSD: n.costUSD,
+      recentTurnIds: n.recentTurnIds,
     })),
     edges: Array.from(edges.values()),
   };

@@ -698,6 +698,8 @@ export const AdminPipelineNodeSchema = z.object({
   avgLatencyMs: z.number(),
   errorRate: z.number().min(0).max(1),
   costShareUSD: z.number().nonnegative(),
+  /** Up to 5 most recent turn IDs that flowed through this node, for jump-to-trace links. */
+  recentTurnIds: z.array(z.string()).max(10).optional(),
 });
 export type AdminPipelineNode = z.infer<typeof AdminPipelineNodeSchema>;
 

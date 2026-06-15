@@ -1,3 +1,5 @@
+import { ArrowUpRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { KpiCard, ModelPill } from "@/components/atoms/console";
 import { FilterBar, MetricGrid } from "@/components/molecules/console";
 import { adminApi } from "../api";
@@ -42,7 +44,12 @@ export function PipelinePage() {
       </MetricGrid>
 
       <section className="rounded-2xl bg-[color:var(--color-console-card)] border border-[color:var(--color-border)] p-5">
-        <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em] mb-3">Nodes</h3>
+        <header className="flex items-baseline justify-between mb-3">
+          <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em]">Nodes</h3>
+          <span className="text-[11px] text-muted">
+            Click a recent turn to jump into its narrative
+          </span>
+        </header>
         {!data ? null : (
           <table className="w-full text-[13px]">
             <thead className="text-muted text-[11px] uppercase tracking-[0.06em]">
@@ -53,19 +60,20 @@ export function PipelinePage() {
                 <th className="text-right py-1.5">Avg latency</th>
                 <th className="text-right py-1.5">Error rate</th>
                 <th className="text-right py-1.5">Cost share</th>
+                <th className="text-left py-1.5 pl-3">Recent turns</th>
               </tr>
             </thead>
             <tbody>
               {data.nodes.map((n) => (
                 <tr key={n.id} className="border-t border-[color:var(--color-border)]">
-                  <td className="py-2">
+                  <td className="py-2 pr-2">
                     {n.kind === "stage" ? (
                       <ModelPill model={n.label} />
                     ) : (
                       <span className="font-mono">{n.label}</span>
                     )}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2 pr-2">
                     <span
                       className="inline-flex items-center gap-1.5 text-[12px]"
                       style={{ color: KIND_COLORS[n.kind] ?? "var(--color-text)" }}
@@ -90,6 +98,9 @@ export function PipelinePage() {
                     </span>
                   </td>
                   <td className="py-2 text-right tabular">{formatUSD(n.costShareUSD)}</td>
+                  <td className="py-2 pl-3">
+                    <RecentTurnLinks ids={n.recentTurnIds ?? []} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -101,6 +112,7 @@ export function PipelinePage() {
         <h3 className="font-display font-semibold text-[15px] tracking-[-0.01em] mb-3">
           Top edges
         </h3>
+        <p className="sr-only">Edges showing how the agent flows between pipeline nodes.</p>
         {!data ? null : (
           <ul className="divide-y divide-[color:var(--color-border)]">
             {data.edges
@@ -121,6 +133,27 @@ export function PipelinePage() {
           </ul>
         )}
       </section>
+    </div>
+  );
+}
+
+function RecentTurnLinks({ ids }: { ids: string[] }) {
+  if (ids.length === 0) {
+    return <span className="text-[11px] text-muted">-</span>;
+  }
+  return (
+    <div className="flex flex-wrap gap-1">
+      {ids.slice(0, 5).map((id, i) => (
+        <Link
+          key={id}
+          to={`/admin/turns/${encodeURIComponent(id)}`}
+          title={id}
+          className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-md font-mono text-[10px] bg-[color:var(--color-console-sunken)] hover:bg-[color:var(--color-cta-soft)] hover:text-[color:var(--color-cta-deep)] border border-[color:var(--color-border)] cursor-pointer transition-colors"
+        >
+          {`#${i + 1}`}
+          <ArrowUpRight size={9} aria-hidden />
+        </Link>
+      ))}
     </div>
   );
 }
