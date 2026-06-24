@@ -24,6 +24,44 @@ import { renderDataBlock, type ToolBundle } from "./toolLoop.js";
 
 const MAX_ITERATIONS = 6;
 
+// Cap how many times the model may call the *same* UI tool in one turn before
+// we force it to commit. Without this the response stage can loop
+// `present_options` indefinitely when the router brief is sparse, surfacing
+// duplicate chip rows and hitting MAX_ITERATIONS.
+const SAME_UI_TOOL_CAP = 2;
+
+// Tool-plan leak filter. The system prompt forbids revealing tool names, but
+// gpt-5-nano sometimes prefixes its reply with a line like
+// `present_options with layout "chips" ...` that describes what it's about
+// to call. We strip lines that start with a known UI/MCP tool identifier from
+// the shopper-visible text. This is a belt-and-braces guard on top of the
+// system-prompt rule.
+const TOOL_LEAK_RE =
+  /^\s*(?:present_(?:products|product_detail|options|delivery_quote|checkout)|order_confirmed|update_cart|request_info|notify|kapruka_[a-z_]+)\b.*$/gim;
+
+// Secondary leak: instead of describing the tool call by name, the model
+// dumps the tool's argument shape as YAML-ish key/value markdown lines like
+//   prompt: null
+//   options:
+//     - label: ...
+//       value: ...
+//       icon: ...
+//       emoji: ...
+// We detect runs of >= 3 of these keys close together and strip them. Plain
+// chat replies rarely use this shape, so false positives are low.
+const ARG_DUMP_KEY_RE =
+  /^\s*-?\s*(?:prompt|options|label|value|icon|emoji|fields|cart_lines|delivery_fee|subtotal|total|order_id|pay_url|state|tone|layout)\s*:/gm;
+
+function stripToolPlanLeak(text: string): string {
+  let out = text.replace(TOOL_LEAK_RE, "");
+  ARG_DUMP_KEY_RE.lastIndex = 0;
+  const argMatches = out.match(ARG_DUMP_KEY_RE) ?? [];
+  if (argMatches.length >= 3) {
+    out = out.replace(ARG_DUMP_KEY_RE, "");
+  }
+  return out.replace(/\n{3,}/g, "\n\n").trim();
+}
+
 interface ResponseInput {
   recent: ChatMessage[];
   session: SessionState;
@@ -73,6 +111,7 @@ export async function runResponse({
 
   writer.write({ type: "status", state: "composing", label: pickStatusLabel("composing") });
 
+  const uiToolCallCount = new Map<string, number>();
   let iter = 0;
   while (iter < MAX_ITERATIONS) {
     if (signal?.aborted) {
@@ -136,11 +175,15 @@ export async function runResponse({
         accContent += delta.content;
         // Only stream tokens before a tool_call appears in this iteration. If
         // the model emits both (uncommon), we drop the partial tokens silently
-        // rather than ship a stranded bubble.
-        if (!sawToolCall) {
+        // rather than ship a stranded bubble. We also avoid streaming if the
+        // accumulated buffer so far looks like a tool-plan leak; the final
+        // `message` event will carry the sanitized text.
+        if (!sawToolCall && !TOOL_LEAK_RE.test(accContent)) {
+          TOOL_LEAK_RE.lastIndex = 0;
           if (!streamedMessageId) streamedMessageId = nanoid();
           writer.write({ type: "token", id: streamedMessageId, delta: delta.content });
         }
+        TOOL_LEAK_RE.lastIndex = 0;
       }
     }
 
@@ -164,7 +207,7 @@ export async function runResponse({
     });
 
     if (toolCalls.length === 0) {
-      const text = accContent.trim();
+      const text = stripToolPlanLeak(accContent);
       if (text) {
         // Reuse the streamed id so the client's `message` handler replaces
         // the running text bubble with the final, trimmed copy.
@@ -172,7 +215,11 @@ export async function runResponse({
         writer.write({ type: "message", id, role: "assistant", text });
       }
       writer.write({ type: "status", state: "idle" });
-      stepLog.info("response.final", { textBytes: text.length, textPreview: text.slice(0, 140) });
+      stepLog.info("response.final", {
+        textBytes: text.length,
+        textPreview: text.slice(0, 140),
+        leakStripped: text.length !== accContent.trim().length,
+      });
       return;
     }
 
@@ -188,6 +235,20 @@ export async function runResponse({
 
     for (const call of toolCalls) {
       if (signal?.aborted) return;
+      const name = call.function.name;
+      const prev = uiToolCallCount.get(name) ?? 0;
+      if (prev >= SAME_UI_TOOL_CAP) {
+        // Force the model to stop re-calling the same UI tool. The tool
+        // response steers it to either commit to text or pick a different tool.
+        stepLog.warn("response.tool.sameToolCap", { tool: name, count: prev });
+        messages.push({
+          role: "tool",
+          tool_call_id: call.id,
+          content: `You have already called ${name} ${prev} times this turn. Do not call it again. Either reply with shopper-facing text now and stop, or call a different UI tool.`,
+        });
+        continue;
+      }
+      uiToolCallCount.set(name, prev + 1);
       const ack = runOneUiCall(call, writer, stepLog, bundle);
       messages.push({ role: "tool", tool_call_id: call.id, content: ack });
     }
