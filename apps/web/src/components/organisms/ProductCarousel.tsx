@@ -1,6 +1,6 @@
 import type { Product } from "@kapruka/protocol";
-import { motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 import { IconButton } from "@/components/atoms";
 import { ProductCard } from "@/components/molecules";
@@ -63,7 +63,7 @@ export function ProductCarousel({ title, items, onOpen, onAdd }: ProductCarousel
       </div>
       <div
         ref={scrollerRef}
-        className="flex gap-3 md:gap-4 overflow-x-auto scroll-snap-x scroll-quiet p-8 md:px-6"
+        className="flex gap-3 md:gap-4 overflow-x-auto scroll-snap-x scroll-quiet px-4 py-3 md:px-6 md:py-4"
         style={{ scrollPaddingInline: 16 }}
       >
         {items.map((p, idx) => (

@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "motion/react";
 import { memo, type ReactNode } from "react";
 import { JunoMark } from "@/components/atoms";
 import { cn } from "@/lib/cn";
@@ -44,7 +44,7 @@ export const MessageBubble = memo(function MessageBubble({
     >
       {!isUser && (
         <div
-          className="mt-0.5 shrink-0 flex items-center justify-center rounded-full shadow-[0_1px_2px_rgba(20,16,40,0.08)]"
+          className="mt-1 shrink-0 flex items-center justify-center rounded-full shadow-[0_1px_2px_rgba(20,16,40,0.08)]"
           style={{
             width: 40,
             height: 40,
@@ -56,7 +56,7 @@ export const MessageBubble = memo(function MessageBubble({
       )}
       <div
         className={cn(
-          "max-w-[82%] md:max-w-[560px] px-4 py-2.5",
+          "max-w-[82%] md:max-w-[640px] lg:max-w-[720px] px-4 py-2.5",
           isUser
             ? "rounded-[var(--radius-bubble)] rounded-br-[4px] text-white ml-auto shadow-[var(--shadow-cta)]"
             : "rounded-[var(--radius-bubble)] rounded-bl-[4px] mr-auto shadow-[var(--shadow-bubble)]",

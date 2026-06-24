@@ -75,6 +75,7 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
           "rounded-[var(--radius-2xl)]",
           "bg-white",
           "shadow-[var(--shadow-md)]",
+          "focus-within:ring-2 focus-within:ring-[color:var(--color-cta)] focus-within:ring-offset-2 focus-within:ring-offset-[color:var(--color-background)]",
           multiline ? "items-end" : "items-center",
         )}
       >
@@ -148,7 +149,7 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
             "active:scale-95",
             "disabled:cursor-not-allowed",
             disabled
-              ? "bg-[color:var(--color-accent-soft)] text-[color:var(--color-accent-dark)]"
+              ? "bg-[color:var(--color-accent-soft)] text-[color:var(--color-text-muted)]"
               : "bg-[color:var(--color-accent)] text-[color:var(--color-text)] hover:bg-[color:var(--color-accent-dark)] shadow-[var(--shadow-accent)]",
           )}
         >

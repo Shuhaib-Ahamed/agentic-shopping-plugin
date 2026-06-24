@@ -1,6 +1,6 @@
 import type { OrderConfirmedEvent } from "@kapruka/protocol";
-import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle2, ExternalLink } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { Button, Price } from "@/components/atoms";
 import { pickStrings } from "@/i18n";
 import { instant, springs } from "@/lib/motion";
@@ -27,7 +27,7 @@ export function SuccessCard({ event, onShopAgain }: SuccessCardProps) {
     <motion.section
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={reduced ? instant : springs.sheet}
+      transition={reduced ? instant : springs.celebrate}
       className="px-4 md:px-6 py-4 md:py-6"
     >
       <div className="glass-strong overflow-hidden">

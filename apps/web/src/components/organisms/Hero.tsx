@@ -1,5 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { JunoMark } from "@/components/atoms";
 import { Marquee } from "@/components/molecules";
 import { DiaTextReveal } from "@/components/ui/dia-text-reveal";
@@ -42,7 +42,7 @@ export function HeroIntro() {
       className="relative w-full max-w-[1200px] mx-auto px-5 md:px-8"
       aria-labelledby="hero-headline"
     >
-      <div className="flex items-center justify-center mt-28 sm:mt-32 md:mt-36 gap-4 sm:gap-6 md:gap-7">
+      <div className="flex items-center justify-center mt-6 sm:mt-8 md:mt-10 gap-4 sm:gap-6 md:gap-7">
         <JunoMark
           fluid
           bare
@@ -143,7 +143,6 @@ export function HeroPrompts({ onSuggestion }: HeroProps) {
                 "text-[var(--text-sm)] font-medium text-primary",
                 "transition-[transform,box-shadow,background-color,border-color] duration-260 ease-[var(--easing-emphasized)]",
                 "hover:-translate-y-[1px]",
-                "mb-8",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cta",
               )}
             >

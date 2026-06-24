@@ -30,9 +30,9 @@ export function JunoMark({
 }: JunoMarkProps) {
   const pulse = status !== "idle";
   const dotFill = mono ?? "var(--color-accent)";
-  const bubbleFill = mono ? "none" : "#ffffff";
+  const bubbleFill = mono ? "none" : "var(--color-surface)";
   const bubbleStroke = mono ?? "var(--color-violet)";
-  const eyeStroke = mono ?? "#2c3a47";
+  const eyeStroke = mono ?? "var(--color-text)";
   return (
     <span
       className={cn("relative inline-block shrink-0", className)}

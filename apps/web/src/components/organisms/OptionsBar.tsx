@@ -1,7 +1,7 @@
 import type { OptionsEvent } from "@kapruka/protocol";
-import { motion, useReducedMotion } from "framer-motion";
 import { X, Sparkles } from "lucide-react";
 import * as Icons from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import type { ComponentType, SVGProps } from "react";
 import { cn } from "@/lib/cn";
 import { fadeRiseVariants, instant, staggerContainer } from "@/lib/motion";
@@ -39,8 +39,7 @@ export function OptionsBar({ options, onSelect, onDismiss, className }: OptionsB
       exit="exit"
       className={cn(
         "relative rounded-[var(--radius-xl)]",
-        "bg-white/95 border border-border",
-        "backdrop-blur-xl",
+        "bg-white border border-border",
         "shadow-[var(--shadow-md)]",
         "px-3 pt-3 pb-3 md:px-4 md:pt-3.5 md:pb-3.5",
         className,

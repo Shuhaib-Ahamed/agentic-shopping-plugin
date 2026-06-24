@@ -1,5 +1,5 @@
 import type { Product, Variant, OptionsEvent } from "@kapruka/protocol";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { MessageBubble } from "@/components/molecules";
 import { pickStrings } from "@/i18n";
@@ -93,7 +93,13 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
 
   // Hide the status bubble the moment ANY assistant-side content has landed
   // for the current turn: a text bubble, a UI block (products / quote /
-  // detail / delivery details), or quick-reply chips above the composer.
+  // detail), or quick-reply chips above the composer.
+  //
+  // `delivery-details` is the user echoing back what they just filled into a
+  // form — it's user-side, not an assistant reply. Treating it as a reply
+  // here was the dead-air bug: the form submit pushed a delivery-details
+  // block and then kicked off a chat turn, but the bubble never mounted
+  // because this walk-back stopped at the freshly pushed block.
   const hasAssistantResponded = (() => {
     if (quickOptions) return true;
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -107,7 +113,11 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
         if (m.role === "assistant" && m.text.length > 0) return true;
         continue;
       }
-      // Any non-text timeline block is assistant-side and counts as a reply.
+      if (m.kind === "delivery-details") {
+        // User-side echo of a submitted form; same semantics as a user text turn.
+        return false;
+      }
+      // Any other non-text timeline block is assistant-side and counts as a reply.
       return true;
     }
     return false;

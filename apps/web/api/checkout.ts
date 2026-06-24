@@ -166,11 +166,13 @@ async function handler(req: Request): Promise<Response> {
   }
 
   if (!rate) {
+    const city = data.delivery.city;
+    const date = data.delivery.date;
     return json(
       {
         ok: false,
         code: "mcp_failed",
-        message: "Delivery quote did not return a rate. Please pick a different date or city.",
+        message: `We couldn't get a delivery rate for ${city} on ${date}. Some city + date combinations aren't currently quotable. Try a different delivery date (1-2 days later often works), or pick a major hub like Colombo, Kandy, or Galle.`,
       } satisfies CheckoutErr,
       502,
     );

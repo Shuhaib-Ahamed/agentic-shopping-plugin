@@ -20,7 +20,7 @@ export function CartLineItem({ line, onQtyChange, onRemove, className }: CartLin
       )}
     >
       <div
-        className="relative shrink-0 rounded-[10px] overflow-hidden bg-[var(--color-surface-warm)]"
+        className="relative shrink-0 rounded-[10px] overflow-hidden bg-[var(--color-lavender)]"
         style={{ width: 56, height: 56 }}
       >
         {line.image && (

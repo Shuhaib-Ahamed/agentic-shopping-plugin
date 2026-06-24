@@ -1,6 +1,6 @@
 import type { CheckoutEvent } from "@kapruka/protocol";
-import { motion, useReducedMotion } from "framer-motion";
 import { Copy, ExternalLink, AlertCircle, AlertTriangle } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { Button, IconButton, Price, Spinner } from "@/components/atoms";
 import { CountdownPill } from "@/components/molecules";
@@ -188,7 +188,7 @@ export function CheckoutPanel({
                 <Spinner size={14} />
                 {t.checkout.waiting}
               </span>
-              <Button variant="ghost" size="sm" onClick={onIPaid}>
+              <Button variant="primary" size="sm" onClick={onIPaid}>
                 {t.checkout.iPaid}
               </Button>
             </div>

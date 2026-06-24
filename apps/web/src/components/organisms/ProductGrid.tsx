@@ -1,5 +1,5 @@
 import type { Product } from "@kapruka/protocol";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "motion/react";
 import { ProductCard } from "@/components/molecules";
 import { fadeUpVariants, instant, staggerContainer } from "@/lib/motion";
 

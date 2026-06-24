@@ -1,6 +1,6 @@
 import type { CartLine, Money } from "@kapruka/protocol";
-import { motion, useReducedMotion } from "framer-motion";
 import { ShoppingBag, Trash2 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { Button, Price } from "@/components/atoms";
 import { CartLineItem } from "@/components/molecules";

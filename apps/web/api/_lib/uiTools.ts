@@ -161,7 +161,7 @@ export function uiToolDefs(): UiToolDef[] {
     {
       name: UiToolName.PresentProducts,
       description:
-        "Show a small, curated set of products to the shopper as a carousel or grid. Items must come from a kapruka_search_products result; never invent products.",
+        "Show a small, curated set of products to the shopper as a carousel or grid. Items must come from a kapruka_search_products result; never invent products. For every item, copy ALL fields verbatim from the search result, including `image` (the product image URL) and `url` when present. NEVER set `image` to null if the search result contains an image URL — the shopper needs to see what they're buying. Only pass null for `image` when the search result truly has no image.",
       parameters: {
         type: "object",
         properties: {
@@ -177,7 +177,7 @@ export function uiToolDefs(): UiToolDef[] {
     {
       name: UiToolName.PresentProductDetail,
       description:
-        "Open a detail sheet for one product. Values come from kapruka_get_product. Use when the shopper wants a closer look or to pick a variant.",
+        "Open a detail sheet for one product. Values come from kapruka_get_product. Use when the shopper wants a closer look or to pick a variant. Copy `image`, `url`, and all other product fields verbatim from the tool result; do not null them out.",
       parameters: {
         type: "object",
         properties: {

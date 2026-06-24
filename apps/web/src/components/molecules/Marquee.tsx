@@ -68,7 +68,13 @@ export function Marquee({
           className={cn(
             "flex shrink-0 items-center justify-around",
             "animate-[marquee_var(--marquee-duration)_linear_infinite]",
+            // Pause for hover (mouse), focus-within (keyboard / assistive tech),
+            // and disable entirely when the user prefers reduced motion. Without
+            // the focus-within and motion-reduce branches the chips fail
+            // WCAG 2.2.2 and are unstable for programmatic clicks.
             pauseOnHover && "group-hover:[animation-play-state:paused]",
+            "group-focus-within:[animation-play-state:paused]",
+            "motion-reduce:animate-none",
             reverse && "[animation-direction:reverse]",
           )}
           style={{ gap }}

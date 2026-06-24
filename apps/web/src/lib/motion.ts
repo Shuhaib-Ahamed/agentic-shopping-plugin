@@ -1,4 +1,4 @@
-import type { Transition, Variants } from "framer-motion";
+import type { Transition, Variants } from "motion/react";
 
 // Named spring tokens. Picked to feel organic across surface weights:
 // heavier sheets settle slower, taps snap. Anything new in the chat
@@ -13,6 +13,9 @@ export const springs = {
   sheet: { type: "spring", stiffness: 200, damping: 28, mass: 1 } satisfies Transition,
   // Hover/press feedback - instant rebound.
   tap: { type: "spring", stiffness: 420, damping: 30, mass: 0.6 } satisfies Transition,
+  // SuccessCard / payment-confirmed celebration. Soft heavy settle with a
+  // touch of overshoot - reads as relief, not as bounce.
+  celebrate: { type: "spring", stiffness: 180, damping: 22, mass: 1.1 } satisfies Transition,
 } as const;
 
 // Drop-in variants for an element that fades + slides up. Pair with

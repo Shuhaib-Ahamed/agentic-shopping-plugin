@@ -21,16 +21,44 @@
 // survives the 3-message rolling window (cart, current product, delivery,
 // order) lives in sessionState.
 
-import type { ChatRequest } from "@kapruka/protocol";
+import type { ChatMessage, ChatRequest } from "@kapruka/protocol";
 import { env } from "./env.js";
 import { makeLogger, newTraceId, type Logger } from "./log.js";
 import { modelProvider } from "./openai.js";
-import { getOrCreateSession } from "./sessionState.js";
+import { mergeShopperBrief, getOrCreateSession } from "./sessionState.js";
 import type { SseWriter } from "./sse.js";
 import { runResponse } from "./stages/response.js";
 import { routeTurn } from "./stages/router.js";
 import { runToolLoop, type ToolBundle } from "./stages/toolLoop.js";
 import { pickStatusLabel } from "./statusPool.js";
+
+// Per-stage raw-message windows. The shopper brief carries older context, so
+// the raw window can stay small without losing recipient, occasion, budget,
+// or rejected SKUs. Router needs the least, response the most.
+const WINDOW_ROUTER = 4;
+const WINDOW_TOOLS = 6;
+const WINDOW_RESPONSE = 8;
+
+// Soft char budget per stage. If the picked window blows the budget, drop
+// oldest messages first. Roughly 4 chars per token, so 8000 chars ≈ 2000
+// tokens of raw chat, well within prompt-cache prefix limits.
+const WINDOW_CHAR_BUDGET = 8000;
+
+function pickWindow(messages: ChatMessage[], count: number): ChatMessage[] {
+  const slice = messages.slice(-count);
+  // Always keep the latest user message (last entry). Trim from the front
+  // when the slice blows the soft char budget.
+  while (slice.length > 1 && totalChars(slice) > WINDOW_CHAR_BUDGET) {
+    slice.shift();
+  }
+  return slice;
+}
+
+function totalChars(messages: ChatMessage[]): number {
+  let sum = 0;
+  for (const m of messages) sum += m.content.length;
+  return sum;
+}
 
 const baseLog = makeLogger({ ctx: "agent" });
 
@@ -53,27 +81,46 @@ export async function runAgent({
   const log = baseLog.child({ traceId: tid, sessionId: request.sessionId, provider });
   const reqStart = Date.now();
 
-  // Last 3 messages, per spec. The last entry is the current user turn.
-  const recent = request.messages.slice(-3);
+  // Per-stage raw windows. The shopper brief carries older intent so the raw
+  // window can stay small. The last entry is always the current user turn.
+  const routerWindow = pickWindow(request.messages, WINDOW_ROUTER);
+  const toolsWindow = pickWindow(request.messages, WINDOW_TOOLS);
+  const responseWindow = pickWindow(request.messages, WINDOW_RESPONSE);
   const session = getOrCreateSession(request);
 
   log.info("agent.start", {
     locale: request.context?.locale,
     currency: request.context?.currency,
     messageCount: request.messages.length,
-    recentCount: recent.length,
+    windowRouter: routerWindow.length,
+    windowTools: toolsWindow.length,
+    windowResponse: responseWindow.length,
     cartLines: session.cart.lines.length,
   });
 
   // STAGE 1: Router.
   writer.write({ type: "status", state: "routing", label: pickStatusLabel("routing") });
   const decision = await runStage(log, "router", () =>
-    routeTurn({ recent, session, log: log.child({ ctx: "router" }) }),
+    routeTurn({ recent: routerWindow, session, log: log.child({ ctx: "router" }) }),
   );
   if (!decision) {
     writer.fail("router_failed", "I had trouble understanding that. Want to try again?", true);
     return;
   }
+
+  // Merge the router's brief_delta into the durable session brief BEFORE
+  // Stage 2 and Stage 3 render <BRIEF>. Brief is derived from the shopper's
+  // own messages, never from tool results, so it does not bypass any safety
+  // rule. Delivery address still comes only from the explicit delivery form.
+  session.shopperBrief = mergeShopperBrief(session.shopperBrief, {
+    recipient: decision.brief_delta.recipient,
+    occasion: decision.brief_delta.occasion,
+    budget: decision.brief_delta.budget,
+    preferences: decision.brief_delta.preferences,
+    rejectedSkus: decision.brief_delta.rejected_skus,
+    language: decision.brief_delta.language,
+  });
+  log.info("agent.briefMerged", { brief: session.shopperBrief });
 
   // STAGE 2: Tool loop, only when needed and not blocked by safety.
   let bundle: ToolBundle | null = null;
@@ -83,7 +130,7 @@ export async function runAgent({
     }
     bundle = await runStage(log, "toolLoop", () =>
       runToolLoop({
-        recent,
+        recent: toolsWindow,
         session,
         decision,
         writer,
@@ -107,7 +154,7 @@ export async function runAgent({
   // STAGE 3: Response. Always runs.
   await runStage(log, "response", () =>
     runResponse({
-      recent,
+      recent: responseWindow,
       session,
       decision,
       bundle,

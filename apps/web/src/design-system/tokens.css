@@ -1,18 +1,26 @@
 /*
- * Kapruka Shopping Agent - design tokens.
+ * Juno AI - design tokens.
  *
- * Direction: Editorial Sri Lanka. Warm parchment background, ink-black primary,
- * deep ocean teal CTA, saffron yellow accent (from the Kapruka brand mark).
- * Generous spacing, single accent color, calm surfaces.
+ * Brand spine: violet + saffron. Source of truth is `design-system/brand.md`.
+ * Two brand colors, one neutral family:
+ *   - Violet (#4A2E82)  - structural surfaces (header pill, user bubble, inks
+ *                         on lavender tints). Pulled from the Kapruka mascot.
+ *   - Saffron (#F9B233) - primary click-CTA (Send, Add, Proceed). Pulled from
+ *                         the same mascot's status dot.
+ *   - Lavender / off-white surfaces hold the conversation.
+ *
+ * Lóvi-inspired soft shell: warm off-white with a faint pink wash at the top,
+ * lavender chat bubbles with deep-indigo text, vibrant violet CTA. The mascot
+ * is the trust anchor.
  */
 
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap");
 
 :root {
   /* -------------------------------------------------------------------------
-   * Lóvi-inspired soft palette. Off-white surface with a faint pink wash at
-   * the top, lavender chat bubbles with deep-indigo text, vibrant indigo CTA.
-   * Mascot accents (orange + cyan) come from chatbot-logo.svg.
+   * Foundation. Warm off-white shell with a soft pink wash at the very top so
+   * the violet TopBar pill reads as floating against the sky, not sitting on a
+   * white slab. Surfaces stay calm so the violet + saffron brand registers.
    * ----------------------------------------------------------------------- */
 
   /* Foundation */
@@ -33,8 +41,14 @@
   --color-border: #ece9f1;
   --color-border-strong: #d8d4e3;
 
-  /* CTA: rich violet - the brand spine for the new direction. */
-  --color-cta: #4a2e82; /* primary violet */
+  /* -------------------------------------------------------------------------
+   * Brand: structural violet.
+   * `--color-cta` is the legacy alias for the violet brand spine. Despite the
+   * name, this is NOT the click-CTA — the primary click-CTA is saffron
+   * (--color-accent below). Violet renders structural surfaces (TopBar pill,
+   * user bubble, focus ring, inks on lavender). See design-system/brand.md.
+   * ----------------------------------------------------------------------- */
+  --color-cta: #4a2e82; /* alias of --color-violet, structural */
   --color-cta-hover: #3b2367;
   --color-cta-soft: #ece6f7;
   --color-cta-deep: #2c1b52;
@@ -42,17 +56,23 @@
   --color-violet-light: #6b4ba0; /* secondary violet, used for gradient */
   --color-violet-tint: #ece6f7; /* very light violet (composer / soft) */
 
-  /* Lavender - the suggestion / assistant bubble fill (violet-tinted). */
+  /* Lavender - assistant bubble fill, chip hover surfaces. Always paired with
+     violet ink (--color-lavender-ink) so contrast lands at WCAG AA. */
   --color-lavender: #ece6f7;
   --color-lavender-strong: #d9cdf0;
-  --color-lavender-ink: #4a2e82; /* violet for text on lavender */
+  --color-lavender-ink: #4a2e82;
 
-  /* Accent: warm yellow - used on secondary highlights, badges, glow. */
+  /* -------------------------------------------------------------------------
+   * Brand: actionable saffron.
+   * Primary click-CTA. Used on Send, Add to cart, Proceed, Pay, language pill
+   * active state, status dot on the mascot. Paired with --color-text (near-
+   * black) for AA contrast. Never put white text on saffron.
+   * ----------------------------------------------------------------------- */
   --color-accent: #f9b233;
   --color-accent-dark: #d99318;
   --color-accent-soft: #fef0d4;
 
-  /* Cyan - kept as the mascot's secondary tone, not used as a brand color. */
+  /* Cyan - mascot secondary tone only. Do not use as a brand color elsewhere. */
   --color-cyan: #36a8e6;
   --color-cyan-soft: #d8edfa;
 

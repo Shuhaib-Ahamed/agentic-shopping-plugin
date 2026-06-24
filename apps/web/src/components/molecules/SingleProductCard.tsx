@@ -1,6 +1,6 @@
 import type { Product } from "@kapruka/protocol";
-import { motion, useReducedMotion } from "framer-motion";
 import { Plus } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 import { useFlyToCart } from "@/components/organisms/FlyToCart";
 import { cn } from "@/lib/cn";
@@ -35,7 +35,7 @@ export function SingleProductCard({ product, onOpen, onAdd, className }: SingleP
       whileTap={reduced ? undefined : { scale: 0.995 }}
       transition={springs.snappy}
       className={cn(
-        "group relative flex flex-col sm:flex-row overflow-hidden rounded-[22px] bg-white",
+        "group relative flex flex-col sm:flex-row overflow-hidden rounded-[var(--radius-xl)] bg-white",
         "shadow-[var(--shadow-md)]",
         "hover:shadow-[var(--shadow-lg)]",
         "transition-shadow duration-300 ease-[var(--easing-emphasized)]",

@@ -10,11 +10,63 @@ export interface MarkdownMessageProps {
   tone?: "default" | "inverted";
 }
 
-// Strip em dashes and en dashes at render time. We tell Juno never to use them
-// in the system prompt, but enforce it defensively here too: anything that
-// slips through is converted to ", " so the layout never breaks visually.
+// Strip em dashes (U+2014) and en dashes (U+2013) at render time. We tell Juno
+// never to use them in the system prompt, but enforce it defensively here too:
+// anything that slips through is converted to ", " so the layout never breaks
+// visually. Never touch the regular hyphen-minus (U+002D) — order IDs and
+// compound words depend on it.
 function normalizePunctuation(s: string): string {
-  return s.replace(/\s?-\s?/g, ", ").replace(/\s?–\s?/g, ", ");
+  return s.replace(/\s?[—–]\s?/g, ", ");
+}
+
+// Defensive: strip leaked tool-call syntax that occasionally bleeds into the
+// shopper-facing text when the model emits a UI tool as prose instead of a
+// real function call. We've seen `<present_options chips> ...` and bare
+// `present_options, label: ..., value: ...` blocks survive into the chat.
+// The real chips render from the tool call; the text version is just noise.
+//
+// Matches any well-formed tag like `<present_options ...>` (including a
+// trailing optional close tag), AND bare lines that start with a known UI
+// tool name followed by `,` or `(` and a chip-like payload. Conservative on
+// purpose: only well-known tool prefixes, never plain prose.
+const TOOL_NAMES = [
+  "present_options",
+  "present_products",
+  "present_product_detail",
+  "present_delivery_quote",
+  "present_checkout",
+  "request_info",
+  "update_cart",
+  "order_confirmed",
+  "notify",
+].join("|");
+
+const ANGLE_TAG_RE = new RegExp(
+  `<(?:${TOOL_NAMES})\\b[\\s\\S]*?(?:/>|<\\/(?:${TOOL_NAMES})>|$)`,
+  "gi",
+);
+// `present_options,` (inline JSON), `present_options(` (function-call style),
+// or `present_options:` followed by the rendered chip block. Greedy across
+// any trailing chip list (markdown bullets, pipe-delimited rows, or raw
+// `label:.. value:..` JSON fragments) so the noise vanishes too. Stops at a
+// blank line OR end-of-input — `(?![\s\S])` matches end-of-input regardless
+// of the `m` flag, so we don't fall back to end-of-line.
+const HEADER_BLOCK_RE = new RegExp(
+  `^\\s*(?:${TOOL_NAMES})\\s*[,(:][\\s\\S]*?(?=\\n\\s*\\n|(?![\\s\\S]))`,
+  "gim",
+);
+// Stray `label: "X", value: "Y"` (and the related `icon:`/`emoji:`) lines that
+// sometimes leak even without a `present_options:` header. Conservative: only
+// matches lines that look like a chip object key, never plain prose.
+const CHIP_FIELD_RE = /^\s*(?:label|value|icon|emoji)\s*[:=][^\n]*$/gim;
+
+function stripLeakedToolSyntax(s: string): string {
+  return s
+    .replace(ANGLE_TAG_RE, "")
+    .replace(HEADER_BLOCK_RE, "")
+    .replace(CHIP_FIELD_RE, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 // Renders assistant text as Markdown. GitHub-flavoured (lists, bold, italic,
@@ -28,7 +80,7 @@ export const MarkdownMessage = memo(function MarkdownMessage({
   className,
   tone = "default",
 }: MarkdownMessageProps) {
-  const cleaned = normalizePunctuation(text);
+  const cleaned = normalizePunctuation(stripLeakedToolSyntax(text));
   const muted = tone === "inverted" ? "rgba(255,255,255,0.72)" : "var(--color-text-muted)";
   const linkColor = tone === "inverted" ? "#fff" : "var(--color-cta)";
 

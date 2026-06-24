@@ -34,14 +34,14 @@ export function ProductDetailInline({ detail, onAdd }: ProductDetailInlineProps)
   return (
     <article
       className={cn(
-        "rounded-[18px] bg-[var(--color-surface)] border border-[var(--color-border)]",
+        "rounded-[var(--radius-lg)] bg-[var(--color-surface)] border border-[var(--color-border)]",
         "shadow-[var(--shadow-sm)] overflow-hidden",
       )}
     >
       <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-0">
         <div className="p-3 sm:p-4">
           <div
-            className="relative rounded-[12px] overflow-hidden bg-[var(--color-surface-warm)]"
+            className="relative rounded-[var(--radius-md)] overflow-hidden bg-[var(--color-surface-warm)]"
             style={{ aspectRatio: "1 / 1" }}
           >
             {images[activeImage] ? (
@@ -68,7 +68,7 @@ export function ProductDetailInline({ detail, onAdd }: ProductDetailInlineProps)
                   onClick={() => setActiveImage(idx)}
                   aria-label={`Show image ${idx + 1}`}
                   className={cn(
-                    "shrink-0 w-12 h-12 rounded-[8px] overflow-hidden border-2 cursor-pointer transition-colors",
+                    "shrink-0 w-12 h-12 rounded-[var(--radius-sm)] overflow-hidden border-2 cursor-pointer transition-colors",
                     idx === activeImage ? "border-[var(--color-cta)]" : "border-transparent",
                   )}
                 >

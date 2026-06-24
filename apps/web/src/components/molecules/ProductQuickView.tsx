@@ -47,7 +47,7 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd }: Product
           className={cn(
             "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50",
             "w-[min(94vw,560px)] max-h-[92vh] overflow-y-auto scroll-quiet",
-            "bg-white rounded-[22px] shadow-[var(--shadow-xl)]",
+            "bg-white rounded-[var(--radius-xl)] shadow-[var(--shadow-xl)]",
             "data-[state=open]:animate-[dialog-pop-in_320ms_cubic-bezier(0.22,1,0.36,1)_both]",
             "data-[state=closed]:animate-[dialog-pop-out_160ms_ease-in_both]",
           )}

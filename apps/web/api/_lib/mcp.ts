@@ -28,7 +28,14 @@ export interface McpCallResult {
 }
 
 let clientPromise: Promise<Client> | null = null;
-const sessionCache = new Map<string, McpCallResult>();
+let toolsPromise: Promise<McpToolDescriptor[]> | null = null;
+
+interface CacheEntry {
+  result: McpCallResult;
+  expiresAt: number;
+}
+const sessionCache = new Map<string, CacheEntry>();
+const SESSION_CACHE_TTL_MS = 60_000;
 
 async function getClient(): Promise<Client> {
   if (clientPromise) return clientPromise;
@@ -61,28 +68,39 @@ export async function listTools(): Promise<McpToolDescriptor[]> {
     log.info("mcp.listTools.mock");
     return mockToolDescriptors();
   }
-  const t0 = Date.now();
-  try {
-    const client = await getClient();
-    const res = await client.listTools();
-    const tools = res.tools.map((t) => ({
-      name: t.name,
-      description: t.description ?? "",
-      inputSchema: t.inputSchema ?? { type: "object", properties: {} },
-    }));
-    log.info("mcp.listTools.ok", {
-      count: tools.length,
-      names: tools.map((t) => t.name),
-      durationMs: Date.now() - t0,
-    });
-    return tools;
-  } catch (err) {
-    log.error("mcp.listTools.error", {
-      durationMs: Date.now() - t0,
-      error: (err as Error).message,
-    });
-    throw err;
+  // The MCP tool list changes only on deploy, so memoize for the warm process
+  // lifetime alongside the connection. Avoids one network round-trip per Stage 2 turn.
+  if (toolsPromise) {
+    log.info("mcp.listTools.cacheHit");
+    return toolsPromise;
   }
+  toolsPromise = (async () => {
+    const t0 = Date.now();
+    try {
+      const client = await getClient();
+      const res = await client.listTools();
+      const tools = res.tools.map((t) => ({
+        name: t.name,
+        description: t.description ?? "",
+        inputSchema: t.inputSchema ?? { type: "object", properties: {} },
+      }));
+      log.info("mcp.listTools.ok", {
+        count: tools.length,
+        names: tools.map((t) => t.name),
+        durationMs: Date.now() - t0,
+      });
+      return tools;
+    } catch (err) {
+      log.error("mcp.listTools.error", {
+        durationMs: Date.now() - t0,
+        error: (err as Error).message,
+      });
+      // Reset on failure so the next call retries.
+      toolsPromise = null;
+      throw err;
+    }
+  })();
+  return toolsPromise;
 }
 
 export async function callTool(
@@ -95,16 +113,25 @@ export async function callTool(
     log.info("mcp.callTool.mock.result", { tool: name, bytes: result.text.length });
     return result;
   }
-  // Memoize cacheable reads within a session to stay under the per-IP 60 rpm limit.
+  // Memoize cacheable reads within the warm process to stay under the per-IP
+  // 60 rpm limit. TTL keeps the system.md "re-fetch before re-presenting" rule
+  // honest by ensuring stale prices/stock cannot survive across turns, while
+  // still absorbing in-turn and rapid-followup repeats.
   const cacheable =
     name === "kapruka_search_products" ||
     name === "kapruka_get_product" ||
     name === "kapruka_list_categories" ||
     name === "kapruka_list_delivery_cities";
   const key = cacheable ? `${name}::${stableStringify(args)}` : null;
-  if (key && sessionCache.has(key)) {
-    log.info("mcp.callTool.cacheHit", { tool: name });
-    return sessionCache.get(key)!;
+  if (key) {
+    const entry = sessionCache.get(key);
+    if (entry && entry.expiresAt > Date.now()) {
+      log.info("mcp.callTool.cacheHit", { tool: name });
+      return entry.result;
+    }
+    if (entry) {
+      sessionCache.delete(key);
+    }
   }
 
   log.info("mcp.callTool.start", { tool: name, args });
@@ -131,8 +158,11 @@ export async function callTool(
       bytes: text.length,
       hasJson: json !== null,
       result: json,
+      textPreview: json === null ? text.slice(0, 400) : undefined,
     });
-    if (key) sessionCache.set(key, result);
+    if (key) {
+      sessionCache.set(key, { result, expiresAt: Date.now() + SESSION_CACHE_TTL_MS });
+    }
     return result;
   } catch (err) {
     log.error("mcp.callTool.error", {

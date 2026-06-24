@@ -1,6 +1,6 @@
 import type { Locale } from "@kapruka/protocol";
-import { motion, useAnimationControls } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
+import { motion, useAnimationControls } from "motion/react";
 import { useEffect, useRef } from "react";
 import { KaprukaLogo } from "@/components/atoms";
 import { pickStrings } from "@/i18n";
@@ -63,11 +63,11 @@ export function TopBar({ className }: TopBarProps) {
         className,
       )}
     >
-      <div className="floating-header flex items-center justify-between gap-3 pl-4 pr-2 md:pl-6 md:pr-3 h-16 md:h-[72px]">
+      <div className="floating-header flex items-center justify-between gap-2 md:gap-3 pl-3 pr-2 md:pl-6 md:pr-3 h-16 md:h-[72px]">
         <a
           href="/"
           aria-label="Kapruka home"
-          className="flex items-center ml-4 min-w-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
+          className="flex items-center ml-1 md:ml-4 min-w-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
         >
           {/* Bigger Kapruka wordmark - the PNG variant designed for dark
               surfaces is the right read on the violet pill. */}
@@ -75,6 +75,30 @@ export function TopBar({ className }: TopBarProps) {
         </a>
 
         <div className="flex items-center gap-2 md:gap-3">
+          <label className="sm:hidden relative inline-flex items-center" aria-label="Language">
+            <span
+              className={cn(
+                "inline-flex items-center h-9 pl-3 pr-7 rounded-full text-[var(--text-xs)] font-semibold",
+                "bg-[color:var(--color-accent)] text-[color:var(--color-text)] shadow-sm",
+                "pointer-events-none",
+              )}
+            >
+              {t.composer[LOCALES.find((l) => l.code === locale)?.key ?? "languageEN"]}
+            </span>
+            <select
+              value={locale}
+              onChange={(e) => setLocale(e.target.value as Locale)}
+              className="absolute inset-0 opacity-0 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white rounded-full"
+              aria-label="Language"
+            >
+              {LOCALES.map(({ code, key }) => (
+                <option key={code} value={code}>
+                  {t.composer[key]}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <div
             className="hidden sm:flex items-center gap-1 p-1 rounded-full bg-white/[0.12] border border-white/20 backdrop-blur-sm"
             role="radiogroup"

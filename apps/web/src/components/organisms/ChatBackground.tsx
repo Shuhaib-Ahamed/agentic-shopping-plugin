@@ -160,7 +160,7 @@ export const ChatBackground = memo(function ChatBackground({ className }: ChatBa
         style={{
           left: "22%",
           top: "46%",
-          color: "#C9870F",
+          color: "var(--color-accent-dark)",
           opacity: 0.5,
           animation: "chat-bg-spin 28s linear infinite",
         }}
@@ -184,7 +184,7 @@ export const ChatBackground = memo(function ChatBackground({ className }: ChatBa
         style={{
           right: "23%",
           top: "44%",
-          color: "#C9870F",
+          color: "var(--color-accent-dark)",
           opacity: 0.5,
           animation: "chat-bg-spin 32s linear infinite",
         }}

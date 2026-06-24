@@ -1,4 +1,4 @@
-import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
+import { motion, useReducedMotion, type HTMLMotionProps } from "motion/react";
 import { forwardRef, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { springs } from "@/lib/motion";

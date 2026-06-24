@@ -1,5 +1,5 @@
 import type { Field, RequestInfoEvent } from "@kapruka/protocol";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "motion/react";
 import { useId, useState, type FormEvent } from "react";
 import { Button, Input } from "@/components/atoms";
 import { CityAutocompleteField, DatePickerField, type CityOption } from "@/components/molecules";

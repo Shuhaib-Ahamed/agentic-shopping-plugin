@@ -12,3 +12,6 @@ dist
 .vscode
 coverage
 .claude/
+.env*
+qa-evidence
+.playwright-mcp

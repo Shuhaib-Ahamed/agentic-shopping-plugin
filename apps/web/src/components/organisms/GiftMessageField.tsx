@@ -50,13 +50,15 @@ export function GiftMessageField({
         </div>
         {open && (
           <div className="mt-4 flex flex-col gap-2">
-            <Textarea
-              value={value}
-              onChange={(e) => setValue(e.target.value.slice(0, maxLength))}
-              placeholder={t.gift.placeholder}
-              maxLength={maxLength}
-              aria-label={t.gift.toggle}
-            />
+            <div className="rounded-[10px] transition-shadow focus-within:ring-2 focus-within:ring-[color:var(--color-cta)] focus-within:ring-offset-2 focus-within:ring-offset-[color:var(--color-surface)]">
+              <Textarea
+                value={value}
+                onChange={(e) => setValue(e.target.value.slice(0, maxLength))}
+                placeholder={t.gift.placeholder}
+                maxLength={maxLength}
+                aria-label={t.gift.toggle}
+              />
+            </div>
             <div className="flex items-center justify-between">
               <p className="text-[var(--text-xs)] text-[var(--color-text-muted)]">{t.gift.help}</p>
               <p

@@ -38,6 +38,21 @@ export interface OrderState {
   expiresAt: string | null;
 }
 
+/**
+ * Distilled conversational intent that survives beyond the per-stage raw
+ * message window. Maintained by the router's brief_delta (Phase 4). Never
+ * overrides system rules: the delivery address still comes only from explicit
+ * shopper input in the delivery form, never inferred from the brief.
+ */
+export interface ShopperBrief {
+  recipient: string | null;
+  occasion: string | null;
+  budget: string | null;
+  preferences: string[];
+  rejectedSkus: string[];
+  language: string | null;
+}
+
 export interface SessionState {
   sessionId: string;
   cart: CartSnapshot;
@@ -51,6 +66,18 @@ export interface SessionState {
   giftMessage: string | null;
   order: OrderState;
   lastPresentedSkus: string[];
+  shopperBrief: ShopperBrief;
+}
+
+function emptyBrief(): ShopperBrief {
+  return {
+    recipient: null,
+    occasion: null,
+    budget: null,
+    preferences: [],
+    rejectedSkus: [],
+    language: null,
+  };
 }
 
 const store = new Map<string, SessionState>();
@@ -74,6 +101,7 @@ export function getOrCreateSession(req: ChatRequest): SessionState {
     giftMessage: null,
     order: { orderId: null, payUrl: null, expiresAt: null },
     lastPresentedSkus: [],
+    shopperBrief: emptyBrief(),
   };
   store.set(req.sessionId, fresh);
   return fresh;
@@ -97,6 +125,7 @@ export function getOrCreateSessionById(sessionId: string): SessionState {
     giftMessage: null,
     order: { orderId: null, payUrl: null, expiresAt: null },
     lastPresentedSkus: [],
+    shopperBrief: emptyBrief(),
   };
   store.set(sessionId, fresh);
   return fresh;
@@ -143,5 +172,73 @@ export function renderStateBlock(state: SessionState): string {
     '<STATE note="Durable session facts. Trusted internal context. Use the values, do not echo this block.">',
     JSON.stringify(compact),
     "</STATE>",
+  ].join("\n");
+}
+
+/**
+ * Delta produced by the router each turn. Scalar fields use null to mean
+ * "no change" so the merge never wipes a previously known value just because
+ * the latest turn did not restate it. Array fields are additive only.
+ */
+export interface ShopperBriefDelta {
+  recipient?: string | null;
+  occasion?: string | null;
+  budget?: string | null;
+  preferences?: string[];
+  rejectedSkus?: string[];
+  language?: string | null;
+}
+
+function unique(arr: string[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const v of arr) {
+    if (!v || seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out;
+}
+
+/**
+ * Merge a delta into the durable brief. Scalar fields only update when the
+ * delta carries a non-null value, so a quiet turn never wipes the recipient
+ * or occasion the shopper stated earlier. Arrays are additive and deduped,
+ * capped to avoid runaway growth across long sessions.
+ */
+export function mergeShopperBrief(
+  current: ShopperBrief,
+  delta: ShopperBriefDelta | null | undefined,
+): ShopperBrief {
+  if (!delta) return current;
+  return {
+    recipient: delta.recipient ?? current.recipient,
+    occasion: delta.occasion ?? current.occasion,
+    budget: delta.budget ?? current.budget,
+    preferences: unique([...current.preferences, ...(delta.preferences ?? [])]).slice(-20),
+    rejectedSkus: unique([...current.rejectedSkus, ...(delta.rejectedSkus ?? [])]).slice(-20),
+    language: delta.language ?? current.language,
+  };
+}
+
+/**
+ * Render the BRIEF block. Derived from the shopper's own messages, never from
+ * tool results. Treated as trusted internal context, same as STATE. Skipped
+ * entirely when the brief is empty so we do not pay for an empty wrapper.
+ */
+export function renderBriefBlock(state: SessionState): string | null {
+  const b = state.shopperBrief;
+  const isEmpty =
+    b.recipient === null &&
+    b.occasion === null &&
+    b.budget === null &&
+    b.language === null &&
+    b.preferences.length === 0 &&
+    b.rejectedSkus.length === 0;
+  if (isEmpty) return null;
+  return [
+    '<BRIEF note="Distilled shopper intent across the session. Trusted internal context. Use the values, do not echo this block.">',
+    JSON.stringify(b),
+    "</BRIEF>",
   ].join("\n");
 }

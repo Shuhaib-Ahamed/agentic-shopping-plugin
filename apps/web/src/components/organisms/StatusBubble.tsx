@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useMemo } from "react";
 import { JunoMark } from "@/components/atoms";
 import { cn } from "@/lib/cn";
@@ -127,7 +127,7 @@ export function StatusBubble({ state, label, detail, className }: StatusBubblePr
             >
               {text}
             </span>
-            <TypingDots />
+            <TypingDots reduced={reduced ?? false} />
             {detail && (
               <span
                 className="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-[var(--text-2xs)] font-semibold truncate max-w-[180px]"
@@ -148,7 +148,7 @@ export function StatusBubble({ state, label, detail, className }: StatusBubblePr
 
 // Three pulsing dots - sit on the text baseline so they read like an
 // ellipsis after the status word, not a separate bouncing widget.
-function TypingDots({ className }: { className?: string }) {
+function TypingDots({ className, reduced }: { className?: string; reduced: boolean }) {
   return (
     <span className={cn("inline-flex items-baseline gap-1 shrink-0", className)} aria-hidden>
       {[0, 1, 2].map((i) => (
@@ -156,13 +156,17 @@ function TypingDots({ className }: { className?: string }) {
           key={i}
           className="w-1 h-1 rounded-full block"
           style={{ background: "var(--color-cta-deep)" }}
-          animate={{ opacity: [0.35, 1, 0.35] }}
-          transition={{
-            duration: 1.05,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.14,
-          }}
+          animate={reduced ? undefined : { opacity: [0.35, 1, 0.35] }}
+          transition={
+            reduced
+              ? undefined
+              : {
+                  duration: 1.05,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 0.14,
+                }
+          }
         />
       ))}
     </span>

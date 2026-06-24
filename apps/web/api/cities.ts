@@ -23,16 +23,24 @@ async function handler(req: Request): Promise<Response> {
   log.info("cities.request", { q, limit });
   const t0 = Date.now();
   try {
-    const result = await callTool("kapruka_list_delivery_cities", { query: q, limit });
+    // Upstream tool schema wraps args in `params` (Pydantic model). Without the wrapper
+    // the MCP server returns "params Field required" and the lookup silently yields zero
+    // matches, which blocks the entire checkout flow.
+    const result = await callTool("kapruka_list_delivery_cities", { params: { query: q, limit } });
     const data = (result.json ?? {}) as { items?: unknown; cities?: unknown };
     const raw = (data.items ?? data.cities ?? []) as Array<Record<string, unknown>>;
-    const items = raw
+    let items = raw
       .map((c) => ({
         canonical: String(c.canonical ?? c.name ?? c.city ?? "").trim(),
         aliases: ((c.aliases ?? c.altNames ?? []) as unknown[]).map(String),
       }))
       .filter((c) => c.canonical.length > 0)
       .slice(0, limit);
+    if (items.length === 0 && typeof result.text === "string" && result.text.length > 0) {
+      // Upstream returns a Markdown bullet list ("- **Colombo 01**  _aliases: Colombo1_").
+      // Fall back to parsing that shape so the autocomplete can still surface options.
+      items = parseMarkdownCities(result.text).slice(0, limit);
+    }
     log.info("cities.ok", { q, count: items.length, durationMs: Date.now() - t0 });
     return json({ items }, 200, { "Cache-Control": "public, max-age=60, s-maxage=300" });
   } catch (err) {
@@ -43,6 +51,24 @@ async function handler(req: Request): Promise<Response> {
     });
     return json({ error: "lookup failed", message: (err as Error).message }, 502);
   }
+}
+
+function parseMarkdownCities(text: string): Array<{ canonical: string; aliases: string[] }> {
+  const out: Array<{ canonical: string; aliases: string[] }> = [];
+  const lineRegex = /^[-*]\s+\*\*([^*]+)\*\*(?:\s+_aliases:\s*([^_]+)_)?/;
+  for (const line of text.split(/\r?\n/)) {
+    const m = line.match(lineRegex);
+    if (!m) continue;
+    const canonical = (m[1] ?? "").trim();
+    const aliases = m[2]
+      ? m[2]
+          .split(/[,\s]+/)
+          .map((a) => a.trim())
+          .filter((a) => a.length > 0)
+      : [];
+    if (canonical) out.push({ canonical, aliases });
+  }
+  return out;
 }
 
 function clampInt(raw: string | null, min: number, max: number, fallback: number): number {

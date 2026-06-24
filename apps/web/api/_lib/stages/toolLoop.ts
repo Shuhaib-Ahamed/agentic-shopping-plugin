@@ -18,12 +18,23 @@ import {
   type ToolCall,
 } from "../openai.js";
 import { buildToolsSystem } from "../promptSlices.js";
-import { renderStateBlock, type SessionState } from "../sessionState.js";
+import { renderBriefBlock, renderStateBlock, type SessionState } from "../sessionState.js";
 import type { SseWriter } from "../sse.js";
 import { pickStatusLabel } from "../statusPool.js";
 import { renderRoutingBlock, type RoutingDecision } from "./router.js";
 
 const MAX_ITERATIONS = 5;
+
+// Tools that mutate in-process sessionState (cart, order draft). Even when the
+// model returns these inside a parallel tool_calls batch, we run them serially
+// in submission order to avoid races. Read-only kapruka_ fetches are safe to
+// parallelise.
+const MUTATING_TOOLS = new Set<string>([
+  "kapruka_add_to_cart",
+  "kapruka_set_cart_line",
+  "kapruka_remove_from_cart",
+  "kapruka_create_order",
+]);
 
 export interface ToolCallRecord {
   tool: string;
@@ -82,11 +93,15 @@ export async function runToolLoop({
     })),
   ];
 
+  // Static system first, then recent messages, then dynamic blocks last so the
+  // static prefix is byte-identical turn to turn for provider prompt caching.
+  const briefBlock = renderBriefBlock(session);
   const messages: ChatMessageItem[] = [
     { role: "system", content: system },
-    { role: "system", content: renderStateBlock(session) },
-    { role: "system", content: renderRoutingBlock(decision) },
     ...recent.map((m) => ({ role: m.role, content: m.content }) as ChatMessageItem),
+    { role: "system", content: renderStateBlock(session) },
+    ...(briefBlock ? [{ role: "system" as const, content: briefBlock }] : []),
+    { role: "system", content: renderRoutingBlock(decision) },
   ];
 
   const model = stageModel("tools");
@@ -113,8 +128,14 @@ export async function runToolLoop({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- discovered MCP schemas are heterogeneous
       tools: tools as any,
       tool_choice: "auto",
-      parallel_tool_calls: false,
-    });
+      // Stage 2 batches multi-tool turns. Read-only kapruka_ fetches run via
+      // Promise.all below; state-mutating cart and order tools are still run
+      // serially in submission order to avoid races on in-process sessionState.
+      parallel_tool_calls: true,
+      // Tool decisions don't need deep reasoning; default effort costs tens of seconds per iteration.
+      reasoning_effort: "minimal",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reasoning_effort is a gpt-5 runtime param not in SDK typings yet
+    } as any);
 
     const choice = response.choices?.[0];
     const reply = choice?.message;
@@ -140,37 +161,62 @@ export async function runToolLoop({
       })),
     });
 
-    for (const call of toolCalls) {
-      if (signal?.aborted) return bundle;
+    // Partition the batch. State-mutating cart and order tools share the
+    // in-process sessionState (cartTools.execute mutates session.cart), so
+    // running them under Promise.all would race. They stay serial in
+    // submission order. Read-only kapruka_ fetches run concurrently.
+    type Op = { idx: number; call: ToolCall; args: Record<string, unknown>; isKapruka: boolean };
+    const readOps: Op[] = [];
+    const serialOps: Op[] = [];
+    const results: (string | null)[] = new Array(toolCalls.length).fill(null);
+
+    for (let i = 0; i < toolCalls.length; i++) {
+      const call = toolCalls[i]!;
       const args = parseArgs(call.function.arguments, call.function.name, bundle);
       const isKapruka = call.function.name.startsWith("kapruka_");
+      const op: Op = { idx: i, call, args, isKapruka };
+      if (!isKapruka || MUTATING_TOOLS.has(call.function.name)) {
+        serialOps.push(op);
+      } else {
+        readOps.push(op);
+      }
+    }
+
+    await Promise.all(
+      readOps.map(async ({ idx, call, args }) => {
+        if (signal?.aborted) return;
+        const status = statusForTool(call.function.name, args);
+        writer.write({ type: "status", ...status });
+        const payload = await runOne(call.function.name, args, session, bundle, stepLog);
+        results[idx] = payload;
+      }),
+    );
+
+    for (const { idx, call, args, isKapruka } of serialOps) {
+      if (signal?.aborted) return bundle;
       if (!isKapruka) {
         bundle.errors.push({
           tool: call.function.name,
           code: "tool_forbidden",
           message: "Stage 2 may only call kapruka_* tools.",
         });
-        messages.push({
-          role: "tool",
-          tool_call_id: call.id,
-          content: JSON.stringify({
-            ok: false,
-            error: "This stage may only call kapruka_* tools. Stop and let Stage 3 handle UI.",
-          }),
+        results[idx] = JSON.stringify({
+          ok: false,
+          error: "This stage may only call kapruka_* tools. Stop and let Stage 3 handle UI.",
         });
         continue;
       }
-
-      // Emit a per-tool status so the bubble narrates what's happening.
       const status = statusForTool(call.function.name, args);
       writer.write({ type: "status", ...status });
+      results[idx] = await runOne(call.function.name, args, session, bundle, stepLog);
+    }
 
-      const payload = await runOne(call.function.name, args, session, bundle, stepLog);
-      messages.push({
-        role: "tool",
-        tool_call_id: call.id,
-        content: payload,
-      });
+    // Push results back in original tool_call order so each tool_call_id is
+    // matched with its result.
+    for (let i = 0; i < toolCalls.length; i++) {
+      const content = results[i];
+      if (content === null) continue;
+      messages.push({ role: "tool", tool_call_id: toolCalls[i]!.id, content });
     }
 
     writer.write({ type: "status", state: "thinking", label: pickStatusLabel("thinking") });

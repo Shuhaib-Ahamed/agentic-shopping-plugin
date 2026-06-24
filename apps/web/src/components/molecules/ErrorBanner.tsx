@@ -54,7 +54,7 @@ export function ErrorBanner({
       <span
         aria-hidden
         className="grid place-items-center w-8 h-8 rounded-full shrink-0 mt-0.5"
-        style={{ background: "rgba(220, 38, 38, 0.12)" }}
+        style={{ background: "color-mix(in oklab, var(--color-error) 12%, transparent)" }}
       >
         <AlertCircle size={16} strokeWidth={2.4} />
       </span>

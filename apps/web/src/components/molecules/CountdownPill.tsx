@@ -33,8 +33,8 @@ export function CountdownPill({ expiresAt, onExpire, label, className }: Countdo
     return () => window.clearInterval(id);
   }, [expiresAt, onExpire]);
 
-  const warn = msLeft <= 5 * 60 * 1000;
-  const danger = msLeft <= 60 * 1000;
+  // Two-tier per brand kit: calm (muted body) until under 60s, then warn.
+  const warn = msLeft <= 60 * 1000;
 
   return (
     <span
@@ -46,18 +46,12 @@ export function CountdownPill({ expiresAt, onExpire, label, className }: Countdo
         !warn &&
           "bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)]",
         warn &&
-          !danger &&
           "bg-[color:var(--color-warn-bg)] text-[var(--color-warn)] border-[var(--color-warn)]",
-        danger &&
-          "bg-[color:var(--color-warn-bg)] text-[var(--color-error)] border-[var(--color-error)]",
         className,
       )}
       style={{ fontVariantNumeric: "tabular-nums" }}
     >
-      <Clock
-        size={14}
-        className={cn(warn && !danger && "animate-pulse", danger && "animate-pulse")}
-      />
+      <Clock size={14} className={cn(warn && "animate-pulse")} />
       <span>{label ?? formatCountdown(msLeft)}</span>
     </span>
   );

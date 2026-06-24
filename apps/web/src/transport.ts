@@ -80,7 +80,24 @@ export function streamChat(
   }
 
   const ctrl = new AbortController();
+  // Watchdog: if the stream goes idle for this long with no terminal event,
+  // abort and surface a timeout error so the shopper sees a recovery prompt
+  // instead of staring at a stale "thinking" spinner forever. Status pings
+  // count as activity (route changes etc. extend the idle window).
+  const IDLE_TIMEOUT_MS = 30_000;
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+  const armIdleTimer = () => {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      timedOut = true;
+      ctrl.abort();
+    }, IDLE_TIMEOUT_MS);
+  };
   (async () => {
+    let sawAnyEvent = false;
+    let sawTerminal = false;
+    armIdleTimer();
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -96,12 +113,42 @@ export function streamChat(
       }
       await readSseStream(res.body, (raw) => {
         const event = parseSseFrame(raw);
-        if (event) handlers.onEvent(event);
+        if (event) {
+          sawAnyEvent = true;
+          armIdleTimer();
+          // "done", "error", and "message" all signal that the turn produced
+          // *something* the shopper can react to. If none of these fire before
+          // the stream closes, the FE was left silent — surface that as an
+          // error rather than just clearing the spinner.
+          if (event.type === "done" || event.type === "error" || event.type === "message") {
+            sawTerminal = true;
+          }
+          handlers.onEvent(event);
+        }
       });
+      // Stream closed cleanly but the gateway never produced a usable reply —
+      // typical signature of a function timeout, a crash mid-stream, or a
+      // dev-server restart. Don't leave the shopper staring at a blank chat.
+      if (!sawAnyEvent || !sawTerminal) {
+        throw new Error("The assistant didn't reply. The connection ended early — please retry.");
+      }
     } catch (err) {
-      if ((err as Error).name === "AbortError") return;
+      if ((err as Error).name === "AbortError") {
+        if (timedOut) {
+          // Watchdog tripped after a long idle window. Tell the UI so it can
+          // swap the spinner for a retry banner.
+          handlers.onError(
+            new Error(
+              `No reply within ${Math.round(IDLE_TIMEOUT_MS / 1000)} s. The connection went idle, please retry.`,
+            ),
+          );
+        }
+        // User-initiated abort: stay silent.
+        return;
+      }
       handlers.onError(err);
     } finally {
+      if (idleTimer) clearTimeout(idleTimer);
       handlers.onClose();
     }
   })();
