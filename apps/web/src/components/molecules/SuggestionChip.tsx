@@ -24,7 +24,7 @@ export const SuggestionChip = forwardRef<HTMLButtonElement, SuggestionChipProps>
         whileTap={reduced ? undefined : { scale: 0.97 }}
         transition={springs.tap}
         className={cn(
-          "inline-flex items-center gap-2 min-h-[40px] px-4 py-2 rounded-full",
+          "inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-full",
           "text-[var(--text-sm)] font-medium leading-snug",
           "cursor-pointer select-none whitespace-normal text-pretty",
           "transition-[background-color,box-shadow,border-color] duration-300 ease-[var(--easing-emphasized)]",

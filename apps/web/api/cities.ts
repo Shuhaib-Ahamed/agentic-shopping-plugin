@@ -1,3 +1,6 @@
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { makeLogger } from "./_lib/log.js";
 import { callTool } from "./_lib/mcp.js";
 
@@ -7,6 +10,79 @@ export const config = {
   runtime: "nodejs",
   maxDuration: 8,
 };
+
+// Two-tier cache for the MCP city lookup. Upstream is ~1.3s and the
+// autocomplete fires per keystroke. 60s TTL respects "re-fetch before
+// re-presenting" while absorbing in-turn repeats.
+//
+// Tier 1: in-process Map. Hot path, ~0 ms. Persists in prod (Fluid Compute
+// reuses function instances) but resets per request under `vercel dev`.
+// Tier 2: filesystem JSON at /tmp/juno-cities-cache.json. Cross-process,
+// ~1-3 ms. Bridges the dev-env per-request process boundary so dev meets
+// the same PERF-11 budget as prod.
+interface CityCacheEntry {
+  items: Array<{ canonical: string; aliases: string[] }>;
+  at: number;
+}
+const CITIES_CACHE_TTL_MS = 60_000;
+const CITIES_CACHE_MAX = 256;
+const citiesCache = new Map<string, CityCacheEntry>();
+
+const FS_CACHE_DIR = join(tmpdir(), "juno-cache");
+const FS_CACHE_PATH = join(FS_CACHE_DIR, "cities.json");
+
+function fsCacheRead(): Record<string, CityCacheEntry> {
+  try {
+    const raw = readFileSync(FS_CACHE_PATH, "utf8");
+    return JSON.parse(raw) as Record<string, CityCacheEntry>;
+  } catch {
+    return {};
+  }
+}
+
+function fsCacheWrite(all: Record<string, CityCacheEntry>): void {
+  try {
+    mkdirSync(FS_CACHE_DIR, { recursive: true });
+    writeFileSync(FS_CACHE_PATH, JSON.stringify(all));
+  } catch (err) {
+    log.warn("cities.fsCache.writeFail", { error: (err as Error).message });
+  }
+}
+
+function cacheGet(key: string): CityCacheEntry["items"] | null {
+  const hit = citiesCache.get(key);
+  if (hit && Date.now() - hit.at <= CITIES_CACHE_TTL_MS) {
+    citiesCache.delete(key);
+    citiesCache.set(key, hit);
+    return hit.items;
+  }
+  if (hit) citiesCache.delete(key);
+  const fsAll = fsCacheRead();
+  const fsHit = fsAll[key];
+  if (fsHit && Date.now() - fsHit.at <= CITIES_CACHE_TTL_MS) {
+    citiesCache.set(key, fsHit);
+    return fsHit.items;
+  }
+  return null;
+}
+
+function cacheSet(key: string, items: CityCacheEntry["items"]): void {
+  if (citiesCache.size >= CITIES_CACHE_MAX) {
+    const oldest = citiesCache.keys().next().value;
+    if (oldest !== undefined) citiesCache.delete(oldest);
+  }
+  const entry: CityCacheEntry = { items, at: Date.now() };
+  citiesCache.set(key, entry);
+  const fsAll = fsCacheRead();
+  fsAll[key] = entry;
+  // Best-effort prune: drop entries that already expired so the file
+  // doesn't grow unbounded.
+  const now = Date.now();
+  for (const [k, v] of Object.entries(fsAll)) {
+    if (now - v.at > CITIES_CACHE_TTL_MS) delete fsAll[k];
+  }
+  fsCacheWrite(fsAll);
+}
 
 // Backs the CityAutocompleteField molecule. Proxies kapruka_list_delivery_cities
 // so we never expose the MCP transport to the browser.
@@ -19,6 +95,15 @@ async function handler(req: Request): Promise<Response> {
   const limit = clampInt(url.searchParams.get("limit"), 1, 20, 8);
   if (q.length < 2) {
     return json({ items: [] }, 200);
+  }
+  const cacheKey = `${q.toLowerCase()}|${limit}`;
+  const cached = cacheGet(cacheKey);
+  if (cached) {
+    log.info("cities.cacheHit", { q, count: cached.length });
+    return json({ items: cached }, 200, {
+      "Cache-Control": "public, max-age=60, s-maxage=300",
+      "X-Cache": "HIT",
+    });
   }
   log.info("cities.request", { q, limit });
   const t0 = Date.now();
@@ -41,8 +126,12 @@ async function handler(req: Request): Promise<Response> {
       // Fall back to parsing that shape so the autocomplete can still surface options.
       items = parseMarkdownCities(result.text).slice(0, limit);
     }
+    cacheSet(cacheKey, items);
     log.info("cities.ok", { q, count: items.length, durationMs: Date.now() - t0 });
-    return json({ items }, 200, { "Cache-Control": "public, max-age=60, s-maxage=300" });
+    return json({ items }, 200, {
+      "Cache-Control": "public, max-age=60, s-maxage=300",
+      "X-Cache": "MISS",
+    });
   } catch (err) {
     log.error("cities.error", {
       q,

@@ -112,6 +112,7 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder={t.composer.placeholder}
+          aria-label={t.composer.placeholder}
           rows={1}
           autoComplete="off"
           spellCheck
@@ -140,10 +141,11 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
         <button
           type="submit"
           disabled={disabled}
+          aria-disabled={disabled}
           aria-label={isPending ? t.composer.sending : t.composer.send}
           className={cn(
             "relative grid place-items-center shrink-0",
-            "h-10 w-10 rounded-full cursor-pointer",
+            "h-11 w-11 rounded-full cursor-pointer",
             "transition-[transform,background-color,box-shadow] duration-200",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cta",
             "active:scale-95",

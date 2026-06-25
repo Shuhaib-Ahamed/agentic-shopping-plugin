@@ -45,6 +45,11 @@ const ANGLE_TAG_RE = new RegExp(
   `<(?:${TOOL_NAMES})\\b[\\s\\S]*?(?:/>|<\\/(?:${TOOL_NAMES})>|$)`,
   "gi",
 );
+// `[present_options]`, `[present_options "args"]`, `[present_options(args)]` -
+// markdown-bracket badge form. The model sometimes emits this when it knows it
+// should call a UI tool but writes the call as prose instead. Strip the bracket
+// span so surrounding sentence text survives.
+const BRACKET_TAG_RE = new RegExp(`\\[(?:${TOOL_NAMES})\\b[^\\]]*\\]`, "gi");
 // `present_options,` (inline JSON), `present_options(` (function-call style),
 // or `present_options:` followed by the rendered chip block. Greedy across
 // any trailing chip list (markdown bullets, pipe-delimited rows, or raw
@@ -63,6 +68,7 @@ const CHIP_FIELD_RE = /^\s*(?:label|value|icon|emoji)\s*[:=][^\n]*$/gim;
 function stripLeakedToolSyntax(s: string): string {
   return s
     .replace(ANGLE_TAG_RE, "")
+    .replace(BRACKET_TAG_RE, "")
     .replace(HEADER_BLOCK_RE, "")
     .replace(CHIP_FIELD_RE, "")
     .replace(/\n{3,}/g, "\n\n")

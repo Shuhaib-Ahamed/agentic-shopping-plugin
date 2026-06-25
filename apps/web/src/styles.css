@@ -560,6 +560,8 @@
  * soft tinted drop shadow so the card lifts above the parallax background.
  * ------------------------------------------------------------------------- */
 .suggestion-glass {
+  /* WCAG 2.5.5 / touch target: 44px minimum tap area on touch viewports. */
+  min-height: 44px;
   /* Frosted-glass body. The fill is intentionally low-opacity (~25–35%) so
      the backdrop-filter blur has visible material to work with. The pair of
      inset highlights and the violet edge keep the chip reading as glass even

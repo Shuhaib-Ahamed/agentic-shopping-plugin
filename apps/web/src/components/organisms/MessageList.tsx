@@ -142,7 +142,14 @@ export function MessageList({ onOpenProduct, onAddProduct, pending }: MessageLis
       className="flex-1 overflow-y-auto scroll-quiet"
       style={{ scrollPaddingBlock: 24 }}
     >
-      <div className="mx-auto max-w-[1200px] px-4 md:px-6 py-8 md:py-12 space-y-6 md:space-y-8">
+      <div
+        className="mx-auto max-w-[1200px] px-4 md:px-6 py-8 md:py-12 space-y-6 md:space-y-8"
+        role="log"
+        aria-live="polite"
+        aria-atomic="false"
+        aria-relevant="additions text"
+        aria-label={t.app.title}
+      >
         <AnimatePresence initial={false}>
           {messages.map((m) => {
             if (m.kind === "products") {

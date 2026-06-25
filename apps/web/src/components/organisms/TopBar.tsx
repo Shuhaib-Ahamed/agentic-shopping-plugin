@@ -104,25 +104,33 @@ export function TopBar({ className }: TopBarProps) {
             role="radiogroup"
             aria-label="Language"
           >
-            {LOCALES.map(({ code, key }) => (
-              <button
-                key={code}
-                type="button"
-                role="radio"
-                aria-checked={locale === code}
-                onClick={() => setLocale(code)}
-                className={cn(
-                  "min-h-[30px] px-3 rounded-full text-[var(--text-xs)] font-semibold cursor-pointer",
-                  "transition-[background-color,color] duration-150",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
-                  locale === code
-                    ? "bg-[color:var(--color-accent)] text-[color:var(--color-text)] shadow-sm"
-                    : "text-white/85 hover:text-white hover:bg-white/10",
-                )}
-              >
-                {t.composer[key]}
-              </button>
-            ))}
+            {LOCALES.map(({ code, key }) => {
+              const active = locale === code;
+              return (
+                <button
+                  key={code}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setLocale(code)}
+                  // Active state needs near-black text on saffron for WCAG AA
+                  // contrast. The parent `.floating-header { color: #fff }` rule
+                  // would otherwise win same-specificity cascade against the
+                  // Tailwind utility, so the active color is set inline.
+                  style={active ? { color: "var(--color-text)" } : undefined}
+                  className={cn(
+                    "min-h-[30px] px-3 rounded-full text-[var(--text-xs)] font-semibold cursor-pointer",
+                    "transition-[background-color,color] duration-150",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+                    active
+                      ? "bg-[color:var(--color-accent)] shadow-sm"
+                      : "text-white/85 hover:text-white hover:bg-white/10",
+                  )}
+                >
+                  {t.composer[key]}
+                </button>
+              );
+            })}
           </div>
 
           <motion.button
@@ -132,6 +140,9 @@ export function TopBar({ className }: TopBarProps) {
             aria-expanded={cartOpen}
             aria-label={`${t.cart.title}, ${cartCount} ${cartCount === 1 ? "item" : "items"}`}
             whileHover={{ y: -1 }}
+            // Active (cart-open) state puts near-black on saffron for AA contrast;
+            // inline color beats the parent `.floating-header` white inheritance.
+            style={cartOpen ? { color: "var(--color-text)" } : undefined}
             className={cn(
               "relative inline-flex items-center gap-2 h-11 px-4 rounded-full cursor-pointer",
               "text-[var(--text-sm)] font-semibold",
@@ -140,7 +151,7 @@ export function TopBar({ className }: TopBarProps) {
               "hover:bg-white/20",
               "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
               cartOpen
-                ? "bg-[color:var(--color-accent)] text-[color:var(--color-text)] border-transparent shadow-[var(--shadow-accent)]"
+                ? "bg-[color:var(--color-accent)] border-transparent shadow-[var(--shadow-accent)]"
                 : "bg-white/[0.14] text-white",
             )}
           >

@@ -39,6 +39,12 @@ const SAME_UI_TOOL_CAP = 2;
 const TOOL_LEAK_RE =
   /^\s*(?:present_(?:products|product_detail|options|delivery_quote|checkout)|order_confirmed|update_cart|request_info|notify|kapruka_[a-z_]+)\b.*$/gim;
 
+// Bracketed tool-name leak: `[present_options]`, `[present_options "args"]`,
+// `<present_options>`. Strip the bracket span itself, not the whole line, so
+// surrounding prose survives. Tool name list mirrors TOOL_LEAK_RE.
+const BRACKET_TOOL_RE =
+  /[[<](?:present_(?:products|product_detail|options|delivery_quote|checkout)|order_confirmed|update_cart|request_info|notify|kapruka_[a-z_]+)\b[^\]>]*[\]>]/gi;
+
 // Secondary leak: instead of describing the tool call by name, the model
 // dumps the tool's argument shape as YAML-ish key/value markdown lines like
 //   prompt: null
@@ -53,7 +59,7 @@ const ARG_DUMP_KEY_RE =
   /^\s*-?\s*(?:prompt|options|label|value|icon|emoji|fields|cart_lines|delivery_fee|subtotal|total|order_id|pay_url|state|tone|layout)\s*:/gm;
 
 function stripToolPlanLeak(text: string): string {
-  let out = text.replace(TOOL_LEAK_RE, "");
+  let out = text.replace(TOOL_LEAK_RE, "").replace(BRACKET_TOOL_RE, "");
   ARG_DUMP_KEY_RE.lastIndex = 0;
   const argMatches = out.match(ARG_DUMP_KEY_RE) ?? [];
   if (argMatches.length >= 3) {
@@ -61,6 +67,33 @@ function stripToolPlanLeak(text: string): string {
   }
   return out.replace(/\n{3,}/g, "\n\n").trim();
 }
+
+// Deterministic fast-path replies. The router stage classifies the turn; for
+// well-known terminal routes (greeting, out_of_scope, unsafe) we skip the
+// LLM, emit a canned message + starter chips, and finish in ~50 ms. This
+// also makes safety routes immune to model persuasion (FLOW-3 fix).
+function emitFastReply(
+  writer: SseWriter,
+  text: string,
+  chips: Array<{ label: string; value: string }> | null,
+): void {
+  if (chips && chips.length >= 2) {
+    writer.write({
+      type: "options",
+      options: chips.map((c) => ({ label: c.label, value: c.value })),
+      layout: "chips",
+    });
+  }
+  writer.write({ type: "message", id: nanoid(), role: "assistant", text });
+  writer.write({ type: "status", state: "idle" });
+}
+
+const STARTER_CHIPS = [
+  { label: "Birthday gift", value: "Show me birthday gifts" },
+  { label: "Fresh flowers", value: "I want to send fresh flowers" },
+  { label: "Cakes", value: "Show me cakes" },
+  { label: "Surprise me", value: "Surprise me with something popular" },
+];
 
 interface ResponseInput {
   recent: ChatMessage[];
@@ -105,6 +138,38 @@ export async function runResponse({
     ...recent.map((m) => ({ role: m.role, content: m.content }) as ChatMessageItem),
     ...dynamicTail,
   ];
+
+  // Fast-path: deterministic canned reply for terminal routes. Skips the LLM
+  // entirely, so a greeting turn lands in < 100 ms and an off-topic / unsafe
+  // turn lands without any model persuasion risk. Routes that benefit from
+  // model wording (clarify, search, checkout, etc.) fall through.
+  if (decision.route === "out_of_scope" || decision.safety_flag === "out_of_scope") {
+    log.info("response.fastPath", { route: decision.route, kind: "out_of_scope" });
+    emitFastReply(
+      writer,
+      "I'm here to help you shop on Kapruka, not a general assistant. What can I help you find?",
+      STARTER_CHIPS,
+    );
+    return;
+  }
+  if (decision.route === "unsafe") {
+    log.info("response.fastPath", { route: decision.route, kind: "unsafe" });
+    emitFastReply(
+      writer,
+      "I can't help with that. I can help you shop on Kapruka instead.",
+      STARTER_CHIPS,
+    );
+    return;
+  }
+  if (decision.route === "greeting") {
+    log.info("response.fastPath", { route: decision.route, kind: "greeting" });
+    emitFastReply(
+      writer,
+      "Hi! I'm Juno, your Kapruka shopping helper. What are you in the mood for today?",
+      STARTER_CHIPS,
+    );
+    return;
+  }
 
   const model = stageModel("response");
   const client = modelClient();

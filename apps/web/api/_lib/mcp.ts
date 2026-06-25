@@ -30,6 +30,20 @@ export interface McpCallResult {
 let clientPromise: Promise<Client> | null = null;
 let toolsPromise: Promise<McpToolDescriptor[]> | null = null;
 
+// Pre-warm the MCP connection + tool list at module import so the first
+// shopper turn doesn't pay the 2-9s cold handshake. Idempotent: subsequent
+// callers see the memoized `toolsPromise`. Errors are swallowed here so the
+// first user request still gets a clean retry instead of failing on a stale
+// pre-warm rejection.
+export function prewarmMcp(): void {
+  void listTools().catch((err) => {
+    log.warn("mcp.prewarm.swallowed", { error: (err as Error).message });
+    // Reset memo so the next caller actually retries.
+    toolsPromise = null;
+    clientPromise = null;
+  });
+}
+
 interface CacheEntry {
   result: McpCallResult;
   expiresAt: number;

@@ -24,13 +24,42 @@
 import type { ChatMessage, ChatRequest } from "@kapruka/protocol";
 import { env } from "./env.js";
 import { makeLogger, newTraceId, type Logger } from "./log.js";
+import { prewarmMcp } from "./mcp.js";
 import { modelProvider } from "./openai.js";
 import { mergeShopperBrief, getOrCreateSession } from "./sessionState.js";
 import type { SseWriter } from "./sse.js";
 import { runResponse } from "./stages/response.js";
-import { routeTurn } from "./stages/router.js";
+import { EMPTY_BRIEF_DELTA, routeTurn, type RoutingDecision } from "./stages/router.js";
 import { runToolLoop, type ToolBundle } from "./stages/toolLoop.js";
 import { pickStatusLabel } from "./statusPool.js";
+
+// Kick the MCP cold handshake (~2-9 s) before any user turn, so the first
+// shopper request doesn't eat it. Fire-and-forget; the promise is awaited by
+// the first real `callTool`. Safe to call multiple times — `listTools` is
+// memoized.
+prewarmMcp();
+
+// Whole-message greeting detector. Only matches when the entire message is a
+// greeting token — "hello" passes, "hello, find me cakes" does not. Skipping
+// the router LLM here drops first-token latency from ~3 s to < 50 ms for the
+// most common opening turn.
+const GREETING_RE =
+  /^\s*(?:hi+|hello+|hey+|hiya|howdy|good\s+(?:morning|afternoon|evening|day)|yo|sup|ayubowan|ayubowen|salaam|salam|vanakkam|vanakam|ආයුබෝවන්|வணக்கம்)\s*[\s.!?,]*\s*$/i;
+
+function tryHeuristicRoute(text: string): RoutingDecision | null {
+  if (!text || text.length > 60) return null;
+  if (!GREETING_RE.test(text)) return null;
+  return {
+    in_scope: true,
+    needs_tools: false,
+    route: "greeting",
+    intent_summary: "Heuristic greeting (pre-router)",
+    missing_info: [],
+    safety_flag: "none",
+    direct_reply_hint: "greet",
+    brief_delta: EMPTY_BRIEF_DELTA,
+  };
+}
 
 // Per-stage raw-message windows. The shopper brief carries older context, so
 // the raw window can stay small without losing recipient, occasion, budget,
@@ -98,14 +127,23 @@ export async function runAgent({
     cartLines: session.cart.lines.length,
   });
 
-  // STAGE 1: Router.
-  writer.write({ type: "status", state: "routing", label: pickStatusLabel("routing") });
-  const decision = await runStage(log, "router", () =>
-    routeTurn({ recent: routerWindow, session, log: log.child({ ctx: "router" }) }),
-  );
-  if (!decision) {
-    writer.fail("router_failed", "I had trouble understanding that. Want to try again?", true);
-    return;
+  // STAGE 1: Router. Try a fast heuristic first; if it matches we skip the
+  // LLM call entirely, dropping ~3 s of first-token latency for greetings.
+  const lastUserText = routerWindow[routerWindow.length - 1]?.content ?? "";
+  const heuristic = tryHeuristicRoute(lastUserText);
+  let decision: RoutingDecision | null;
+  if (heuristic) {
+    log.info("agent.router.heuristic", { route: heuristic.route });
+    decision = heuristic;
+  } else {
+    writer.write({ type: "status", state: "routing", label: pickStatusLabel("routing") });
+    decision = await runStage(log, "router", () =>
+      routeTurn({ recent: routerWindow, session, log: log.child({ ctx: "router" }) }),
+    );
+    if (!decision) {
+      writer.fail("router_failed", "I had trouble understanding that. Want to try again?", true);
+      return;
+    }
   }
 
   // Merge the router's brief_delta into the durable session brief BEFORE
