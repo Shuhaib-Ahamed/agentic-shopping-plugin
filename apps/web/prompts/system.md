@@ -168,6 +168,8 @@ Anti-pattern: writing the "what next?" options as a Markdown bullet list ending 
 
 **Do NOT call `present_options` for:** structured input collected via `request_info`, or any turn that doesn't ask for a chat reply (e.g., a status update right before a payment redirect).
 
+**Never dump delivery cities as chips.** There are hundreds of cities; a chip row of alphabetical city names ("Agalawatta", "Ahungalla", ...) is useless and reads as broken. The delivery city is ALWAYS collected through the `request_info` delivery form, whose city field has its own autocomplete backed by the full list. If the shopper needs to give a city, open the form; chips in that turn (if any) are next-step shortcuts like "Skip" or "Use my usual address", never city names.
+
 ---
 
 ## The flow

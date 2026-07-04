@@ -345,6 +345,158 @@ const UI_TOOL_BACKING: Record<string, string> = {
   present_delivery_quote: "kapruka_check_delivery",
 };
 
+interface ProductFacts {
+  image?: string;
+  url?: string;
+  rating?: number;
+}
+
+/**
+ * Index every product the tool loop actually fetched this turn, keyed by id.
+ * Kapruka returns `image_url`; the UI tools expect `image`. The model is
+ * instructed to copy the mapping but routinely nulls it, so the gateway
+ * backfills deterministically instead of trusting the copy step.
+ */
+function buildProductFacts(bundle: ToolBundle | null): Map<string, ProductFacts> {
+  const facts = new Map<string, ProductFacts>();
+  if (!bundle) return facts;
+  const harvest = (node: unknown): void => {
+    if (!node || typeof node !== "object") return;
+    if (Array.isArray(node)) {
+      for (const item of node) harvest(item);
+      return;
+    }
+    const rec = node as Record<string, unknown>;
+    const id = typeof rec.id === "string" ? rec.id : undefined;
+    if (id && (rec.image_url || rec.image || rec.url)) {
+      const prev = facts.get(id) ?? {};
+      const image = rec.image_url ?? rec.image;
+      const url = rec.url ?? rec.product_url;
+      facts.set(id, {
+        image: typeof image === "string" && image.startsWith("http") ? image : prev.image,
+        url: typeof url === "string" && url.startsWith("http") ? url : prev.url,
+        rating: typeof rec.rating === "number" ? rec.rating : prev.rating,
+      });
+    }
+    for (const value of Object.values(rec)) {
+      if (value && typeof value === "object") harvest(value);
+    }
+  };
+  for (const call of bundle.calls) {
+    if (!call.ok) continue;
+    if (call.tool !== "kapruka_search_products" && call.tool !== "kapruka_get_product") continue;
+    let result: unknown = call.result;
+    if (typeof result === "string") {
+      try {
+        result = JSON.parse(result);
+      } catch {
+        continue;
+      }
+    }
+    harvest(result);
+  }
+  return facts;
+}
+
+/**
+ * Chip hygiene: the model sometimes converts a kapruka_list_delivery_cities
+ * result into a chip row of alphabetical city names, which is useless next to
+ * the form's autocomplete. Compare chip labels against the city names fetched
+ * THIS turn and drop the matches. If that guts the row, block the call so the
+ * model falls back to the delivery form.
+ */
+function stripCityChips(
+  args: Record<string, unknown>,
+  bundle: ToolBundle | null,
+): { removed: number; blocked: boolean } | null {
+  if (!bundle || !Array.isArray(args.options)) return null;
+  const cities = new Set<string>();
+  const collect = (node: unknown): void => {
+    if (typeof node === "string") {
+      cities.add(node.toLowerCase());
+      return;
+    }
+    if (Array.isArray(node)) {
+      for (const item of node) collect(item);
+      return;
+    }
+    if (node && typeof node === "object") {
+      const rec = node as Record<string, unknown>;
+      if (typeof rec.canonical === "string") cities.add(rec.canonical.toLowerCase());
+      if (typeof rec.name === "string") cities.add(rec.name.toLowerCase());
+      for (const v of Object.values(rec)) {
+        if (v && typeof v === "object") collect(v);
+        else if (typeof v === "string") continue;
+      }
+    }
+  };
+  for (const call of bundle.calls) {
+    if (call.tool !== "kapruka_list_delivery_cities" || !call.ok) continue;
+    let result: unknown = call.result;
+    if (typeof result === "string") {
+      try {
+        result = JSON.parse(result);
+      } catch {
+        continue;
+      }
+    }
+    collect(result);
+  }
+  if (cities.size === 0) return null;
+  const options = args.options as Array<Record<string, unknown>>;
+  const kept = options.filter((o) => {
+    const label = typeof o?.label === "string" ? o.label.trim().toLowerCase() : "";
+    const value = typeof o?.value === "string" ? o.value.trim().toLowerCase() : "";
+    return !cities.has(label) && !cities.has(value);
+  });
+  const removed = options.length - kept.length;
+  if (removed === 0) return null;
+  if (kept.length >= 2) {
+    args.options = kept;
+    return { removed, blocked: false };
+  }
+  return { removed, blocked: true };
+}
+
+/** Fill image/url/rating the model dropped, straight from this turn's tool results. */
+function enrichProductArgs(
+  name: string,
+  args: Record<string, unknown>,
+  bundle: ToolBundle | null,
+  log: Logger,
+): void {
+  if (name !== "present_products" && name !== "present_product_detail") return;
+  const facts = buildProductFacts(bundle);
+  if (facts.size === 0) return;
+  let filled = 0;
+  const fix = (item: unknown): void => {
+    if (!item || typeof item !== "object") return;
+    const p = item as Record<string, unknown>;
+    const known = typeof p.id === "string" ? facts.get(p.id) : undefined;
+    if (!known) return;
+    if (!p.image && known.image) {
+      p.image = known.image;
+      filled += 1;
+    }
+    if (!p.url && known.url) p.url = known.url;
+    if (p.rating == null && known.rating != null) p.rating = known.rating;
+  };
+  if (Array.isArray(args.items)) for (const item of args.items) fix(item);
+  if (args.product) fix(args.product);
+  // present_product_detail requires images[] (min 1); recover it from the
+  // product image when the model sent nothing usable.
+  if (name === "present_product_detail") {
+    const product = args.product as Record<string, unknown> | undefined;
+    const images = Array.isArray(args.images) ? (args.images as unknown[]) : [];
+    const usable = images.filter((u) => typeof u === "string" && u.startsWith("http"));
+    if (usable.length === 0 && typeof product?.image === "string") {
+      args.images = [product.image];
+      filled += 1;
+    }
+  }
+  if (filled > 0) log.info("response.enrichedProductArgs", { tool: name, filled });
+}
+
 function runOneUiCall(
   call: ToolCall,
   writer: SseWriter,
@@ -385,6 +537,21 @@ function runOneUiCall(
   if (!ui) {
     log.warn("response.tool.unknown", { tool: name });
     return `Unknown UI tool: ${name}.`;
+  }
+
+  enrichProductArgs(name, args, bundle, log);
+
+  if (name === "present_options") {
+    const veto = stripCityChips(args, bundle);
+    if (veto) {
+      log.warn("response.tool.cityChipsBlocked", { removed: veto.removed });
+      if (veto.blocked) {
+        return (
+          "Refused: do not present delivery cities as chips. Collect the city through the " +
+          "request_info delivery form (its city field has autocomplete over the full list)."
+        );
+      }
+    }
   }
 
   const t0 = Date.now();

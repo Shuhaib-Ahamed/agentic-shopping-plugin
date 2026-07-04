@@ -318,6 +318,7 @@ async function runOne(
 
   // Real MCP tool.
   try {
+    forceJsonFormat(name, args);
     const result = await callTool(name, args);
     const normalized = normalizeMcp(result);
     bundle.calls.push({ tool: name, args, ok: true, result: normalized });
@@ -356,8 +357,34 @@ function previewResult(value: unknown): string {
   }
 }
 
+// Catalog tools accept response_format markdown|json. Markdown drops the
+// image/product URLs the UI needs, and the model does not reliably ask for
+// json, so pin it here regardless of what the model passed.
+const JSON_FORMAT_TOOLS = new Set(["kapruka_search_products", "kapruka_get_product"]);
+
+function forceJsonFormat(name: string, args: Record<string, unknown>): void {
+  if (!JSON_FORMAT_TOOLS.has(name)) return;
+  const params = args.params;
+  if (params && typeof params === "object" && !Array.isArray(params)) {
+    (params as Record<string, unknown>).response_format = "json";
+  } else if (params === undefined) {
+    args.response_format = "json";
+  }
+}
+
 function normalizeMcp(result: McpCallResult): unknown {
   if (result.json !== null) return result.json;
+  // Tools asked for response_format:"json" still return the payload as a text
+  // part; parse it so downstream consumers (DATA block, product enrichment)
+  // see structured data instead of a string blob.
+  const trimmed = result.text.trim();
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      /* fall through to text wrapper */
+    }
+  }
   return { text: result.text };
 }
 

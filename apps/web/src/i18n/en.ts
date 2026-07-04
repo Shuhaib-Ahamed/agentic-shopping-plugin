@@ -9,13 +9,16 @@ export const en = {
     question: "What are we shopping for today?",
     headline: "Hey, I am Juno. What are we shopping for today?",
     sub: "Tell me about a gift, an occasion, or a name. I'll show you the good stuff, plan delivery, and take you to checkout, right here.",
+    // Short, single-intent prompts. Each one routes in a single pass and maps
+    // to a catalog query that reliably returns products, so the first tap
+    // always lands a quick, simple answer.
     suggestions: {
-      birthday: "Birthday gift under Rs 5,000",
-      cake: "A cake for Saturday in Colombo",
-      flowers: "Fresh flowers, surprise delivery",
+      birthday: "Birthday gift ideas",
+      cake: "Show me chocolates",
+      flowers: "Show me flowers",
       sinhala: "අම්මාට තෑග්ගක්",
-      tamil: "எங்க அம்மாக்கு பிறந்தநாள் பரிசு",
-      tanglish: "Nice combo for ammage birthday",
+      tamil: "அம்மாவுக்கு ஒரு பரிசு",
+      tanglish: "Chocolates for amma",
     },
     categoriesTitle: "Or browse a category",
   },
