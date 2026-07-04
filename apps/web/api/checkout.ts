@@ -32,17 +32,30 @@ export const config = {
 
 const log = makeLogger({ ctx: "checkout" });
 
+/** Today's date in Sri Lanka (UTC+05:30), as YYYY-MM-DD. */
+function todayIsoColombo(): string {
+  return new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
 const CheckoutRequestSchema = z.object({
   sessionId: z.string().min(1).max(128),
   /** Authoritative cart from the client. If session_state already has a cart,
    *  we still trust the client (the client is the UI source of truth between
    *  turns), but we recompute the subtotal server-side. */
   cart: z.array(CartLineSchema).min(1),
-  recipient: RecipientSchema,
+  recipient: RecipientSchema.refine((r) => r.phone.replace(/\D/g, "").length >= 7, {
+    message: "recipient phone must contain at least 7 digits",
+    path: ["phone"],
+  }),
   delivery: z.object({
     city: z.string().min(1),
-    /** ISO date YYYY-MM-DD. */
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "delivery date must be YYYY-MM-DD"),
+    /** ISO date YYYY-MM-DD, today or later (Sri Lanka time). */
+    date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "delivery date must be YYYY-MM-DD")
+      .refine((d) => d >= todayIsoColombo(), {
+        message: "delivery date is in the past",
+      }),
   }),
   giftMessage: z.string().max(500).optional(),
   /** Optional sender info. If omitted the recipient phone is used as a fallback. */
@@ -73,6 +86,19 @@ interface CheckoutErr {
   message: string;
 }
 
+type CheckoutOutcome = { body: CheckoutOk | CheckoutErr; status: number };
+
+// Idempotency guard: a fast double-click, Enter+click, or client retry must
+// not create two real orders. Keyed per session on the exact order-defining
+// payload. While a checkout is in flight, duplicates await the same promise;
+// after success the result replays for a short window. Failures are evicted
+// so the shopper can genuinely retry.
+const IDEMPOTENCY_TTL_MS = 5 * 60 * 1000;
+const inFlightCheckouts = new Map<
+  string,
+  { key: string; ts: number; result: Promise<CheckoutOutcome> }
+>();
+
 async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return new Response("Method Not Allowed", { status: 405, headers: { Allow: "POST" } });
@@ -97,6 +123,49 @@ async function handler(req: Request): Promise<Response> {
     );
   }
   const data = parsed.data;
+
+  const idemKey = JSON.stringify([
+    data.cart,
+    data.recipient,
+    data.delivery,
+    data.giftMessage ?? null,
+    data.currency ?? null,
+  ]);
+  const existing = inFlightCheckouts.get(data.sessionId);
+  if (existing && existing.key === idemKey && Date.now() - existing.ts < IDEMPOTENCY_TTL_MS) {
+    tlog.info("checkout.idempotentReplay", { sessionId: data.sessionId });
+    const replay = await existing.result;
+    return json(replay.body, replay.status);
+  }
+
+  const entry = {
+    key: idemKey,
+    ts: Date.now(),
+    result: performCheckout(data, tlog).catch((err: unknown): CheckoutOutcome => {
+      tlog.error("checkout.unhandled", { error: err instanceof Error ? err.message : String(err) });
+      return {
+        body: {
+          ok: false,
+          code: "internal",
+          message: "Checkout hit an unexpected error. Please try again.",
+        },
+        status: 500,
+      };
+    }),
+  };
+  inFlightCheckouts.set(data.sessionId, entry);
+  const outcome = await entry.result;
+  // Only successful orders are worth replaying; let failures retry for real.
+  if (!outcome.body.ok && inFlightCheckouts.get(data.sessionId) === entry) {
+    inFlightCheckouts.delete(data.sessionId);
+  }
+  return json(outcome.body, outcome.status);
+}
+
+async function performCheckout(
+  data: CheckoutRequest,
+  tlog: ReturnType<typeof makeLogger>,
+): Promise<CheckoutOutcome> {
   const session = getOrCreateSessionById(data.sessionId);
 
   // Mirror form values into session_state so future LLM turns also see them.
@@ -168,21 +237,30 @@ async function handler(req: Request): Promise<Response> {
   if (!rate) {
     const city = data.delivery.city;
     const date = data.delivery.date;
-    return json(
-      {
+    return {
+      body: {
         ok: false,
         code: "mcp_failed",
         message: `We couldn't get a delivery rate for ${city} on ${date}. Some city + date combinations aren't currently quotable. Try a different delivery date (1-2 days later often works), or pick a major hub like Colombo, Kandy, or Galle.`,
       } satisfies CheckoutErr,
-      502,
-    );
+      status: 502,
+    };
+  }
+
+  // The quote parser defaults to LKR when the MCP reply is prose; a USD cart
+  // would then sum USD + LKR into one number. Kapruka quotes in the order's
+  // currency, so coerce the label rather than mixing denominations.
+  const cartCurrency = data.currency ?? data.cart[0]!.price.currency;
+  if (rate.currency !== cartCurrency) {
+    tlog.warn("checkout.rateCurrencyCoerced", { from: rate.currency, to: cartCurrency });
+    rate = { ...rate, currency: cartCurrency };
   }
 
   // 2. Create the order. Schema discovered from live MCP errors:
   //   recipient: { name, phone (>=7 chars) }
   //   delivery:  { address, city, date }            address is a single line
   //   sender:    { name, email? }                   phone not accepted
-  const currency = data.currency ?? data.cart[0]!.price.currency;
+  const currency = cartCurrency;
   const address = [data.recipient.line1, data.recipient.line2].filter(Boolean).join(", ");
   const sender: Record<string, unknown> = {
     name: data.sender?.name ?? data.recipient.name,
@@ -234,14 +312,14 @@ async function handler(req: Request): Promise<Response> {
 
   if (!orderId || !payUrl) {
     tlog.error("checkout.missingFields", { orderId, hasPayUrl: Boolean(payUrl) });
-    return json(
-      {
+    return {
+      body: {
         ok: false,
         code: "mcp_failed",
         message: "Order created but the response was missing fields. Please try again.",
       } satisfies CheckoutErr,
-      502,
-    );
+      status: 502,
+    };
   }
 
   session.order = { orderId, payUrl, expiresAt };
@@ -258,7 +336,7 @@ async function handler(req: Request): Promise<Response> {
   };
 
   tlog.info("checkout.done", { totalMs: Date.now() - reqStart, orderId });
-  return json(response, 200);
+  return { body: response, status: 200 };
 }
 
 function buildSummary(
@@ -351,20 +429,20 @@ function readMoney(value: unknown): Money | null {
   return parsed.success ? parsed.data : null;
 }
 
-function mcpError(log: ReturnType<typeof makeLogger>, tool: string, err: unknown): Response {
+function mcpError(log: ReturnType<typeof makeLogger>, tool: string, err: unknown): CheckoutOutcome {
   const message = err instanceof Error ? err.message : "Tool call failed";
   const rateLimited = /rate.?limit|429/i.test(message);
   log.error("checkout.mcpError", { tool, error: message, rateLimited });
-  return json(
-    {
+  return {
+    body: {
       ok: false,
       code: rateLimited ? "rate_limited" : "mcp_failed",
       message: rateLimited
         ? "Kapruka is busy. One moment, then try again."
         : "Kapruka couldn't complete that step. Please try again.",
     } satisfies CheckoutErr,
-    rateLimited ? 429 : 502,
-  );
+    status: rateLimited ? 429 : 502,
+  };
 }
 
 function json(body: unknown, status: number): Response {

@@ -6,7 +6,9 @@ import { QuantityStepper } from "./QuantityStepper";
 
 export interface CartLineItemProps {
   line: CartLine;
-  onQtyChange?: (productId: string, qty: number) => void;
+  /** Carries the variantId so a product in two variants never updates the
+   *  wrong line. */
+  onQtyChange?: (productId: string, qty: number, variantId?: string) => void;
   onRemove?: (productId: string, variantId?: string) => void;
   className?: string;
 }
@@ -46,7 +48,8 @@ export function CartLineItem({ line, onQtyChange, onRemove, className }: CartLin
           {onQtyChange ? (
             <QuantityStepper
               value={line.qty}
-              onChange={(next) => onQtyChange(line.productId, next)}
+              ariaLabel={`Quantity of ${line.title}`}
+              onChange={(next) => onQtyChange(line.productId, next, line.variantId)}
             />
           ) : (
             <span className="text-[var(--text-sm)] text-[var(--color-text-muted)] tabular">

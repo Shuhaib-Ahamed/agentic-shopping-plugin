@@ -28,6 +28,7 @@ export function CartPanel({ lines, subtotal, onProceed }: CartPanelProps) {
   const locale = useAppStore((s) => s.locale);
   const clearCart = useAppStore((s) => s.clearCart);
   const removeCartLine = useAppStore((s) => s.removeCartLine);
+  const setCartLineQty = useAppStore((s) => s.setCartLineQty);
   const t = pickStrings(locale);
   const reduced = useReducedMotion();
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
@@ -35,12 +36,17 @@ export function CartPanel({ lines, subtotal, onProceed }: CartPanelProps) {
 
   if (lines.length === 0) {
     return (
-      <section className="px-4 md:px-6 py-6">
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reduced ? instant : springs.sheet}
+        className="px-4 md:px-6 py-4 md:py-6"
+      >
         <div className="rounded-[14px] bg-[var(--color-surface)] border border-[var(--color-border)] p-6 text-center">
           <ShoppingBag size={28} className="mx-auto text-[var(--color-text-muted)]" />
           <p className="mt-3 text-[var(--color-text-muted)]">{t.cart.empty}</p>
         </div>
-      </section>
+      </motion.section>
     );
   }
 
@@ -61,14 +67,18 @@ export function CartPanel({ lines, subtotal, onProceed }: CartPanelProps) {
               >
                 {t.cart.title}
               </h3>
-              <span className="text-[var(--text-sm)] text-[var(--color-text-muted)] tabular shrink-0">
-                · {totalItems}
+              <span
+                className="text-[var(--text-sm)] text-[var(--color-text-muted)] tabular shrink-0"
+                aria-label={`${totalItems} ${totalItems === 1 ? "item" : "items"}`}
+              >
+                <span aria-hidden="true">· </span>
+                {totalItems}
               </span>
             </div>
             <button
               type="button"
               onClick={() => setClearConfirmOpen(true)}
-              className="inline-flex items-center gap-1 text-[var(--text-xs)] font-semibold text-[var(--color-text-muted)] hover:text-[color:var(--color-error)] transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-error)] rounded px-1"
+              className="inline-flex items-center gap-1 min-h-11 lg:min-h-6 px-2 text-[var(--text-xs)] font-semibold text-[var(--color-text-muted)] hover:text-[color:var(--color-error)] transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-error)] rounded"
               aria-label="Clear cart"
             >
               <Trash2 size={12} strokeWidth={2.2} />
@@ -78,8 +88,9 @@ export function CartPanel({ lines, subtotal, onProceed }: CartPanelProps) {
           <ul className="divide-y divide-[var(--color-border)]">
             {lines.map((l) => (
               <CartLineItem
-                key={l.productId + (l.variantId ?? "")}
+                key={`${l.productId}::${l.variantId ?? ""}`}
                 line={l}
+                onQtyChange={setCartLineQty}
                 onRemove={removeCartLine}
               />
             ))}

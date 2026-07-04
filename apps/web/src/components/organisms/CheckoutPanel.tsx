@@ -14,6 +14,9 @@ export interface CheckoutPanelProps {
   onIPaid: () => void;
   /** Polled payment status (drives the inline label). */
   paymentStatus: "pending" | "paid" | "failed" | "expired";
+  /** Fired once when the pay-link countdown reaches zero, so the parent can
+   *  flip paymentStatus to "expired" and unlock the recovery CTA. */
+  onExpire?: () => void;
   /** When the link expires, the agent should re-create. This is the recovery CTA. */
   onCreateFreshOrder: () => void;
   perishableWarning?: string;
@@ -23,6 +26,7 @@ export function CheckoutPanel({
   event,
   onIPaid,
   paymentStatus,
+  onExpire,
   onCreateFreshOrder,
   perishableWarning,
 }: CheckoutPanelProps) {
@@ -30,6 +34,9 @@ export function CheckoutPanel({
   const t = pickStrings(locale);
   const reduced = useReducedMotion();
   const [copied, setCopied] = useState(false);
+  /* One "I just paid" per panel: each tap fires a full agent turn, so the
+     button locks after the first and reads as acknowledged. */
+  const [paidClicked, setPaidClicked] = useState(false);
 
   const openPay = () => {
     window.open(event.payUrl, "_blank", "noopener,noreferrer");
@@ -83,7 +90,7 @@ export function CheckoutPanel({
               )}
             </div>
           </div>
-          {!expired && !failed && <CountdownPill expiresAt={event.expiresAt} />}
+          {!expired && !failed && <CountdownPill expiresAt={event.expiresAt} onExpire={onExpire} />}
         </header>
 
         {perishableWarning && (
@@ -99,7 +106,7 @@ export function CheckoutPanel({
         <ul className="mt-4 divide-y divide-[var(--color-border)]">
           {event.summary.lines.map((l) => (
             <li
-              key={l.productId + (l.variantId ?? "")}
+              key={`${l.productId}::${l.variantId ?? ""}`}
               className="flex items-center justify-between py-2"
             >
               <div className="flex-1 min-w-0">
@@ -183,12 +190,20 @@ export function CheckoutPanel({
                 {t.checkout.pricesLocked}
               </p>
             </div>
-            <div className="mt-4 flex items-center justify-between gap-2">
+            <div className="mt-4 flex items-center justify-between gap-2" aria-live="polite">
               <span className="flex items-center gap-2 text-[var(--text-sm)] text-[var(--color-text-muted)]">
                 <Spinner size={14} />
-                {t.checkout.waiting}
+                {paymentStatus === "paid" ? t.checkout.confirmed : t.checkout.waiting}
               </span>
-              <Button variant="primary" size="sm" onClick={onIPaid}>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={paidClicked || paymentStatus === "paid"}
+                onClick={() => {
+                  setPaidClicked(true);
+                  onIPaid();
+                }}
+              >
                 {t.checkout.iPaid}
               </Button>
             </div>

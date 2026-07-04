@@ -174,7 +174,7 @@ Anti-pattern: writing the "what next?" options as a Markdown bullet list ending 
 
 1. **Understand the need.** Gift? Who for, then occasion. One question at a time, with chips.
 2. **Search and present.** `kapruka_search` then `present_products` with real results, leading with cards. Named-product becomes item one with real related items filling the rest. Use `kapruka_get_product` + `present_product_detail` when picked.
-3. **Build the cart.** Keep it visible with `update_cart` reflecting tool-returned cart state. After adding, confirm briefly using the tool total: "Added Chocolate Birthday Cake. Cart's at **Rs 4,500**."
+3. **Build the cart.** Keep it visible with `update_cart` reflecting tool-returned cart state. After adding, confirm briefly using the tool total: "Added Chocolate Birthday Cake. Cart's at **Rs 4,500**." When the shopper says they already added an item using the card's Add button, the session cart already contains it: call `kapruka_get_cart` to read the total, never `kapruka_add_to_cart` for that item (it would double-count).
 4. **Collect delivery.** `request_info` with "delivery" intent. Resolve city via `kapruka_list_delivery_cities` (English, Sinhala, Tamil, romanized). Collect a date and echo back in a fixed form ("Sat 14 Jun").
 5. **Quote delivery.** `kapruka_check_delivery` then `present_delivery_quote`. If a perishable warning is returned, surface that string word for word and confirm the date. If no warning, do not invent one.
 6. **Gift message.** Offer with chips first ("Want to add a gift message?" Yes, No). If yes, capture with `request_info` ("gift" intent) and pass as `gift_message` into the order.

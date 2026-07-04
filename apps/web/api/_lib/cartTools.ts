@@ -43,7 +43,8 @@ function sameLine(a: CartLine, productId: string, variantId?: string): boolean {
 }
 
 function applyAndSerialize(session: SessionState, lines: CartLine[]): unknown {
-  session.cart = computeCart(lines);
+  // Keep the session's currency on the zero subtotal when the cart empties.
+  session.cart = computeCart(lines, session.cart.subtotal.currency);
   return {
     ok: true,
     cart: {
@@ -99,6 +100,15 @@ export const localCartTools: LocalCartTool[] = [
         price: parsed.data.price,
         image: parsed.data.image,
       };
+      // A cart holds exactly one currency. Adding a differently-denominated
+      // line would make the subtotal meaningless, so refuse with guidance.
+      const cartCurrency = session.cart.lines[0]?.price.currency;
+      if (cartCurrency && incoming.price.currency !== cartCurrency) {
+        return {
+          ok: false,
+          error: `Cart already holds ${cartCurrency} items. Ask the shopper to either empty the cart or keep shopping in ${cartCurrency}; do not mix currencies in one order.`,
+        };
+      }
       const lines = [...session.cart.lines];
       const idx = lines.findIndex((l) => sameLine(l, incoming.productId, incoming.variantId));
       if (idx === -1) {

@@ -6,22 +6,31 @@ import { pickStrings } from "@/i18n";
 import { instant, springs } from "@/lib/motion";
 import { useAppStore } from "@/store";
 
+export type FulfillmentStep = "received" | "preparing" | "out_for_delivery" | "delivered";
+
 export interface SuccessCardProps {
   event: OrderConfirmedEvent;
+  /** Live fulfilment stage from the order-status poller. Steps up to and
+   *  including this one render as reached on the timeline. */
+  fulfillment?: FulfillmentStep;
   onShopAgain: () => void;
 }
 
-const TIMELINE_STEPS = [
-  { key: "received", labelKey: "Order received" },
-  { key: "preparing", labelKey: "Preparing" },
-  { key: "out_for_delivery", labelKey: "Out for delivery" },
-  { key: "delivered", labelKey: "Delivered" },
+const TIMELINE_STEPS: Array<{ key: FulfillmentStep; label: string }> = [
+  { key: "received", label: "Order received" },
+  { key: "preparing", label: "Preparing" },
+  { key: "out_for_delivery", label: "Out for delivery" },
+  { key: "delivered", label: "Delivered" },
 ];
 
-export function SuccessCard({ event, onShopAgain }: SuccessCardProps) {
+export function SuccessCard({ event, fulfillment = "received", onShopAgain }: SuccessCardProps) {
   const locale = useAppStore((s) => s.locale);
   const t = pickStrings(locale);
   const reduced = useReducedMotion();
+  const reachedIdx = Math.max(
+    0,
+    TIMELINE_STEPS.findIndex((s) => s.key === fulfillment),
+  );
 
   return (
     <motion.section
@@ -53,7 +62,7 @@ export function SuccessCard({ event, onShopAgain }: SuccessCardProps) {
           <ul className="divide-y divide-[var(--color-border)]">
             {event.summary.lines.map((l) => (
               <li
-                key={l.productId + (l.variantId ?? "")}
+                key={`${l.productId}::${l.variantId ?? ""}`}
                 className="flex items-center justify-between py-2"
               >
                 <div className="flex-1 min-w-0">
@@ -74,30 +83,46 @@ export function SuccessCard({ event, onShopAgain }: SuccessCardProps) {
             <Price money={event.summary.total} size="xl" />
           </div>
 
-          <ol className="mt-6 pl-1">
-            {TIMELINE_STEPS.map((s, idx) => (
-              <li key={s.key} className="relative pl-6 pb-5 last:pb-0">
-                <span
-                  className={
-                    idx === 0
-                      ? "absolute left-0 top-1 w-3 h-3 rounded-full bg-[var(--color-cta)]"
-                      : "absolute left-0 top-1 w-3 h-3 rounded-full bg-[var(--color-border)]"
-                  }
-                />
-                {idx < TIMELINE_STEPS.length - 1 && (
-                  <span className="absolute left-[5px] top-4 bottom-0 border-l-2 border-dotted border-[var(--color-border)]" />
-                )}
-                <p
-                  className={
-                    idx === 0
-                      ? "text-[var(--text-base)] font-semibold text-[var(--color-text)]"
-                      : "text-[var(--text-base)] text-[var(--color-text-muted)]"
-                  }
+          <ol className="mt-6 pl-1" aria-label="Delivery progress" aria-live="polite">
+            {TIMELINE_STEPS.map((s, idx) => {
+              const reached = idx <= reachedIdx;
+              const current = idx === reachedIdx;
+              return (
+                <li
+                  key={s.key}
+                  className="relative pl-6 pb-5 last:pb-0"
+                  aria-current={current ? "step" : undefined}
                 >
-                  {s.labelKey}
-                </p>
-              </li>
-            ))}
+                  <span
+                    className={
+                      reached
+                        ? "absolute left-0 top-1 w-3 h-3 rounded-full bg-[var(--color-cta)]"
+                        : "absolute left-0 top-1 w-3 h-3 rounded-full bg-[var(--color-border)]"
+                    }
+                  />
+                  {idx < TIMELINE_STEPS.length - 1 && (
+                    <span
+                      className={
+                        idx < reachedIdx
+                          ? "absolute left-[5px] top-4 bottom-0 border-l-2 border-dotted border-[var(--color-cta)]"
+                          : "absolute left-[5px] top-4 bottom-0 border-l-2 border-dotted border-[var(--color-border)]"
+                      }
+                    />
+                  )}
+                  <p
+                    className={
+                      current
+                        ? "text-[var(--text-base)] font-semibold text-[var(--color-text)]"
+                        : reached
+                          ? "text-[var(--text-base)] text-[var(--color-text)]"
+                          : "text-[var(--text-base)] text-[var(--color-text-muted)]"
+                    }
+                  >
+                    {s.label}
+                  </p>
+                </li>
+              );
+            })}
           </ol>
 
           <div className="mt-5 flex flex-col sm:flex-row gap-2">

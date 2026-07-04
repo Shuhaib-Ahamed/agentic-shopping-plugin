@@ -239,10 +239,10 @@ export async function runResponse({
       if (typeof delta.content === "string" && delta.content.length > 0) {
         accContent += delta.content;
         // Only stream tokens before a tool_call appears in this iteration. If
-        // the model emits both (uncommon), we drop the partial tokens silently
-        // rather than ship a stranded bubble. We also avoid streaming if the
-        // accumulated buffer so far looks like a tool-plan leak; the final
-        // `message` event will carry the sanitized text.
+        // the model emits both (uncommon), the already-streamed partial is
+        // retracted after the stream ends (empty-text message, same id). We
+        // also avoid streaming if the accumulated buffer so far looks like a
+        // tool-plan leak; the final `message` event carries sanitized text.
         if (!sawToolCall && !TOOL_LEAK_RE.test(accContent)) {
           TOOL_LEAK_RE.lastIndex = 0;
           if (!streamedMessageId) streamedMessageId = nanoid();
@@ -270,6 +270,15 @@ export async function runResponse({
       hasContent: accContent.length > 0,
       streamed: streamedMessageId !== null,
     });
+
+    if (toolCalls.length > 0 && streamedMessageId !== null) {
+      // Tokens streamed before the tool_call surfaced already created a text
+      // bubble on the client; leaving it would strand a half-sentence next to
+      // the real reply from a later iteration. An empty-text `message` with
+      // the same id retracts it (the store drops empty bubbles).
+      stepLog.info("response.retractPartial", { id: streamedMessageId });
+      writer.write({ type: "message", id: streamedMessageId, role: "assistant", text: "" });
+    }
 
     if (toolCalls.length === 0) {
       const text = stripToolPlanLeak(accContent);

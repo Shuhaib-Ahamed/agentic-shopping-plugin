@@ -86,6 +86,10 @@ export function CityAutocompleteField({
     setOpen(false);
   };
 
+  // The listbox only exists in the DOM when there are options; aria-expanded
+  // must agree or aria-controls points at nothing while "expanded".
+  const listboxVisible = open && options.length > 0;
+
   return (
     <div className="flex flex-col gap-1.5">
       <label
@@ -104,9 +108,11 @@ export function CityAutocompleteField({
           placeholder={placeholder}
           value={text}
           aria-autocomplete="list"
-          aria-controls={listId}
-          aria-expanded={open}
-          aria-activedescendant={activeIdx >= 0 ? `${listId}-${activeIdx}` : undefined}
+          aria-controls={listboxVisible ? listId : undefined}
+          aria-expanded={listboxVisible}
+          aria-activedescendant={
+            listboxVisible && activeIdx >= 0 ? `${listId}-${activeIdx}` : undefined
+          }
           role="combobox"
           invalid={Boolean(error)}
           onChange={(e) => {
@@ -116,6 +122,13 @@ export function CityAutocompleteField({
           }}
           onFocus={() => setOpen(true)}
           onBlur={() => {
+            // A typed city that matches a suggestion (any casing) commits the
+            // canonical spelling, so "colombo" checks out as "Colombo" instead
+            // of failing the delivery quote downstream.
+            const match = options.find(
+              (o) => o.canonical.toLowerCase() === text.trim().toLowerCase(),
+            );
+            if (match && match.canonical !== text) commit(match);
             // Delay close so click on a listbox option still registers.
             window.setTimeout(() => setOpen(false), 120);
           }}

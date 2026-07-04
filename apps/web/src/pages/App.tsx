@@ -65,6 +65,7 @@ export function App() {
   const recipient = useAppStore((s) => s.recipient);
   const giftMessage = useAppStore((s) => s.giftMessage);
   const checkoutFlowActive = useAppStore((s) => s.checkoutFlowActive);
+  const checkoutPerishableWarning = useAppStore((s) => s.checkoutPerishableWarning);
   const setRecipient = useAppStore((s) => s.setRecipient);
   const openCheckoutDeliveryForm = useAppStore((s) => s.openCheckoutDeliveryForm);
   const applyDirectCheckout = useAppStore((s) => s.applyDirectCheckout);
@@ -76,34 +77,53 @@ export function App() {
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid" | "failed" | "expired">(
     "pending",
   );
+  /* Fulfilment step for the post-payment tracking timeline on SuccessCard.
+     Advanced by polling /api/order-status after order_confirmed. */
+  const [fulfillment, setFulfillment] = useState<
+    "received" | "preparing" | "out_for_delivery" | "delivered"
+  >("received");
   /* The chips bar is never empty: if the AI didn't emit options, we fall back
      to a small generic set. This tracks which assistant turn the shopper
      dismissed those defaults for, so they reappear on the next AI reply. */
   const [defaultsDismissedFor, setDefaultsDismissedFor] = useState<string | null>(null);
   const abortRef = useRef<{ abort: () => void } | null>(null);
+  /* Monotonic id per stream. A superseded stream's late onClose/onError must
+     not flip `pending` or raise errors for the stream that replaced it. */
+  const streamGenRef = useRef(0);
+  /* One "payment completed" notification per order, ever. Without this, a
+     poller restart could re-observe "paid" and spam the agent. */
+  const paidNotifiedRef = useRef<Set<string>>(new Set());
+  /* Reentrancy guard: a double-click on the delivery form must not POST
+     /api/checkout twice (each POST creates a real order). */
+  const checkoutInFlightRef = useRef(false);
   const t = pickStrings(locale);
+  /* Latest-value refs so long-lived effects (payment poller) never need the
+     changing callbacks in their dependency arrays. */
+  const tRef = useRef(t);
+  tRef.current = t;
 
-  // Compose the chat request from current state.
-  const makeRequest = useCallback(
-    (text: string): ChatRequest => {
-      const next = [
-        ...messages
-          .filter((m): m is TextMessage => m.kind === "text")
-          .map((m) => ({ role: m.role, content: m.text })),
-        { role: "user" as const, content: text },
-      ];
-      return {
-        sessionId,
-        messages: next.slice(-40),
-        context: {
-          locale,
-          currency,
-          cart: cart.lines,
-        },
-      };
-    },
-    [messages, sessionId, locale, currency, cart.lines],
-  );
+  // Compose the chat request from the store's LIVE state, not render-time
+  // closures. Handlers often mutate the store and send() in the same tick
+  // (optimistic add-to-cart, form submits); a closure would post the
+  // pre-mutation cart and the gateway would adopt stale state.
+  const makeRequest = useCallback((text: string): ChatRequest => {
+    const s = useAppStore.getState();
+    const next = [
+      ...s.messages
+        .filter((m): m is TextMessage => m.kind === "text")
+        .map((m) => ({ role: m.role, content: m.text })),
+      { role: "user" as const, content: text },
+    ];
+    return {
+      sessionId: s.sessionId,
+      messages: next.slice(-40),
+      context: {
+        locale: s.locale,
+        currency: s.currency,
+        cart: s.cart.lines,
+      },
+    };
+  }, []);
 
   const send = useCallback(
     (text: string, opts: { silent?: boolean } = {}) => {
@@ -113,10 +133,15 @@ export function App() {
         kind: "ui_input",
         payload: { source: opts.silent ? "system" : "composer", textLength: text.length },
       });
-      setPending(true);
+      // Abort any in-flight stream first; its callbacks resolve asynchronously,
+      // so gate every handler on the generation id. Otherwise the old stream's
+      // late onClose flips `pending` off while the new stream is mid-turn.
+      const gen = ++streamGenRef.current;
       abortRef.current?.abort();
+      setPending(true);
       abortRef.current = streamChat(makeRequest(text), {
         onEvent: (e) => {
+          if (streamGenRef.current !== gen) return;
           applyEvent(e);
           emitTelemetry({
             sessionId,
@@ -125,6 +150,7 @@ export function App() {
           });
         },
         onError: (err) => {
+          if (streamGenRef.current !== gen) return;
           const message = err instanceof Error ? err.message : t.error.generic;
           setError("transport", message, true);
           emitTelemetry({
@@ -133,11 +159,17 @@ export function App() {
             payload: { scope: "transport", message },
           });
         },
-        onClose: () => setPending(false),
+        onClose: () => {
+          if (streamGenRef.current !== gen) return;
+          setPending(false);
+        },
       });
     },
     [applyEvent, makeRequest, pushUserMessage, setError, sessionId, t.error.generic],
   );
+  /* Latest send, for effects that must not restart when `send` re-binds. */
+  const sendRef = useRef(send);
+  sendRef.current = send;
 
   // -----------------------------------------------------------------------
   // Direct checkout: cart -> /api/checkout, no LLM. The checkoutFlowActive
@@ -160,6 +192,10 @@ export function App() {
 
   const submitDirectCheckout = useCallback(
     async (values: Record<string, string>) => {
+      // Each POST creates a real order upstream, so a double-submit (fast
+      // double click, Enter + click) must be swallowed here, synchronously.
+      if (checkoutInFlightRef.current) return;
+
       const builtRecipient: Recipient = {
         name: (values.recipient_name ?? "").trim(),
         phone: (values.recipient_phone ?? "").trim(),
@@ -181,11 +217,16 @@ export function App() {
         setError("checkout_form", "Please fill the required delivery fields.", true);
         return;
       }
+      if (builtRecipient.phone.replace(/\D/g, "").length < 7) {
+        setError("checkout_form", "That phone number looks too short. Please check it.", true);
+        return;
+      }
       if (cart.lines.length === 0) {
         setError("empty_cart", "Your cart is empty. Add something first.", true);
         return;
       }
 
+      checkoutInFlightRef.current = true;
       // Persist client-side so a reload preserves them.
       setRecipient(builtRecipient, gift ?? null);
       // Render a delivery-details block in the timeline so the shopper has
@@ -194,36 +235,50 @@ export function App() {
       resetSurface();
       setPending(true);
 
-      const result = await postCheckout({
-        sessionId,
-        cart: cart.lines,
-        recipient: builtRecipient,
-        delivery: { city: builtRecipient.city, date: deliveryDate },
-        giftMessage: gift,
-        currency,
-      });
-      setPending(false);
+      try {
+        const result = await postCheckout({
+          sessionId,
+          cart: cart.lines,
+          recipient: builtRecipient,
+          delivery: { city: builtRecipient.city, date: deliveryDate },
+          giftMessage: gift,
+          currency,
+        });
+        setPending(false);
 
-      if (!result.ok) {
-        setError("checkout_failed", result.message, true);
+        if (!result.ok) {
+          setError("checkout_failed", result.message, true);
+          emitTelemetry({
+            sessionId,
+            kind: "client_error",
+            payload: { scope: "direct_checkout", code: result.code, message: result.message },
+          });
+          // FLOW-10: a quote/validation failure (bad city, unquotable date) is
+          // fixable. Re-open the form with EVERYTHING pre-filled, date included,
+          // so the shopper only touches the field that was actually wrong.
+          if (result.code === "mcp_failed" || result.code === "bad_request") {
+            openCheckoutDeliveryForm({
+              defaults: { ...builtRecipient, giftMessage: gift ?? null, deliveryDate },
+            });
+          }
+          return;
+        }
+        applyDirectCheckout({
+          orderId: result.orderId,
+          payUrl: result.payUrl,
+          expiresAt: result.expiresAt,
+          summary: result.summary,
+          perishableWarning: result.perishableWarning,
+        });
         emitTelemetry({
           sessionId,
-          kind: "client_error",
-          payload: { scope: "direct_checkout", code: result.code, message: result.message },
+          kind: "render_ack",
+          payload: { event: "checkout", source: "direct" },
         });
-        return;
+      } finally {
+        checkoutInFlightRef.current = false;
+        setPending(false);
       }
-      applyDirectCheckout({
-        orderId: result.orderId,
-        payUrl: result.payUrl,
-        expiresAt: result.expiresAt,
-        summary: result.summary,
-      });
-      emitTelemetry({
-        sessionId,
-        kind: "render_ack",
-        payload: { event: "checkout", source: "direct" },
-      });
     },
     [
       cart.lines,
@@ -234,32 +289,72 @@ export function App() {
       pushDeliveryDetails,
       resetSurface,
       applyDirectCheckout,
+      openCheckoutDeliveryForm,
     ],
   );
 
-  // Polling lives below `send` so it can use it.
+  // -----------------------------------------------------------------------
+  // Payment watch. Keyed on the orderId alone: everything else the callback
+  // needs comes in via refs, so a streaming token or locale switch can never
+  // tear the poller down, reset the attempt budget, or regress the visible
+  // payment status. `setError` is a zustand action and therefore stable.
+  // -----------------------------------------------------------------------
+  const checkoutOrderId = surface.kind === "checkout" ? surface.payload.orderId : null;
   useEffect(() => {
-    if (surface.kind !== "checkout") return;
+    if (!checkoutOrderId) return;
     setPaymentStatus("pending");
-    const checkoutOrderId = surface.payload.orderId;
     const poller = pollOrderStatus({
       orderId: checkoutOrderId,
       onStatus: (status, trackingUrl) => {
-        setPaymentStatus(status);
-        if (status === "paid") {
-          send(
+        const paidOrBeyond =
+          status === "paid" ||
+          status === "processing" ||
+          status === "dispatched" ||
+          status === "delivered";
+        setPaymentStatus((prev) => {
+          // A local countdown expiry outranks a stale "pending" from the API.
+          if (prev === "expired" && !paidOrBeyond && status !== "failed") return prev;
+          return paidOrBeyond ? "paid" : status === "failed" ? "failed" : prev;
+        });
+        if (paidOrBeyond && !paidNotifiedRef.current.has(checkoutOrderId)) {
+          paidNotifiedRef.current.add(checkoutOrderId);
+          sendRef.current(
             `payment completed for ${checkoutOrderId}${trackingUrl ? ` (${trackingUrl})` : ""}`,
             { silent: true },
           );
         }
         if (status === "failed") {
-          setError("payment_failed", t.checkout.failed, true);
+          setError("payment_failed", tRef.current.checkout.failed, true);
         }
       },
       onError: () => {},
     });
     return () => poller.stop();
-  }, [surface, send, setError, t.checkout.failed]);
+  }, [checkoutOrderId, setError]);
+
+  // -----------------------------------------------------------------------
+  // Fulfilment tracking. Once the order is confirmed, keep polling through
+  // paid → processing → dispatched → delivered so the SuccessCard timeline
+  // advances live instead of sitting frozen on "Order received".
+  // -----------------------------------------------------------------------
+  const confirmedOrderId = surface.kind === "order_confirmed" ? surface.payload.orderId : null;
+  useEffect(() => {
+    if (!confirmedOrderId) return;
+    setFulfillment("preparing");
+    const poller = pollOrderStatus({
+      orderId: confirmedOrderId,
+      intervalMs: 8000,
+      maxAttempts: 45,
+      terminalStatuses: ["delivered", "failed"],
+      onStatus: (status) => {
+        if (status === "dispatched") setFulfillment("out_for_delivery");
+        else if (status === "delivered") setFulfillment("delivered");
+        else if (status === "paid" || status === "processing") setFulfillment("preparing");
+      },
+      onError: () => {},
+    });
+    return () => poller.stop();
+  }, [confirmedOrderId]);
 
   const cityQuery = useCallback(async (q: string): Promise<CityOption[]> => {
     if (!q || q.length < 2) return [];
@@ -289,12 +384,24 @@ export function App() {
 
   const addProduct = useCallback(
     (p: Product, variant?: Variant) => {
+      const price = variant?.price ?? p.price;
+      // A cart holds one currency (the server enforces the same rule). Refuse
+      // the mix up front with a readable message instead of a corrupt total.
+      const cartCurrency = cart.lines[0]?.price.currency;
+      if (cartCurrency && price.currency !== cartCurrency) {
+        setError(
+          "currency_mismatch",
+          `Your cart is in ${cartCurrency}. Empty it first to shop in ${price.currency}.`,
+          true,
+        );
+        return;
+      }
       const line: CartLine = {
         productId: p.id,
         title: p.title,
         qty: 1,
         variantId: variant?.id,
-        price: variant?.price ?? p.price,
+        price,
         image: p.image,
       };
       const existingIdx = cart.lines.findIndex(
@@ -304,14 +411,23 @@ export function App() {
         existingIdx >= 0
           ? cart.lines.map((l, i) => (i === existingIdx ? { ...l, qty: l.qty + 1 } : l))
           : [...cart.lines, line];
+      // Denominate the subtotal by the lines themselves, not the UI currency
+      // toggle: the store recomputes it anyway (FLOW-8), this keeps the event
+      // internally consistent.
       const subtotal: Money = {
         amount: lines.reduce((s, l) => s + l.price.amount * l.qty, 0),
-        currency,
+        currency: lines[0]!.price.currency,
       };
       applyEvent({ type: "cart", lines, subtotal });
-      send(`Add ${p.title}${variant ? ` (${variant.label})` : ""} to my cart.`, { silent: true });
+      // Declarative sync note, not an instruction: the cart in context already
+      // contains the item, so the model must not call kapruka_add_to_cart
+      // again (that would double-count on top of this optimistic add).
+      send(
+        `I added ${p.title}${variant ? ` (${variant.label})` : ""} to my cart using the card's Add button. The cart is already updated, do not add it again; just confirm the cart total and suggest a next step.`,
+        { silent: true },
+      );
     },
-    [cart.lines, currency, applyEvent, send],
+    [cart.lines, applyEvent, send, setError],
   );
 
   const showHero = messages.length === 0;
@@ -413,7 +529,8 @@ export function App() {
             <CheckoutPanel
               event={surface.payload}
               paymentStatus={paymentStatus}
-              perishableWarning={undefined}
+              perishableWarning={checkoutPerishableWarning ?? undefined}
+              onExpire={() => setPaymentStatus((prev) => (prev === "pending" ? "expired" : prev))}
               onIPaid={() => send(`I just paid for order ${surface.payload.orderId}.`)}
               onCreateFreshOrder={() =>
                 send("The pay link expired. Please create a fresh order so I can pay.")
@@ -427,6 +544,7 @@ export function App() {
           trayBody: (
             <SuccessCard
               event={surface.payload}
+              fulfillment={fulfillment}
               onShopAgain={() => send("I'd like to shop again.")}
             />
           ),
@@ -440,6 +558,8 @@ export function App() {
     surface,
     pending,
     paymentStatus,
+    fulfillment,
+    checkoutPerishableWarning,
     cityQuery,
     t,
     cartOpen,

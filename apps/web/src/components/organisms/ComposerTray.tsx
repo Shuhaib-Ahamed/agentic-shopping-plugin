@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export interface ComposerTrayProps {
@@ -27,6 +27,17 @@ export function ComposerTray({
   children,
   className,
 }: ComposerTrayProps) {
+  // Escape closes the tray from anywhere (A11Y: no keyboard trap). Closable
+  // trays only; required forms with hideClose keep Escape inert.
+  useEffect(() => {
+    if (!open || hideClose || !onClose) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, hideClose, onClose]);
+
   if (!open) return null;
   return (
     <div

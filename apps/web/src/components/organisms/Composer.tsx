@@ -53,9 +53,13 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
     const trimmed = value.trim();
-    if (!trimmed || isPending) return;
+    // Sending while a reply streams is allowed: the transport aborts the
+    // in-flight turn and starts the new one. The shopper is never locked out.
+    if (!trimmed) return;
     onSubmit(trimmed);
     setValue("");
+    // Keep the caret in the box so a follow-up thought flows straight in.
+    textareaRef.current?.focus();
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -65,7 +69,10 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
     }
   };
 
-  const disabled = !value.trim() || isPending;
+  const disabled = !value.trim();
+  // The button reads as busy only while the agent is replying AND the shopper
+  // hasn't started typing the next message; typed text flips it back to send.
+  const showSpinner = Boolean(isPending) && !value.trim();
 
   return (
     <form onSubmit={submit} className="relative w-full pt-1 pb-3 md:pb-5 safe-bottom">
@@ -136,13 +143,12 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
             boxShadow: "none",
           }}
           lang={locale}
-          disabled={isPending}
         />
         <button
           type="submit"
           disabled={disabled}
           aria-disabled={disabled}
-          aria-label={isPending ? t.composer.sending : t.composer.send}
+          aria-label={showSpinner ? t.composer.sending : t.composer.send}
           className={cn(
             "relative grid place-items-center shrink-0",
             "h-11 w-11 rounded-full cursor-pointer",
@@ -155,7 +161,7 @@ export function Composer({ onSubmit, isPending, showBeam }: ComposerProps) {
               : "bg-[color:var(--color-accent)] text-[color:var(--color-text)] hover:bg-[color:var(--color-accent-dark)] shadow-[var(--shadow-accent)]",
           )}
         >
-          {isPending ? (
+          {showSpinner ? (
             <svg
               width={18}
               height={18}

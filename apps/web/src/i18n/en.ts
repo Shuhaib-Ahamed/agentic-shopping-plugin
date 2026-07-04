@@ -20,7 +20,7 @@ export const en = {
     categoriesTitle: "Or browse a category",
   },
   composer: {
-    placeholder: "Make a Wish ...",
+    placeholder: "Make a wish ...",
     send: "Send",
     languageEN: "EN",
     languageSI: "සි",
@@ -74,6 +74,7 @@ export const en = {
     payNow: "Pay securely on Kapruka",
     pricesLocked: "Pay link expires in 60 minutes. Prices locked.",
     waiting: "Waiting for payment",
+    confirmed: "Payment received",
     iPaid: "I just paid",
     expired: "Pay link expired.",
     expiredCta: "Create a fresh order",

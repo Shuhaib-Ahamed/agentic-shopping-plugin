@@ -13,7 +13,10 @@ import type { CartLine, ChatRequest, Money, Recipient } from "@kapruka/protocol"
 
 export interface CartSnapshot {
   lines: CartLine[];
-  subtotal: Money | null;
+  /** Always a concrete Money: an empty cart carries a zero subtotal so the
+   *  snapshot can be emitted as a `cart` SSE event without violating the
+   *  protocol's non-nullable subtotal. */
+  subtotal: Money;
 }
 
 export interface CurrentProduct {
@@ -85,16 +88,19 @@ const store = new Map<string, SessionState>();
 export function getOrCreateSession(req: ChatRequest): SessionState {
   const existing = store.get(req.sessionId);
   if (existing) {
-    // Trust the SPA's cart on each turn only when our cart is empty (cold start).
-    // Once we have populated it from tool results, our copy wins.
-    if (existing.cart.lines.length === 0 && req.context?.cart?.length) {
-      existing.cart = computeCart(req.context.cart);
+    // The SPA is the source of truth for the cart between turns: it applied
+    // every `cart` event we emitted, plus any optimistic edits (remove line,
+    // change qty) the shopper made directly in the cart panel. Adopting its
+    // copy each turn keeps those edits instead of silently reverting them.
+    // During the turn the tool loop mutates our copy and re-emits it.
+    if (req.context?.cart) {
+      existing.cart = computeCart(req.context.cart, existing.cart.subtotal.currency);
     }
     return existing;
   }
   const fresh: SessionState = {
     sessionId: req.sessionId,
-    cart: req.context?.cart?.length ? computeCart(req.context.cart) : { lines: [], subtotal: null },
+    cart: computeCart(req.context?.cart ?? []),
     currentProduct: null,
     delivery: { city: null, date: null, quoteDisplay: null, perishableWarning: null, rate: null },
     recipient: null,
@@ -118,7 +124,7 @@ export function getOrCreateSessionById(sessionId: string): SessionState {
   if (existing) return existing;
   const fresh: SessionState = {
     sessionId,
-    cart: { lines: [], subtotal: null },
+    cart: computeCart([]),
     currentProduct: null,
     delivery: { city: null, date: null, quoteDisplay: null, perishableWarning: null, rate: null },
     recipient: null,
@@ -131,17 +137,27 @@ export function getOrCreateSessionById(sessionId: string): SessionState {
   return fresh;
 }
 
-/** Deterministic subtotal computed by the server, never by the LLM. */
-export function computeCart(lines: CartLine[]): CartSnapshot {
-  if (lines.length === 0) return { lines: [], subtotal: null };
-  const currency = lines[0]!.price.currency;
-  for (const line of lines) {
-    if (line.price.currency !== currency) {
-      throw new Error(`Mixed cart currencies: ${currency} vs ${line.price.currency}`);
-    }
+/**
+ * Deterministic subtotal computed by the server, never by the LLM.
+ *
+ * Never throws on untrusted input: client-sent carts flow straight in here
+ * during session init, and a hard failure there would 500 the whole turn.
+ * A cart holds exactly one currency; if mixed lines sneak in, lines that do
+ * not match the first line's currency are dropped rather than crashing.
+ * Zero/negative quantities are dropped for the same reason.
+ */
+export function computeCart(
+  lines: CartLine[],
+  fallbackCurrency: Money["currency"] = "LKR",
+): CartSnapshot {
+  const valid = lines.filter((l) => Number.isFinite(l.qty) && l.qty > 0);
+  if (valid.length === 0) {
+    return { lines: [], subtotal: { amount: 0, currency: fallbackCurrency } };
   }
-  const amount = lines.reduce((sum, l) => sum + l.price.amount * l.qty, 0);
-  return { lines, subtotal: { amount, currency } };
+  const currency = valid[0]!.price.currency;
+  const sameCurrency = valid.filter((l) => l.price.currency === currency);
+  const amount = sameCurrency.reduce((sum, l) => sum + l.price.amount * l.qty, 0);
+  return { lines: sameCurrency, subtotal: { amount, currency } };
 }
 
 /**

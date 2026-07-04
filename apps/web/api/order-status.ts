@@ -29,7 +29,7 @@ async function handler(req: Request): Promise<Response> {
   try {
     const result = await callTool("kapruka_track_order", { order_number: orderId });
     const data = (result.json ?? {}) as Record<string, unknown>;
-    const status = inferStatus(data);
+    const status = inferStatus(data, result.text);
     const trackingUrl = (data.tracking_url as string | undefined) ?? undefined;
     log.info("order-status.ok", {
       orderId,
@@ -57,10 +57,25 @@ async function handler(req: Request): Promise<Response> {
   }
 }
 
-function inferStatus(data: Record<string, unknown>): "pending" | "paid" | "failed" {
-  const raw = String(data.status ?? data.payment_status ?? "pending").toLowerCase();
-  if (raw.includes("paid") || raw === "completed" || raw === "success") return "paid";
-  if (raw.includes("fail") || raw === "cancelled" || raw === "rejected") return "failed";
+export type OrderStatus = "pending" | "paid" | "processing" | "dispatched" | "delivered" | "failed";
+
+/**
+ * Map Kapruka's free-form order status onto the SPA's tracking machine:
+ * pending → paid → processing → dispatched → delivered, with failed terminal.
+ * Falls back to scanning the tool's prose when the JSON lacks a status field,
+ * so a text-only MCP reply still advances the timeline.
+ */
+function inferStatus(data: Record<string, unknown>, text: string): OrderStatus {
+  const raw = String(
+    data.status ?? data.fulfillment_status ?? data.payment_status ?? "",
+  ).toLowerCase();
+  const haystack = raw || text.toLowerCase();
+  if (/deliver/.test(haystack) && !/out\s+for\s+delivery/.test(haystack)) return "delivered";
+  if (/dispatch|shipped|out\s+for\s+delivery|in\s+transit|courier/.test(haystack))
+    return "dispatched";
+  if (/fail|cancel|reject|expire|refund/.test(haystack)) return "failed";
+  if (/process|prepar|packing|confirm/.test(haystack)) return "processing";
+  if (/paid|completed|success/.test(haystack)) return "paid";
   return "pending";
 }
 

@@ -45,7 +45,25 @@ export async function postCheckout(input: PostCheckoutInput): Promise<PostChecko
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify(input),
     });
+    // The gateway answers JSON for both success and its own errors, but a
+    // platform-level failure (504 HTML page, plain-text 405) does not. Guard
+    // so those surface as a readable status instead of a JSON parse throw.
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      return {
+        ok: false,
+        code: res.status === 429 ? "rate_limited" : "internal",
+        message: `Checkout failed (HTTP ${res.status}). Please try again.`,
+      };
+    }
     const json = (await res.json()) as PostCheckoutResult;
+    if (!res.ok && json.ok !== false) {
+      return {
+        ok: false,
+        code: "internal",
+        message: `Checkout failed (HTTP ${res.status}). Please try again.`,
+      };
+    }
     return json;
   } catch (err) {
     return {
@@ -111,21 +129,27 @@ export function streamChat(
       if (!res.ok || !res.body) {
         throw new Error(`Chat request failed: ${res.status} ${res.statusText}`);
       }
-      await readSseStream(res.body, (raw) => {
-        const event = parseSseFrame(raw);
-        if (event) {
-          sawAnyEvent = true;
-          armIdleTimer();
-          // "done", "error", and "message" all signal that the turn produced
-          // *something* the shopper can react to. If none of these fire before
-          // the stream closes, the FE was left silent — surface that as an
-          // error rather than just clearing the spinner.
-          if (event.type === "done" || event.type === "error" || event.type === "message") {
-            sawTerminal = true;
+      await readSseStream(
+        res.body,
+        (raw) => {
+          const event = parseSseFrame(raw);
+          if (event) {
+            sawAnyEvent = true;
+            // "done", "error", and "message" all signal that the turn produced
+            // *something* the shopper can react to. If none of these fire before
+            // the stream closes, the FE was left silent — surface that as an
+            // error rather than just clearing the spinner.
+            if (event.type === "done" || event.type === "error" || event.type === "message") {
+              sawTerminal = true;
+            }
+            handlers.onEvent(event);
           }
-          handlers.onEvent(event);
-        }
-      });
+        },
+        // Re-arm on raw bytes, not parsed frames: a long tool call that only
+        // sends SSE comments/heartbeats still proves the server is alive, so
+        // the watchdog measures true idle time on the wire.
+        armIdleTimer,
+      );
       // Stream closed cleanly but the gateway never produced a usable reply —
       // typical signature of a function timeout, a crash mid-stream, or a
       // dev-server restart. Don't leave the shopper staring at a blank chat.
@@ -162,6 +186,7 @@ export function streamChat(
 async function readSseStream(
   body: ReadableStream<Uint8Array>,
   onFrame: (frame: string) => void,
+  onBytes?: () => void,
 ): Promise<void> {
   const reader = body.getReader();
   const decoder = new TextDecoder("utf-8");
@@ -171,6 +196,7 @@ async function readSseStream(
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
+    onBytes?.();
     buffer += decoder.decode(value, { stream: true });
     let idx: number;
     while ((idx = buffer.indexOf("\n\n")) !== -1) {
@@ -179,19 +205,25 @@ async function readSseStream(
       if (frame.trim().length > 0) onFrame(frame);
     }
   }
+  // Flush a final frame that the server did not terminate with a blank line
+  // (e.g. the connection was cut right after the terminal event's newline).
+  if (buffer.trim().length > 0) onFrame(buffer);
 }
 
 /** Parse a single SSE frame into a typed event, or null if it does not pass schema. */
 function parseSseFrame(raw: string): SseEvent | null {
   const lines = raw.split(/\r?\n/);
-  let data = "";
+  const dataLines: string[] = [];
   for (const line of lines) {
     if (line.startsWith(":")) continue; // comment
     if (line.startsWith("data:")) {
-      data += line.slice(5).trim();
+      // Per the SSE spec: strip one leading space, keep everything else, and
+      // join multiple data lines with a newline (never concatenate raw).
+      dataLines.push(line.slice(5).replace(/^ /, ""));
     }
   }
-  if (!data) return null;
+  const data = dataLines.join("\n");
+  if (!data.trim()) return null;
   try {
     const parsed = SseEventSchema.safeParse(JSON.parse(data));
     return parsed.success ? parsed.data : null;
@@ -200,25 +232,36 @@ function parseSseFrame(raw: string): SseEvent | null {
   }
 }
 
-/** Poll /api/order-status until status changes from pending or until aborted. */
+/** Full order lifecycle reported by /api/order-status. */
+export type OrderStatus = "pending" | "paid" | "processing" | "dispatched" | "delivered" | "failed";
+
+/** Poll /api/order-status until a terminal status arrives or the poller is stopped. */
 export interface OrderStatusPollerOptions {
   orderId: string;
   intervalMs?: number;
   maxAttempts?: number;
-  onStatus: (status: "pending" | "paid" | "failed", trackingUrl?: string) => void;
+  /** Statuses that end polling. Defaults to payment-watch semantics: stop once
+   *  the order is paid (or beyond) or failed. Pass ["delivered", "failed"] to
+   *  keep polling through fulfilment for the tracking timeline. */
+  terminalStatuses?: OrderStatus[];
+  onStatus: (status: OrderStatus, trackingUrl?: string) => void;
   onError?: (err: unknown) => void;
 }
+
+const PAYMENT_TERMINAL: OrderStatus[] = ["paid", "processing", "dispatched", "delivered", "failed"];
 
 export function pollOrderStatus({
   orderId,
   intervalMs = 4000,
   maxAttempts = 120,
+  terminalStatuses = PAYMENT_TERMINAL,
   onStatus,
   onError,
 }: OrderStatusPollerOptions): { stop: () => void } {
   let stopped = false;
   let attempt = 0;
   let timer: number | undefined;
+  const terminal = new Set(terminalStatuses);
   const tick = async () => {
     if (stopped) return;
     attempt += 1;
@@ -229,16 +272,17 @@ export function pollOrderStatus({
       });
       if (!res.ok) throw new Error(`Order status failed: ${res.status}`);
       const json = (await res.json()) as {
-        status: "pending" | "paid" | "failed";
+        status: OrderStatus;
         trackingUrl?: string;
       };
+      if (stopped) return; // stop() raced the fetch; drop the stale result
       onStatus(json.status, json.trackingUrl);
-      if (json.status !== "pending") {
+      if (terminal.has(json.status)) {
         stopped = true;
         return;
       }
     } catch (err) {
-      onError?.(err);
+      if (!stopped) onError?.(err);
     }
     if (!stopped && attempt < maxAttempts) {
       timer = window.setTimeout(tick, intervalMs);

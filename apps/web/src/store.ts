@@ -117,6 +117,9 @@ export interface AppState {
    *  form. App.tsx reads this in the form's onSubmit to route to /api/checkout
    *  instead of the LLM. Transient; never persisted. */
   checkoutFlowActive: boolean;
+  /** Perishable-goods warning returned by the direct /api/checkout flow, shown
+   *  on the checkout panel. Transient; never persisted. */
+  checkoutPerishableWarning: string | null;
 
   // actions
   setLocale: (l: Locale) => void;
@@ -141,10 +144,13 @@ export interface AppState {
   clearMessages: () => void;
   /** Empty the cart only (keeps conversation). */
   clearCart: () => void;
-  /** Optimistically remove a single cart line. The cart is server-authoritative,
-   *  but the trimmed cart is included in the next chat request context, so the
-   *  AI sees the new state on the next turn. */
+  /** Optimistically remove a single cart line. The trimmed cart is included in
+   *  the next chat request context and the gateway adopts it, so the edit
+   *  survives the next turn. */
   removeCartLine: (productId: string, variantId?: string) => void;
+  /** Optimistically set a cart line's quantity (0 removes it). Same sync
+   *  contract as removeCartLine: the next chat request carries the new cart. */
+  setCartLineQty: (productId: string, qty: number, variantId?: string) => void;
   /** Persist the recipient (and optional gift message) collected on the
    *  client. Called by the direct checkout flow before posting to /api/checkout. */
   setRecipient: (recipient: Recipient, giftMessage?: string | null) => void;
@@ -154,7 +160,7 @@ export interface AppState {
    *  any recipient fields we already remember from a prior order. */
   openCheckoutDeliveryForm: (params?: {
     defaultCity?: string;
-    defaults?: Partial<Recipient> & { giftMessage?: string | null };
+    defaults?: Partial<Recipient> & { giftMessage?: string | null; deliveryDate?: string };
   }) => void;
   /** Apply the JSON response from /api/checkout: synthesize a checkout surface
    *  and start polling for the pay status. No SSE involved. */
@@ -163,6 +169,7 @@ export interface AppState {
     payUrl: string;
     expiresAt: string;
     summary: OrderSummary;
+    perishableWarning?: string | null;
   }) => void;
   /** Clear the checkout-flow flag, e.g. when the shopper closes the tray. */
   endCheckoutFlow: () => void;
@@ -170,6 +177,16 @@ export interface AppState {
 
 const initialCurrency: Currency = "LKR";
 const initialMoney: Money = { amount: 0, currency: initialCurrency };
+
+/** Sum of price x qty across lines, denominated by the first line. Falls back
+ *  to the server-sent subtotal's currency when the cart is empty. */
+function computeCartSubtotal(lines: CartLine[], fallback: Money): Money {
+  if (lines.length === 0) return { amount: 0, currency: fallback.currency };
+  return {
+    amount: lines.reduce((n, l) => n + l.price.amount * l.qty, 0),
+    currency: lines[0]!.price.currency,
+  };
+}
 
 // SSR-safe sessionStorage adapter. Vite SPA never SSRs, but defensive checks
 // keep this safe under React 19's StrictMode double-invocation and any future
@@ -210,6 +227,7 @@ export const useAppStore = create<AppState>()(
       recipient: null,
       giftMessage: null,
       checkoutFlowActive: false,
+      checkoutPerishableWarning: null,
 
       setLocale: (locale) => {
         set({ locale });
@@ -218,8 +236,11 @@ export const useAppStore = create<AppState>()(
       setCurrency: (currency) =>
         set((s) => ({
           currency,
-          // Keep the subtotal currency in sync.
-          cart: { lines: s.cart.lines, subtotal: { ...s.cart.subtotal, currency } },
+          // Only restamp the subtotal currency while the cart is empty. A
+          // populated cart keeps its own denomination: relabeling Rs amounts
+          // as $ without conversion would show a false total.
+          cart:
+            s.cart.lines.length === 0 ? { lines: [], subtotal: { amount: 0, currency } } : s.cart,
         })),
 
       pushUserMessage: (text) => {
@@ -255,6 +276,14 @@ export const useAppStore = create<AppState>()(
               return { status: { state: e.state, label: e.label, detail: e.detail } };
 
             case "message": {
+              // Empty text is a retraction: the server streamed tokens for a
+              // bubble, then decided the iteration was a tool call. Drop the
+              // stranded partial without touching the turn's status.
+              if (e.text.length === 0) {
+                return {
+                  messages: s.messages.filter((m) => !(m.kind === "text" && m.id === e.id)),
+                };
+              }
               const existing = s.messages.find(
                 (m): m is TextMessage => m.kind === "text" && m.id === e.id,
               );
@@ -348,12 +377,19 @@ export const useAppStore = create<AppState>()(
               return { surface: { kind: "request_info", payload: e } };
 
             case "cart":
-              return { cart: { lines: e.lines, subtotal: e.subtotal } };
+              // FLOW-8 invariant: the displayed subtotal always equals the sum
+              // of price x qty over the displayed lines. Recompute locally so a
+              // stale or inconsistent event can never desynchronize the two.
+              return {
+                cart: { lines: e.lines, subtotal: computeCartSubtotal(e.lines, e.subtotal) },
+              };
 
             case "checkout":
               return {
                 surface: { kind: "checkout", payload: e },
                 pollingOrderId: e.orderId,
+                // The LLM path carries no perishable info; clear any stale one.
+                checkoutPerishableWarning: null,
               };
 
             case "order_confirmed":
@@ -415,6 +451,8 @@ export const useAppStore = create<AppState>()(
           quickOptions: null,
           recipient: null,
           giftMessage: null,
+          checkoutFlowActive: false,
+          checkoutPerishableWarning: null,
         })),
 
       /** Clear the conversation timeline only - keeps cart, locale, currency. */
@@ -438,10 +476,20 @@ export const useAppStore = create<AppState>()(
           const lines = s.cart.lines.filter(
             (l) => !(l.productId === productId && (l.variantId ?? "") === (variantId ?? "")),
           );
-          const amount = lines.reduce((n, l) => n + l.price.amount * l.qty, 0);
-          return {
-            cart: { lines, subtotal: { amount, currency: s.cart.subtotal.currency } },
-          };
+          return { cart: { lines, subtotal: computeCartSubtotal(lines, s.cart.subtotal) } };
+        }),
+
+      setCartLineQty: (productId, qty, variantId) =>
+        set((s) => {
+          const clamped = Math.max(0, Math.min(99, Math.round(qty)));
+          const lines = s.cart.lines
+            .map((l) =>
+              l.productId === productId && (l.variantId ?? "") === (variantId ?? "")
+                ? { ...l, qty: clamped }
+                : l,
+            )
+            .filter((l) => l.qty > 0);
+          return { cart: { lines, subtotal: computeCartSubtotal(lines, s.cart.subtotal) } };
         }),
 
       setRecipient: (recipient, giftMessage) =>
@@ -514,6 +562,7 @@ export const useAppStore = create<AppState>()(
                 label: "Delivery date",
                 type: "date",
                 required: true,
+                defaultValue: d.deliveryDate,
               },
               {
                 name: "gift_message",
@@ -532,7 +581,7 @@ export const useAppStore = create<AppState>()(
           };
         }),
 
-      applyDirectCheckout: ({ orderId, payUrl, expiresAt, summary }) =>
+      applyDirectCheckout: ({ orderId, payUrl, expiresAt, summary, perishableWarning }) =>
         set(() => {
           const synthetic: CheckoutEvent = {
             type: "checkout",
@@ -546,6 +595,7 @@ export const useAppStore = create<AppState>()(
             pollingOrderId: orderId,
             status: { state: "idle" as StatusState },
             checkoutFlowActive: false,
+            checkoutPerishableWarning: perishableWarning ?? null,
           };
         }),
 

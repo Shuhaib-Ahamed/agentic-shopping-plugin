@@ -1,7 +1,7 @@
 import type { Field, RequestInfoEvent } from "@kapruka/protocol";
 import { motion, useReducedMotion } from "motion/react";
 import { useId, useState, type FormEvent } from "react";
-import { Button, Input } from "@/components/atoms";
+import { Button, Input, Textarea } from "@/components/atoms";
 import { CityAutocompleteField, DatePickerField, type CityOption } from "@/components/molecules";
 import { pickStrings } from "@/i18n";
 import { instant, springs } from "@/lib/motion";
@@ -38,17 +38,34 @@ export function DeliveryForm({ event, onCityQuery, onSubmit, isPending }: Delive
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    // The submit button is disabled while pending, but Enter in a field still
+    // fires submit; swallow it so one checkout cannot post twice.
+    if (isPending) return;
     const next: Record<string, string> = {};
     for (const f of event.fields) {
       const v = values[f.name]?.trim() ?? "";
-      if (f.required && v.length === 0) next[f.name] = "Required";
+      if (f.required && v.length === 0) {
+        next[f.name] = "Required";
+        continue;
+      }
+      if (f.type === "tel" && v.length > 0 && v.replace(/\D/g, "").length < 7) {
+        next[f.name] = "Enter at least 7 digits";
+      }
+      if (f.type === "email" && v.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+        next[f.name] = "Enter a valid email";
+      }
     }
     if (Object.keys(next).length > 0) {
       setErrors(next);
+      // Move focus to the first invalid field, in the order the form renders.
+      const first = event.fields.find((f) => next[f.name]);
+      if (first) document.getElementById(`${baseId}-${first.name}`)?.focus();
       return;
     }
     onSubmit(values);
   };
+
+  const errorCount = Object.keys(errors).length;
 
   return (
     <motion.section
@@ -82,6 +99,17 @@ export function DeliveryForm({ event, onCityQuery, onSubmit, isPending }: Delive
               helperText={f.name === "city" ? t.delivery.cityHelp : f.helperText}
             />
           ))}
+        </div>
+        {/* Screen-reader announcement that submission was blocked. Rendered
+            whenever errors exist; visually it doubles as a summary line. */}
+        <div aria-live="polite">
+          {errorCount > 0 && (
+            <p className="mt-3 text-[var(--text-sm)] text-[var(--color-error)]" role="alert">
+              {errorCount === 1
+                ? "1 field needs attention."
+                : `${errorCount} fields need attention.`}
+            </p>
+          )}
         </div>
         <div className="mt-5">
           <Button block size="lg" isPending={isPending}>
@@ -144,17 +172,29 @@ function FieldRender({
         {field.label}
         {field.required && <span className="text-[var(--color-error)] ml-0.5">*</span>}
       </label>
-      <Input
-        id={id}
-        type={field.type === "tel" ? "tel" : field.type === "email" ? "email" : "text"}
-        inputMode={field.type === "tel" ? "tel" : field.type === "email" ? "email" : "text"}
-        autoComplete={autoCompleteFor(field.name)}
-        placeholder={field.placeholder}
-        value={value}
-        invalid={Boolean(error)}
-        onChange={(e) => onChange(e.target.value)}
-        maxLength={field.maxLength}
-      />
+      {field.type === "textarea" ? (
+        <Textarea
+          id={id}
+          placeholder={field.placeholder}
+          value={value}
+          invalid={Boolean(error)}
+          onChange={(e) => onChange(e.target.value)}
+          maxLength={field.maxLength}
+          rows={3}
+        />
+      ) : (
+        <Input
+          id={id}
+          type={field.type === "tel" ? "tel" : field.type === "email" ? "email" : "text"}
+          inputMode={field.type === "tel" ? "tel" : field.type === "email" ? "email" : "text"}
+          autoComplete={autoCompleteFor(field.name)}
+          placeholder={field.placeholder}
+          value={value}
+          invalid={Boolean(error)}
+          onChange={(e) => onChange(e.target.value)}
+          maxLength={field.maxLength}
+        />
+      )}
       {helperText && !error && (
         <p className="text-[var(--text-xs)] text-[var(--color-text-muted)]">{helperText}</p>
       )}

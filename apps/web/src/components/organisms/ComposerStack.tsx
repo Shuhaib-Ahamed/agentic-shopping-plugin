@@ -53,7 +53,7 @@ export function ComposerStack({ tray, banner, options, composer, className }: Co
   const hasOptions = isMeaningful(options);
 
   return (
-    <div className={cn("relative w-full max-w-[1200px] mx-auto px-3 md:px-6 pb-2", className)}>
+    <div className={cn("relative w-full max-w-[1200px] mx-auto px-4 md:px-6 pb-2", className)}>
       <motion.div layout="position" className="flex flex-col gap-2">
         <AnimatePresence initial={false} mode="popLayout">
           {hasTray && (
